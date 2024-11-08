@@ -39,6 +39,7 @@ const objects = {
 };
 
 let selectedGate = null;
+let rotation = 0;
 let mouseX = 0, mouseY = 0;
 let showGhost = false;
 const placedGates = [];
@@ -53,38 +54,48 @@ bufferCanvas.height = canvas.height;
 function drawGrid() {
     // Draw all placed gates on the buffer
     placedGates.forEach(gate => {
-        drawGate(gate.x, gate.y, gate.type, bufferContext);
+        drawGate(gate.x, gate.y, gate.type, gate.rotation, bufferContext);
     });
 }
 
 // Draw a gate
-function drawGate(x, y, gateType, ctx = context) {
+function drawGate(x, y, gateType, rotation, ctx = context) {
     const gate = objects[gateType];
-
     if (!gate) return;
-    ctx.fillStyle = gate.color;
-    ctx.fillRect(x, y, gridSize * gate.size, gridSize * gate.size);
 
+    const gateSizePx = gridSize * gate.size;
+
+    // Translate to the center of the gate, then rotate
+    ctx.save();  // Save the current context state
+    ctx.translate(x + gateSizePx / 2, y + gateSizePx / 2);
+    ctx.rotate((rotation * Math.PI) / 180);
+
+    // Draw the gate at the transformed origin
+    ctx.fillStyle = gate.color;
+    ctx.fillRect(-gateSizePx / 2, -gateSizePx / 2, gateSizePx, gateSizePx);
+
+    // Draw the label
     ctx.fillStyle = "white";
     ctx.font = "10px Arial";
     ctx.textAlign = "center";
-    ctx.fillText(gate.label, x + (gridSize * gate.size) / 2, y + (gridSize * gate.size) / 2 + 5);
+    ctx.fillText(gate.label, 0, 5);
 
-    if (gate.type !== "GATE") return;
+    if (gate.type === "GATE") {
+        // Draw input connectors
+        ctx.fillStyle = "black";
+        gate.inputs.forEach(input => {
+            ctx.beginPath();
+            ctx.arc(input.x - gateSizePx / 2, input.y - gateSizePx / 2, 3, 0, Math.PI * 2);
+            ctx.fill();
+        });
 
-    // Draw input connectors
-    ctx.fillStyle = "black";
-    gate.inputs.forEach(input => {
+        // Draw output connector
         ctx.beginPath();
-        ctx.arc(x + input.x, y + input.y, 3, 0, Math.PI * 2);
+        ctx.arc(gate.output.x - gateSizePx / 2, gate.output.y - gateSizePx / 2, 3, 0, Math.PI * 2);
         ctx.fill();
-    });
+    }
 
-    // Draw output connector
-    const output = gate.output;
-    ctx.beginPath();
-    ctx.arc(x + output.x, y + output.y, 3, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.restore();  // Restore the context to its original state
 }
 
 // Select a gate
@@ -111,6 +122,18 @@ function findGate(snappedX, snappedY) {
     });
 }
 
+function rotatePoint(px, py, angle, gateCenterX, gateCenterY) {
+    const radians = (angle * Math.PI) / 180;
+    const cos = Math.cos(radians);
+    const sin = Math.sin(radians);
+    const dx = px - gateCenterX;
+    const dy = py - gateCenterY;
+    return {
+        x: gateCenterX + dx * cos - dy * sin,
+        y: gateCenterY + dx * sin + dy * cos
+    };
+}
+
 // Place a gate on click
 canvas.addEventListener("click", (event) => {
     const rect = canvas.getBoundingClientRect();
@@ -125,29 +148,35 @@ canvas.addEventListener("click", (event) => {
         // Check if click is near any connector for this gate
         const gateType = objects[gate.type];
         const clickRadius = 10;
-
+        const gateCenterX = gate.x + (gridSize * gateType.size) / 2;
+        const gateCenterY = gate.y + (gridSize * gateType.size) / 2;
+        const rotation = gate.rotation || 0;  // Assume gate has a rotation property
+    
+        // Check each input connector
         gateType.inputs.forEach(input => {
-            if (Math.hypot(x - (gate.x + input.x), y - (gate.y + input.y)) < clickRadius) {
-                connectorClicked("IN", input, gate);
+            const rotatedInput = rotatePoint(gate.x + input.x, gate.y + input.y, rotation, gateCenterX, gateCenterY);
+            if (Math.hypot(x - rotatedInput.x, y - rotatedInput.y) < clickRadius) {
+                connectorClicked("IN", rotatedInput.x, rotatedInput.y , gate);
                 toggleSelectGate(selectedGate);
                 drawCanvas();
                 return;
-            };
+            }
         });
-
-        if (Math.hypot(x - (gate.x + gateType.output.x), y - (gate.y + gateType.output.y)) < clickRadius) {
-            connectorClicked("OUT", gateType.output, gate)
+    
+        // Check the output connector
+        const rotatedOutput = rotatePoint(gate.x + gateType.output.x, gate.y + gateType.output.y, rotation, gateCenterX, gateCenterY);
+        if (Math.hypot(x - rotatedOutput.x, y - rotatedOutput.y) < clickRadius) {
+            connectorClicked("OUT", rotatedOutput.x, rotatedOutput.y, gate);
             toggleSelectGate(selectedGate);
             drawCanvas();
             return;
-        };
-        return;
+        }
     }
 
     if (!selectedGate) return;
 
     // Place new gate if no connector clicked
-    placedGates.push({ x: snappedX, y: snappedY, type: selectedGate });
+    placedGates.push({ x: snappedX, y: snappedY, type: selectedGate, rotation: rotation});
     drawGrid();
 });
 
@@ -175,7 +204,7 @@ function drawCanvas() {
         if (findGate(snappedX, snappedY)) return;
         
         context.globalAlpha = 0.5;  // Set transparency for ghost gate
-        drawGate(snappedX, snappedY, selectedGate, context);
+        drawGate(snappedX, snappedY, selectedGate, rotation, context);
         context.globalAlpha = 1.0;  // Reset transparency
 
         return;
@@ -192,6 +221,7 @@ function drawCanvas() {
         wireStart.direction === "vertical"? wireStart.x: snappedX, 
         wireStart.direction === "vertical"? snappedY: wireStart.y, 
         "CROSS", 
+        rotation,
         context
     );
 }
@@ -199,7 +229,7 @@ function drawCanvas() {
 let wireStart = null;
 let placedWires = [];
 
-function connectorClicked(connectorType, connector, gate) {
+function connectorClicked(connectorType, x, y, gate) {
     console.log(connectorType)
     toggleSelectGate(selectedGate);
     drawCanvas();
@@ -209,8 +239,19 @@ function connectorClicked(connectorType, connector, gate) {
         return;
     }
 
-    wireStart = {x: gate.x, y: gate.y + Math.floor(connector.y / gridSize) * gridSize, direction: null};
+    wireStart = {x: gate.x, y: gate.y + Math.floor(y / gridSize) * gridSize, direction: null};
 }
+
+document.addEventListener("keydown", (event) => {
+    switch(event.key) {
+        case "z":
+            rotation = rotation === 360? 90: rotation + 90;
+            drawCanvas();
+            break;
+        default:
+            break;
+    }
+})
 
 // Initial drawing of grid
 drawGrid();
