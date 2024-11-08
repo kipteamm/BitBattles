@@ -1,0 +1,21 @@
+body {
+    overflow: hidden;
+    user-select: none;
+}
+
+div.toolbar {
+    position: fixed;
+    width: 100vw;
+    height: 50px;
+    background-color: var(--bg-pri);
+    border-bottom: solid 2px var(--bg-sec);
+}
+
+canvas {
+    display: block;
+    padding: 0;
+    margin: 0;
+    background-position: 10px 10px;
+    background-size: 20px 20px;
+    background-image: radial-gradient(circle, var(--bg-sec) 1px, rgba(0, 0, 0, 0) 1px);
+}

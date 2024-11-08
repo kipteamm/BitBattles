@@ -1,0 +1,21 @@
+# Ignore virtual environments
+/.venv
+venv/
+.venv
+
+# Ignore migration files
+/migrations
+migrations/
+
+# Ignore any (py)caches
+/__pycache__
+__pycache__/
+__cache__/
+
+# Ignore site specific files
+db.sqlite3
+db.sqlite3-journal
+
+# Ignore config files
+config.py
+secrets.py
