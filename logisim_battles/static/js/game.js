@@ -30,12 +30,6 @@ const objects = {
         inputs: [{ x: 0, y: 10 }],
         output: { x: 20, y: 10 }
     },
-    CROSS: {
-        label: "C",
-        color: "#00FF00",
-        type: "WIRE",
-        size: 1,
-    }
 };
 
 let selectedGate = null;
@@ -56,6 +50,9 @@ function drawGrid() {
     placedGates.forEach(gate => {
         drawGate(gate.x, gate.y, gate.type, gate.rotation, bufferContext);
     });
+    placedWires.forEach(wire => {
+        drawWire(wire.startX, wire.startY, wire.endX, wire.endY, bufferContext);
+    })
 }
 
 // Draw a gate
@@ -80,22 +77,30 @@ function drawGate(x, y, gateType, rotation, ctx = context) {
     ctx.textAlign = "center";
     ctx.fillText(gate.label, 0, 5);
 
-    if (gate.type === "GATE") {
-        // Draw input connectors
-        ctx.fillStyle = "black";
-        gate.inputs.forEach(input => {
-            ctx.beginPath();
-            ctx.arc(input.x - gateSizePx / 2, input.y - gateSizePx / 2, 3, 0, Math.PI * 2);
-            ctx.fill();
-        });
-
-        // Draw output connector
+    // Draw input connectors
+    ctx.fillStyle = "black";
+    gate.inputs.forEach(input => {
         ctx.beginPath();
-        ctx.arc(gate.output.x - gateSizePx / 2, gate.output.y - gateSizePx / 2, 3, 0, Math.PI * 2);
+        ctx.arc(input.x - gateSizePx / 2, input.y - gateSizePx / 2, 3, 0, Math.PI * 2);
         ctx.fill();
-    }
+    });
+
+    // Draw output connector
+    ctx.beginPath();
+    ctx.arc(gate.output.x - gateSizePx / 2, gate.output.y - gateSizePx / 2, 3, 0, Math.PI * 2);
+    ctx.fill();
 
     ctx.restore();  // Restore the context to its original state
+}
+
+// Draw a wire
+function drawWire(startX, startY, endX, endY, ctx = context) {
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
 }
 
 // Select a gate
@@ -220,7 +225,6 @@ function drawCanvas() {
     // console.log(snappedX, snappedY);
     // console.log(snappedX === wireX, snappedY === wireY)
 
-    console.log("straight line");
     context.strokeStyle = "black";
     context.lineWidth = 2;
     context.beginPath();
@@ -232,8 +236,8 @@ function drawCanvas() {
     context.stroke();
 }
 
+const placedWires = [];
 let wireStart = null;
-let placedWires = [];
 
 function connectorClicked(connectorType, x, y, gate) {
     console.log(connectorType)
@@ -242,6 +246,9 @@ function connectorClicked(connectorType, x, y, gate) {
 
     if (wireStart) {
         console.log("connect");
+        placedWires.push({startX: wireStart.x, startY: wireStart.y, endX: x, endY: y});
+        drawGrid();
+        wireStart = null;
         return;
     }
 
