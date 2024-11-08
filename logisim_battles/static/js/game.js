@@ -9,16 +9,16 @@ const gates = {
     AND: {
         label: "AND",
         color: "#ffcc00",
-        size: 2,
-        inputs: [{ x: 0, y: 10 }, { x: 0, y: 30 }],
-        output: { x: 40, y: 20 }
+        size: 3,
+        inputs: [{ x: 0, y: 10 }, { x: 0, y: 30 }, { x: 0, y: 50 }],
+        output: { x: 60, y: 30 }
     },
     OR: {
         label: "OR",
         color: "#0099ff",
-        size: 2,
-        inputs: [{ x: 0, y: 10 }, { x: 0, y: 30 }],
-        output: { x: 40, y: 20 }
+        size: 3,
+        inputs: [{ x: 0, y: 10 }, { x: 0, y: 30 }, { x: 0, y: 50 }],
+        output: { x: 60, y: 30 }
     },
     NOT: {
         label: "NOT",
@@ -50,25 +50,26 @@ function drawGrid() {
 
 // Draw a gate
 function drawGate(x, y, gateType, ctx = context) {
-    if (!gates[gateType]) return;
-    ctx.fillStyle = gates[gateType].color;
-    ctx.fillRect(x, y, gridSize * gates[gateType].size, gridSize * gates[gateType].size);
+    const gate = gates[gateType];
+    if (!gate) return;
+    ctx.fillStyle = gate.color;
+    ctx.fillRect(x, y, gridSize * gate.size, gridSize * gate.size);
 
     ctx.fillStyle = "white";
-    ctx.font = "12px Arial";
+    ctx.font = "10px Arial";
     ctx.textAlign = "center";
-    ctx.fillText(gates[gateType].label, x + 20, y + 26);
+    ctx.fillText(gate.label, x + (gridSize * gate.size) / 2, y + (gridSize * gate.size) / 2 + 5);
 
     // Draw input connectors
     ctx.fillStyle = "black";
-    gates[gateType].inputs.forEach(input => {
+    gate.inputs.forEach(input => {
         ctx.beginPath();
         ctx.arc(x + input.x, y + input.y, 3, 0, Math.PI * 2);
         ctx.fill();
     });
 
     // Draw output connector
-    const output = gates[gateType].output;
+    const output = gate.output;
     ctx.beginPath();
     ctx.arc(x + output.x, y + output.y, 3, 0, Math.PI * 2);
     ctx.fill();
@@ -88,18 +89,10 @@ function toggleSelectGate(type) {
     showGhost = true;
 }
 
-// Place a gate on click
-canvas.addEventListener("click", (event) => {
-    const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-
-    const snappedX = Math.floor(x / gridSize) * gridSize;
-    const snappedY = Math.floor(y / gridSize) * gridSize;
-
-    const gate = placedGates.find(_gate => {
+function findGate(snappedX, snappedY) {
+    return placedGates.find(_gate => {
         const gateSize = gridSize * gates[_gate.type].size;
-        const newGateSize = selectedGate? gridSize * gates[selectedGate].size: 100;
+        const newGateSize = selectedGate? gridSize * gates[selectedGate].size: gridSize * 3;
     
         // Check if any part of the new gate overlaps the existing gate
         return (
@@ -109,7 +102,18 @@ canvas.addEventListener("click", (event) => {
             snappedY + newGateSize > _gate.y
         );
     });
-    
+}
+
+// Place a gate on click
+canvas.addEventListener("click", (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    const snappedX = Math.floor(x / gridSize) * gridSize;
+    const snappedY = Math.floor(y / gridSize) * gridSize;
+    const gate = findGate(snappedX, snappedY)
+
     if (gate) {
         // Check if click is near any connector for this gate
         const gateType = gates[gate.type];
@@ -166,6 +170,7 @@ function drawCanvas() {
     if (!showGhost) return;
     const snappedX = Math.floor(mouseX / gridSize) * gridSize;
     const snappedY = Math.floor(mouseY / gridSize) * gridSize;
+    if (findGate(snappedX, snappedY)) return;
 
     context.globalAlpha = 0.5;  // Set transparency for ghost gate
     drawGate(snappedX, snappedY, selectedGate, context);
