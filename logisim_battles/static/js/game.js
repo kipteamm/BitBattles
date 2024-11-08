@@ -211,19 +211,25 @@ function drawCanvas() {
     };
 
     if (!wireStart) return;
-    if (snappedX === wireStart.x || snappedY === wireStart.y) {
-        console.log("straight line");
 
-        return;
-    }
+    const wireX = wireStart.direction === "VERTICAL"? wireStart.x - 10: wireStart.x;
+    const wireY = wireStart.direction === "HORIZONTAL"? wireStart.y - 10: wireStart.y;
 
-    drawGate(
-        wireStart.direction === "vertical"? wireStart.x: snappedX, 
-        wireStart.direction === "vertical"? snappedY: wireStart.y, 
-        "CROSS", 
-        rotation,
-        context
+    if (snappedX !== wireX && snappedY !== wireY) return;
+    // console.log(wireX, wireY)
+    // console.log(snappedX, snappedY);
+    // console.log(snappedX === wireX, snappedY === wireY)
+
+    console.log("straight line");
+    context.strokeStyle = "black";
+    context.lineWidth = 2;
+    context.beginPath();
+    context.moveTo(wireStart.x, wireStart.y);
+    context.lineTo(
+        snappedY === wireY? snappedX: wireStart.x, 
+        snappedY === wireY? wireStart.y: snappedY
     );
+    context.stroke();
 }
 
 let wireStart = null;
@@ -239,18 +245,30 @@ function connectorClicked(connectorType, x, y, gate) {
         return;
     }
 
-    wireStart = {x: gate.x, y: gate.y + Math.floor(y / gridSize) * gridSize, direction: null};
+    wireStart = {x: x, y: y, direction: gate.rotation % 180 === 0? "HORIZONTAL": "VERTICAL"};
 }
 
 document.addEventListener("keydown", (event) => {
     switch(event.key) {
         case "z":
             rotation = rotation === 360? 90: rotation + 90;
-            drawCanvas();
+            break;
+        case "ArrowUp":
+            rotation = 270;
+            break;
+        case "ArrowLeft":
+            rotation = 180;
+            break;
+        case "ArrowDown":
+            rotation = 90;
+            break;
+        case "ArrowRight":
+            rotation = 0;
             break;
         default:
-            break;
-    }
+            return;
+        }
+    drawCanvas();
 })
 
 // Initial drawing of grid
