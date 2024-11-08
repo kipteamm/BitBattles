@@ -30,6 +30,22 @@ const objects = {
         inputs: [{ x: 0, y: 10 }],
         output: { x: 20, y: 10 }
     },
+    INPUT: {
+        label: "IN",
+        color: "#acbaba",
+        type: "GATE",
+        size: 1,
+        inputs: [],
+        output: { x: 20, y: 10}
+    },
+    OUTPUT: {
+        label: "OUT",
+        color: "#acbaba",
+        type: "GATE",
+        size: 1,
+        inputs: [{ x: 0, y: 10 }],
+        output: {}
+    }
 };
 
 let selectedGate = null;
@@ -46,12 +62,14 @@ bufferCanvas.height = canvas.height;
 
 // Draw grid on buffer canvas
 function drawGrid() {
+    //bufferContext.clearRect(0, 0, canvas.width, canvas.height);
+
     // Draw all placed gates on the buffer
     placedGates.forEach(gate => {
         drawGate(gate.x, gate.y, gate.type, gate.rotation, bufferContext);
     });
     placedWires.forEach(wire => {
-        drawWire(wire.startX, wire.startY, wire.endX, wire.endY, bufferContext);
+        drawWire(wire.startX, wire.startY, wire.endX, wire.endY, wire.state, bufferContext);
     });
 }
 
@@ -75,7 +93,7 @@ function drawGate(x, y, gateType, rotation, ctx = context) {
     ctx.fillStyle = "white";
     ctx.font = "10px Arial";
     ctx.textAlign = "center";
-    ctx.fillText(gate.label, 0, 5);
+    ctx.fillText(gate.label, 0, 4);
 
     // Draw input connectors
     ctx.fillStyle = "black";
@@ -93,20 +111,16 @@ function drawGate(x, y, gateType, rotation, ctx = context) {
     ctx.restore();  // Restore the context to its original state
 }
 
+const wireColors = {"off": "#206e29", "on": "#1cba2e", "test": "blue"};
+
 // Draw a wire
-function drawWire(startX, startY, endX, endY, ctx = context) {
-    ctx.strokeStyle = "black";
+function drawWire(startX, startY, endX, endY, state, ctx = context) {
+    ctx.strokeStyle = wireColors[state];
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(startX, startY);
     ctx.lineTo(endX, endY);
     ctx.stroke();
-}
-
-// Draw inputs
-function drawInput(x, y, ctx = context) {
-    ctx.fillStyle = "black";
-    ctx.fillRect(x, y, gridSize, gridSize);
 }
 
 // Select a gate
@@ -186,9 +200,17 @@ canvas.addEventListener("click", (event) => {
     }
 
     if (!selectedGate) return;
+    const _gate = objects[selectedGate]
 
     // Place new gate if no connector clicked
-    placedGates.push({ x: snappedX, y: snappedY, type: selectedGate, rotation: rotation});
+    placedGates.push({
+        x: snappedX, 
+        y: snappedY, 
+        type: selectedGate, 
+        rotation: rotation, 
+        inputs: _gate.inputs.map((input) => ({x: snappedX + input.x, y: snappedY + input.y})), 
+        output: {x: snappedX + _gate.output.x, y: snappedY + _gate.output.y}
+    });
     drawGrid();
 });
 
@@ -249,7 +271,7 @@ function drawCanvas() {
     // console.log(snappedX, snappedY);
     // console.log(snappedX === wireX, snappedY === wireY)
 
-    context.strokeStyle = "black";
+    context.strokeStyle = wireColors[wireStart.state];
     context.lineWidth = 2;
     context.beginPath();
     context.moveTo(wireStart.x, wireStart.y);
@@ -270,13 +292,13 @@ function connectorClicked(connectorType, x, y, gate) {
 
     if (wireStart) {
         console.log("connect");
-        placedWires.push({startX: wireStart.x, startY: wireStart.y, endX: x, endY: y});
+        placedWires.push({startX: wireStart.x, startY: wireStart.y, endX: x, endY: y, state: "off"});
         drawGrid();
         wireStart = null;
         return;
     }
 
-    wireStart = {x: x, y: y, direction: gate.rotation % 180 === 0? "HORIZONTAL": "VERTICAL"};
+    wireStart = {x: x, y: y, direction: gate.rotation % 180 === 0? "HORIZONTAL": "VERTICAL", state: "off"};
 }
 
 document.addEventListener("keydown", (event) => {
