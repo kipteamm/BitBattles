@@ -65,7 +65,7 @@ function drawGate(x, y, gateType, ctx = context) {
         ctx.beginPath();
         ctx.arc(x + input.x, y + input.y, 3, 0, Math.PI * 2);
         ctx.fill();
-    });6
+    });
 
     // Draw output connector
     const output = gates[gateType].output;
@@ -99,7 +99,7 @@ canvas.addEventListener("click", (event) => {
 
     const gate = placedGates.find(_gate => {
         const gateSize = gridSize * gates[_gate.type].size;
-        const newGateSize = selectedGate? gridSize * gates[selectedGate].size: 0;
+        const newGateSize = selectedGate? gridSize * gates[selectedGate].size: 100;
     
         // Check if any part of the new gate overlaps the existing gate
         return (
@@ -109,11 +109,11 @@ canvas.addEventListener("click", (event) => {
             snappedY + newGateSize > _gate.y
         );
     });
-
+    
     if (gate) {
         // Check if click is near any connector for this gate
         const gateType = gates[gate.type];
-        const clickRadius = 5;
+        const clickRadius = 10;
 
         gateType.inputs.forEach(input => {
             console.log(input)
