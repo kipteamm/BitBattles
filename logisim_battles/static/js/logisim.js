@@ -60,16 +60,39 @@ const objects = {
 const placedGates = [];
 let selectedGate = null;
 let showGhostGate = false;
+let movingGate = null;
 let rotation = 0;
 
 const placedWires = [];
 let wireStart = null;
 
 let mouseX = 0, mouseY = 0;
+let editing = false;
+
+function editMode() {
+    selectedGate = null;
+    showGhostGate = false;
+    wireStart = false;
+    editing = true;
+
+    drawCanvas();
+}
+
+function toggleSelectGate(type) {
+    if (!type) return;
+    selectedGate = selectedGate === type? null: type;
+    showGhostGate = selectedGate === type? true: false;
+    wireStart = null;
+    editing = false;
+
+    drawCanvas();
+}
 
 function drawGrid() {
     placedGates.forEach(gate => {
+        bufferContext.globalAlpha = gate === movingGate? 0.5: 1.0;
         drawGate(gate.x, gate.y, gate.type, gate.rotation, bufferContext);
+        bufferContext.globalAlpha = 1.0;
     });
     placedWires.forEach(wire => {
         drawWire(wire.startX, wire.startY, wire.endX, wire.endY, wire.state, bufferContext);
@@ -114,8 +137,6 @@ function drawGate(x, y, gateType, rotation, ctx = context) {
 }
 
 const wireColors = {"off": "#1d5723", "on": "#1cba2e"};
-
-// Draw a wire
 function drawWire(startX, startY, endX, endY, state, ctx = context) {
     ctx.strokeStyle = wireColors[state];
     ctx.lineWidth = 2;
@@ -123,16 +144,6 @@ function drawWire(startX, startY, endX, endY, state, ctx = context) {
     ctx.moveTo(startX, startY);
     ctx.lineTo(endX, endY);
     ctx.stroke();
-}
-
-// Select a gate
-function toggleSelectGate(type) {
-    if (!type) return;
-    selectedGate = selectedGate === type? null: type;
-    showGhostGate = selectedGate === type? true: false;
-    wireStart = null;
-    
-    drawCanvas();
 }
 
 function findGate(snappedX, snappedY) {
@@ -192,7 +203,6 @@ function checkConnectorClicked(gate, x, y) {
     const gateCenterY = gate.y + (gridSize * gateType.size) / 2;
     const rotation = gate.rotation;
 
-    // Check each input connector
     for (const input of gateType.inputs) {
         const rotatedInput = rotatePoint(gate.x + input.x, gate.y + input.y, rotation, gateCenterX, gateCenterY);
         if (Math.hypot(x - rotatedInput.x, y - rotatedInput.y) > clickRadius) continue;
@@ -201,21 +211,39 @@ function checkConnectorClicked(gate, x, y) {
         placeWire(rotatedInput.x, rotatedInput.y);
         toggleSelectGate(selectedGate);
         drawCanvas();
-        return;
+        return true;
     };
-    
-    // Check the output connector
+
+    if (isNaN(gate.output.x)) return false;
     const rotatedOutput = rotatePoint(gate.x + gateType.output.x, gate.y + gateType.output.y, rotation, gateCenterX, gateCenterY);
-    if (Math.hypot(x - rotatedOutput.x, y - rotatedOutput.y) > clickRadius) return;
+    if (Math.hypot(x - rotatedOutput.x, y - rotatedOutput.y) > clickRadius) return false;
     
     console.log("OUTPUT");
     placeWire(rotatedOutput.x, rotatedOutput.y, gate);
     toggleSelectGate(selectedGate);
     drawCanvas();
+    return true;
 }
 
 function placeGate(snappedX, snappedY) {
-    const _gate = objects[selectedGate]
+    const _gate = objects[selectedGate];
+
+    if (movingGate) {
+        movingGate.x = snappedX;
+        movingGate.y = snappedY;
+        movingGate.rotation = rotation;
+        movingGate.inputs = _gate.inputs.map((input) => ({x: snappedX + input.x, y: snappedY + input.y}));
+        movingGate.output = {x: snappedX + _gate.output.x, y: snappedY + _gate.output.y};
+        movingGate = null;
+        
+        editing = false;
+        selectedGate = null;
+        showGhostGate = false;
+
+        bufferContext.clearRect(0, 0, bufferCanvas.width, bufferCanvas.height);
+        drawGrid();
+        return drawCanvas();
+    }
 
     placedGates.push({
         x: snappedX, 
@@ -248,6 +276,17 @@ function placeWire(snappedX, snappedY) {
     drawGrid();
 }
 
+function moveGate(gate) {
+    movingGate = gate;
+    showGhostGate = true;
+    selectedGate = gate.type;
+
+    bufferContext.clearRect(0, 0, canvas.width, canvas.height);
+
+    drawGrid();
+    drawCanvas();
+}
+
 canvas.addEventListener("click", (event) => {
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
@@ -257,7 +296,12 @@ canvas.addEventListener("click", (event) => {
     const snappedY = Math.floor(y / gridSize) * gridSize;
     const gate = findGate(snappedX, snappedY)
 
-    if (gate) return checkConnectorClicked(gate, x, y);
+    if (gate) {
+        if (checkConnectorClicked(gate, x, y)) return;
+
+        return moveGate(gate);
+    }
+
     if (selectedGate) return placeGate(snappedX, snappedY);
     if (wireStart) return placeWire(snappedX + 10, snappedY + 10);
     const wire = findWire(snappedX, snappedY);
@@ -307,7 +351,7 @@ function drawGhostGate(snappedX, snappedY) {
     if (!selectedGate) return;
     if (findGate(snappedX, snappedY)) return;
         
-    context.globalAlpha = 0.5;  // Set transparency for ghost gate
+    context.globalAlpha = editing? 1.0: 0.5;  // Set transparency for ghost gate
     drawGate(snappedX, snappedY, selectedGate, rotation, context);
     context.globalAlpha = 1.0;  // Reset transparency
 

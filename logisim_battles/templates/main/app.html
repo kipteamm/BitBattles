@@ -7,13 +7,14 @@
     <title>Logisim Battles</title>
 
     <script src="/static/js/logisim.js" defer></script>
-    <script src="/static/js/simulation.js" defer></script>
+    <script src="/static/js/simulation.js"></script>
     <script src="/static/js/game.js" defer></script>
     <link rel="stylesheet" type="text/css" href="/static/css/game.css">
     <link rel="stylesheet" type="text/css" href="/static/css/basics.css">
 </head>
 <body>
     <div class="toolbar">
+        <button onclick="editMode()">Edit</button>
         <button onclick="toggleSelectGate('INPUT')">INPUT</button>
         <button onclick="toggleSelectGate('OUTPUT')">OUTPUT</button>
         <button onclick="toggleSelectGate('AND')">AND</button>
