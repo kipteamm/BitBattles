@@ -150,6 +150,30 @@ function findGate(snappedX, snappedY) {
     });
 }
 
+function findWire(snappedX, snappedY) {
+    return placedWires.find(_wire => {
+        const horizontal = _wire.startY === _wire.endY;
+
+        if (horizontal) {
+            const minX = Math.min(_wire.startX, _wire.endX);
+            const maxX = Math.max(_wire.startX, _wire.endX);  
+
+            return (
+                snappedY === _wire.startY - (_wire.startY % gridSize) &&
+                snappedX >= minX && snappedX <= maxX
+            );
+        }
+
+        const minY = Math.min(_wire.startY, _wire.endY);
+        const maxY = Math.max(_wire.startY, _wire.endY);
+
+        return (
+            snappedX === _wire.startX - (_wire.startX % gridSize) &&
+            snappedY >= minY && snappedY <= maxY
+        );
+    });
+}
+
 function rotatePoint(px, py, angle, gateCenterX, gateCenterY) {
     const radians = (angle * Math.PI) / 180;
     const cos = Math.cos(radians);
@@ -230,6 +254,9 @@ canvas.addEventListener("click", (event) => {
     if (gate) return checkConnectorClicked(gate, x, y);
     if (selectedGate) return placeGate(snappedX, snappedY);
     if (wireStart) return placeWire(snappedX, snappedY);
+    const wire = findWire(snappedX, snappedY);
+    
+    console.log(wire);
 });
 
 canvas.addEventListener("contextmenu", (event) => {
