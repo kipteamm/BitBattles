@@ -163,8 +163,12 @@ function findWire(snappedX, snappedY) {
             );
         }
 
+        
         const minY = Math.min(_wire.startY, _wire.endY);
         const maxY = Math.max(_wire.startY, _wire.endY);
+        console.log(_wire);
+        console.log(snappedX, snappedY);
+        console.log(minY, maxY);
 
         return (
             snappedX === _wire.startX - (_wire.startX % gridSize) &&
@@ -233,6 +237,8 @@ function placeWire(snappedX, snappedY) {
         wireStart = {x: snappedX, y: snappedY, direction: null, state: "off"};
         return;
     }
+
+    if (snappedX !== wireStart.x && snappedY !== wireStart.y) return;
 
     placedWires.push({
         startX: wireStart.x, 
@@ -321,15 +327,14 @@ function drawGhostWire(snappedX, snappedY) {
     wireStart.direction = direction;
     const offSet = findGate(snappedX, snappedY)? 0: 10;
 
-    context.strokeStyle = wireColors[wireStart.state];
-    context.lineWidth = 2;
-    context.beginPath();
-    context.moveTo(wireStart.x, wireStart.y);
-    context.lineTo(
-        snappedY === wireY? snappedX - offSet: wireStart.x, 
-        snappedY === wireY? wireStart.y: snappedY - offSet
-    );
-    context.stroke();
+    drawWire(
+        wireStart.x, 
+        wireStart.y,
+        direction === "HORIZONTAL"? snappedX + offSet: wireStart.x, 
+        direction === "HORIZONTAL"? wireStart.y: snappedY + offSet,
+        "off",
+        context,
+    )
 }
 
 function drawCanvas() {
