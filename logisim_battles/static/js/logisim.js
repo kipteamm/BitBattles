@@ -159,20 +159,16 @@ function findWire(snappedX, snappedY) {
 
             return (
                 snappedY === _wire.startY - (_wire.startY % gridSize) &&
-                snappedX >= minX && snappedX <= maxX
+                snappedX >= minX - 10 && snappedX <= maxX
             );
         }
-
         
         const minY = Math.min(_wire.startY, _wire.endY);
         const maxY = Math.max(_wire.startY, _wire.endY);
-        console.log(_wire);
-        console.log(snappedX, snappedY);
-        console.log(minY, maxY);
 
         return (
             snappedX === _wire.startX - (_wire.startX % gridSize) &&
-            snappedY >= minY && snappedY <= maxY
+            snappedY >= minY - 10 && snappedY <= maxY
         );
     });
 }
