@@ -1,12 +1,3 @@
-const gateEvaluators = {
-    INPUT: (states) => states[0] ?? 1,
-    OUTPUT: (states) => states[0] ?? 0,
-    AND: (states) => (states.filter(s => s === 1).length >= 2) ? 1 : 0,
-    OR: (states) => states.some(s => s === 1) ? 1 : 0,
-    NOT: (states) => (states[0] === 1) ? 0 : 1
-};
-
-
 function resetCircuit() {
     placedGates.forEach(gate => {
         gate.inputStates = gate.inputs.map(() => null);
@@ -35,12 +26,12 @@ function findOutputWire(gate) {
 }
 
 function evaluateGate(gate) {
-    const evaluator = gateEvaluators[gate.type];
-    if (!evaluator) return 0;
+    const _gate = objects[gate.type]
+    if (!_gate) return 0;
 
     // Default any null inputs to 0 for evaluation
     const inputStates = gate.inputStates.map(state => state ?? 0);
-    return evaluator(inputStates);
+    return _gate.evaluate(inputStates, gate);
 }
 
 function propagateSignal(gate, visited = new Set()) {
@@ -71,6 +62,7 @@ function simulate() {
 
     const inputGates = placedGates.filter(gate => gate.type === "INPUT");
     inputGates.forEach(inputGate => {
+        inputGate.value = 1;
         propagateSignal(inputGate, new Set());
     });
 

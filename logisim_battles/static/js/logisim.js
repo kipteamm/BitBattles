@@ -13,6 +13,7 @@ const objects = {
         size: 3,
         inputs: [{ x: 0, y: 10 }, { x: 0, y: 30 }, { x: 0, y: 50 }],
         output: { x: 60, y: 30 },
+        evaluate: (states) => (states.filter(s => s === 1).length >= 2) ? 1 : 0,
     },
     OR: {
         label: "OR",
@@ -21,6 +22,7 @@ const objects = {
         size: 3,
         inputs: [{ x: 0, y: 10 }, { x: 0, y: 30 }, { x: 0, y: 50 }],
         output: { x: 60, y: 30 },
+        evaluate: (states) => states.some(s => s === 1) ? 1 : 0,
     },
     NOT: {
         label: "NOT",
@@ -29,6 +31,7 @@ const objects = {
         size: 1,
         inputs: [{ x: 0, y: 10 }],
         output: { x: 20, y: 10 },
+        evaluate: (states) => !states[0],
     },
     INPUT: {
         label: "IN",
@@ -37,6 +40,7 @@ const objects = {
         size: 1,
         inputs: [],
         output: { x: 20, y: 10},
+        evaluate: (states, input) => input.value,
     },
     OUTPUT: {
         label: "OUT",
@@ -45,6 +49,7 @@ const objects = {
         size: 1,
         inputs: [{ x: 0, y: 10 }],
         output: {},
+        evaluate: (states) => states[0] ?? 0,
     }
 };
 
