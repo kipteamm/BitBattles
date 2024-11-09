@@ -1,8 +1,12 @@
 const canvas = document.getElementById("game");
 const context = canvas.getContext("2d");
-
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
+
+const bufferCanvas = document.createElement("canvas");
+const bufferContext = bufferCanvas.getContext("2d");
+bufferCanvas.width = canvas.width;
+bufferCanvas.height = canvas.height;
 
 const gridSize = 20;
 const objects = {
@@ -53,21 +57,17 @@ const objects = {
     }
 };
 
-let selectedGate = null;
-let rotation = 0;
-let mouseX = 0, mouseY = 0;
-let showGhost = false;
 const placedGates = [];
+let selectedGate = null;
+let showGhostGate = false;
+let rotation = 0;
 
-// Off-screen buffer canvas
-const bufferCanvas = document.createElement("canvas");
-const bufferContext = bufferCanvas.getContext("2d");
-bufferCanvas.width = canvas.width;
-bufferCanvas.height = canvas.height;
+const placedWires = [];
+let wireStart = null;
 
-// Draw grid on buffer canvas
+let mouseX = 0, mouseY = 0;
+
 function drawGrid() {
-    // Draw all placed gates on the buffer
     placedGates.forEach(gate => {
         drawGate(gate.x, gate.y, gate.type, gate.rotation, bufferContext);
     });
@@ -76,7 +76,6 @@ function drawGrid() {
     });
 }
 
-// Draw a gate
 function drawGate(x, y, gateType, rotation, ctx = context) {
     const gate = objects[gateType];
     if (!gate) return;
@@ -84,7 +83,7 @@ function drawGate(x, y, gateType, rotation, ctx = context) {
     const gateSizePx = gridSize * gate.size;
 
     // Translate to the center of the gate, then rotate
-    ctx.save();  // Save the current context state
+    ctx.save();
     ctx.translate(x + gateSizePx / 2, y + gateSizePx / 2);
     ctx.rotate((rotation * Math.PI) / 180);
 
@@ -111,7 +110,7 @@ function drawGate(x, y, gateType, rotation, ctx = context) {
     ctx.arc(gate.output.x - gateSizePx / 2, gate.output.y - gateSizePx / 2, 3, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.restore();  // Restore the context to its original state
+    ctx.restore();
 }
 
 const wireColors = {"off": "#1d5723", "on": "#1cba2e"};
@@ -130,7 +129,8 @@ function drawWire(startX, startY, endX, endY, state, ctx = context) {
 function toggleSelectGate(type) {
     if (!type) return;
     selectedGate = selectedGate === type? null: type;
-    showGhost = selectedGate === type? true: false;
+    showGhostGate = selectedGate === type? true: false;
+    wireStart = null;
     
     drawCanvas();
 }
@@ -138,14 +138,13 @@ function toggleSelectGate(type) {
 function findGate(snappedX, snappedY) {
     return placedGates.find(_gate => {
         const gateSize = gridSize * objects[_gate.type].size;
-        const newGateSize = gridSize * (selectedGate? objects[selectedGate].size: 1);
+        const overlapSize = gridSize * (selectedGate? objects[selectedGate].size: 1);
     
-        // Check if any part of the new gate overlaps the existing gate
         return (
             snappedX < _gate.x + gateSize &&
-            snappedX + newGateSize > _gate.x &&
+            snappedX + overlapSize > _gate.x &&
             snappedY < _gate.y + gateSize &&
-            snappedY + newGateSize > _gate.y
+            snappedY + overlapSize > _gate.y
         );
     });
 }
@@ -194,23 +193,23 @@ function checkConnectorClicked(gate, x, y) {
     const rotation = gate.rotation;
 
     // Check each input connector
-    gateType.inputs.forEach(input => {
+    for (const input of gateType.inputs) {
         const rotatedInput = rotatePoint(gate.x + input.x, gate.y + input.y, rotation, gateCenterX, gateCenterY);
-        if (Math.hypot(x - rotatedInput.x, y - rotatedInput.y) > clickRadius) return;
+        if (Math.hypot(x - rotatedInput.x, y - rotatedInput.y) > clickRadius) continue;
         
         console.log("INPUT");
-        connectorClicked(rotatedInput.x, rotatedInput.y , gate);
+        placeWire(rotatedInput.x, rotatedInput.y);
         toggleSelectGate(selectedGate);
         drawCanvas();
         return;
-    });
-        
+    };
+    
     // Check the output connector
     const rotatedOutput = rotatePoint(gate.x + gateType.output.x, gate.y + gateType.output.y, rotation, gateCenterX, gateCenterY);
     if (Math.hypot(x - rotatedOutput.x, y - rotatedOutput.y) > clickRadius) return;
-
+    
     console.log("OUTPUT");
-    connectorClicked(rotatedOutput.x, rotatedOutput.y, gate);
+    placeWire(rotatedOutput.x, rotatedOutput.y, gate);
     toggleSelectGate(selectedGate);
     drawCanvas();
 }
@@ -230,20 +229,21 @@ function placeGate(snappedX, snappedY) {
 }
 
 function placeWire(snappedX, snappedY) {
+    if (!wireStart) {
+        wireStart = {x: snappedX, y: snappedY, direction: null, state: "off"};
+        return;
+    }
+
     placedWires.push({
         startX: wireStart.x, 
         startY: wireStart.y, 
-        endX: wireStart.direction === "VERTICAL"? snappedX + 10: snappedX - 10, 
-        endY: wireStart.direction === "HORIZONTAL"? snappedY + 10: snappedY - 10, 
+        endX: wireStart.direction === "VERTICAL"? snappedX: snappedX, 
+        endY: wireStart.direction === "HORIZONTAL"? snappedY: snappedY, 
         state: "off"
     });
 
     wireStart = null;
     drawGrid();
-}
-
-function startWire(snappedX, snappedY) {
-    wireStart = {x: snappedX + 10, y: snappedY + 10, direction: null};
 }
 
 canvas.addEventListener("click", (event) => {
@@ -257,10 +257,10 @@ canvas.addEventListener("click", (event) => {
 
     if (gate) return checkConnectorClicked(gate, x, y);
     if (selectedGate) return placeGate(snappedX, snappedY);
-    if (wireStart) return placeWire(snappedX, snappedY);
+    if (wireStart) return placeWire(snappedX + 10, snappedY + 10);
     const wire = findWire(snappedX, snappedY);
     
-    if (wire) return startWire(snappedX, snappedY, wire);
+    if (wire) return placeWire(snappedX + 10, snappedY + 10);
 });
 
 canvas.addEventListener("contextmenu", (event) => {
@@ -300,26 +300,19 @@ canvas.addEventListener("mousemove", (event) => {
     drawCanvas();
 });
 
-// Render buffer canvas and ghost gate
-function drawCanvas() {
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(bufferCanvas, 0, 0);  // Draw buffer onto main canvas
-
-    if (!showGhost && !wireStart) return;
-    const snappedX = Math.floor(mouseX / gridSize) * gridSize;
-    const snappedY = Math.floor(mouseY / gridSize) * gridSize;
-    
-    if (selectedGate) {
-        if (findGate(snappedX, snappedY)) return;
+// Render buffer canvas
+function drawGhostGate(snappedX, snappedY) {
+    if (!selectedGate) return;
+    if (findGate(snappedX, snappedY)) return;
         
-        context.globalAlpha = 0.5;  // Set transparency for ghost gate
-        drawGate(snappedX, snappedY, selectedGate, rotation, context);
-        context.globalAlpha = 1.0;  // Reset transparency
+    context.globalAlpha = 0.5;  // Set transparency for ghost gate
+    drawGate(snappedX, snappedY, selectedGate, rotation, context);
+    context.globalAlpha = 1.0;  // Reset transparency
 
-        return;
-    };
+    return;
+}
 
-    if (!wireStart) return;
+function drawGhostWire(snappedX, snappedY) {
     const direction = wireStart.y - (wireStart.y % gridSize) === snappedY? "HORIZONTAL": "VERTICAL";
     const wireX = direction === "VERTICAL"? wireStart.x - 10: wireStart.x;
     const wireY = direction === "HORIZONTAL"? wireStart.y - 10: wireStart.y;
@@ -339,23 +332,16 @@ function drawCanvas() {
     context.stroke();
 }
 
-const placedWires = [];
-let wireStart = null;
+function drawCanvas() {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(bufferCanvas, 0, 0);
+    if (!showGhostGate && !wireStart) return;
 
-function connectorClicked(x, y, gate) {
-    toggleSelectGate(selectedGate);
-    drawCanvas();
-
-    if (wireStart) {
-        console.log("connect");
-        placedWires.push({startX: wireStart.x, startY: wireStart.y, endX: x, endY: y, state: "off"});
-        drawGrid();
-        wireStart = null;
-        return;
-    }
-
-    // wireStart = {x: x, y: y, direction: gate.rotation % 180 === 0? "HORIZONTAL": "VERTICAL", state: "off"};
-    wireStart = {x: x, y: y, direction: null, state: "off"};
+    const snappedX = Math.floor(mouseX / gridSize) * gridSize;
+    const snappedY = Math.floor(mouseY / gridSize) * gridSize;
+    
+    if (showGhostGate) return drawGhostGate(snappedX, snappedY);
+    if (wireStart) return drawGhostWire(snappedX, snappedY);
 }
 
 document.addEventListener("keydown", (event) => {
