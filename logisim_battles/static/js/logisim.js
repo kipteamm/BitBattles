@@ -242,6 +242,10 @@ function placeWire(snappedX, snappedY) {
     drawGrid();
 }
 
+function startWire(snappedX, snappedY) {
+    wireStart = {x: snappedX + 10, y: snappedY + 10, direction: null};
+}
+
 canvas.addEventListener("click", (event) => {
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
@@ -256,7 +260,7 @@ canvas.addEventListener("click", (event) => {
     if (wireStart) return placeWire(snappedX, snappedY);
     const wire = findWire(snappedX, snappedY);
     
-    console.log(wire);
+    if (wire) return startWire(snappedX, snappedY, wire);
 });
 
 canvas.addEventListener("contextmenu", (event) => {
@@ -316,11 +320,12 @@ function drawCanvas() {
     };
 
     if (!wireStart) return;
-
-    const wireX = wireStart.direction === "VERTICAL"? wireStart.x - 10: wireStart.x;
-    const wireY = wireStart.direction === "HORIZONTAL"? wireStart.y - 10: wireStart.y;
-
+    const direction = wireStart.y - (wireStart.y % gridSize) === snappedY? "HORIZONTAL": "VERTICAL";
+    const wireX = direction === "VERTICAL"? wireStart.x - 10: wireStart.x;
+    const wireY = direction === "HORIZONTAL"? wireStart.y - 10: wireStart.y;
+    
     if (snappedX !== wireX && snappedY !== wireY) return;
+    wireStart.direction = direction;
     const offSet = findGate(snappedX, snappedY)? 0: 10;
 
     context.strokeStyle = wireColors[wireStart.state];
@@ -349,7 +354,8 @@ function connectorClicked(x, y, gate) {
         return;
     }
 
-    wireStart = {x: x, y: y, direction: gate.rotation % 180 === 0? "HORIZONTAL": "VERTICAL", state: "off"};
+    // wireStart = {x: x, y: y, direction: gate.rotation % 180 === 0? "HORIZONTAL": "VERTICAL", state: "off"};
+    wireStart = {x: x, y: y, direction: null, state: "off"};
 }
 
 document.addEventListener("keydown", (event) => {
@@ -358,13 +364,13 @@ document.addEventListener("keydown", (event) => {
             rotation = rotation === 360? 90: rotation + 90;
             break;
         case "ArrowUp":
-            rotation = 270;
+            rotation = 90;
             break;
         case "ArrowLeft":
             rotation = 180;
             break;
         case "ArrowDown":
-            rotation = 90;
+            rotation = 270;
             break;
         case "ArrowRight":
             rotation = 0;
