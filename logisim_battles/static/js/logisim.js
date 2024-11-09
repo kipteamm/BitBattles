@@ -114,7 +114,7 @@ function drawGate(x, y, gateType, rotation, ctx = context) {
     ctx.restore();  // Restore the context to its original state
 }
 
-const wireColors = {"off": "#1d5723", "on": "#1cba2e", "test": "blue"};
+const wireColors = {"off": "#1d5723", "on": "#1cba2e"};
 
 // Draw a wire
 function drawWire(startX, startY, endX, endY, state, ctx = context) {
@@ -138,7 +138,7 @@ function toggleSelectGate(type) {
 function findGate(snappedX, snappedY) {
     return placedGates.find(_gate => {
         const gateSize = gridSize * objects[_gate.type].size;
-        const newGateSize = gridSize * (selectedGate? objects[selectedGate].size: 100);
+        const newGateSize = gridSize * (selectedGate? objects[selectedGate].size: 1);
     
         // Check if any part of the new gate overlaps the existing gate
         return (
@@ -162,50 +162,38 @@ function rotatePoint(px, py, angle, gateCenterX, gateCenterY) {
     };
 }
 
-// Place a gate on click
-canvas.addEventListener("click", (event) => {
-    const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+function checkConnectorClicked(gate, x, y) {
+    const gateType = objects[gate.type];
+    const clickRadius = 10;
+    const gateCenterX = gate.x + (gridSize * gateType.size) / 2;
+    const gateCenterY = gate.y + (gridSize * gateType.size) / 2;
+    const rotation = gate.rotation;
 
-    const snappedX = Math.floor(x / gridSize) * gridSize;
-    const snappedY = Math.floor(y / gridSize) * gridSize;
-    const gate = findGate(snappedX, snappedY)
-
-    if (gate) {
-        // Check if click is near any connector for this gate
-        const gateType = objects[gate.type];
-        const clickRadius = 10;
-        const gateCenterX = gate.x + (gridSize * gateType.size) / 2;
-        const gateCenterY = gate.y + (gridSize * gateType.size) / 2;
-        const rotation = gate.rotation;
-    
-        // Check each input connector
-        gateType.inputs.forEach(input => {
-            const rotatedInput = rotatePoint(gate.x + input.x, gate.y + input.y, rotation, gateCenterX, gateCenterY);
-            if (Math.hypot(x - rotatedInput.x, y - rotatedInput.y) < clickRadius) {
-                connectorClicked("IN", rotatedInput.x, rotatedInput.y , gate);
-                toggleSelectGate(selectedGate);
-                drawCanvas();
-                return;
-            }
-        });
-    
-        // Check the output connector
-        const rotatedOutput = rotatePoint(gate.x + gateType.output.x, gate.y + gateType.output.y, rotation, gateCenterX, gateCenterY);
-        if (Math.hypot(x - rotatedOutput.x, y - rotatedOutput.y) < clickRadius) {
-            connectorClicked("OUT", rotatedOutput.x, rotatedOutput.y, gate);
-            toggleSelectGate(selectedGate);
-            drawCanvas();
-            return;
-        }
+    // Check each input connector
+    gateType.inputs.forEach(input => {
+        const rotatedInput = rotatePoint(gate.x + input.x, gate.y + input.y, rotation, gateCenterX, gateCenterY);
+        if (Math.hypot(x - rotatedInput.x, y - rotatedInput.y) > clickRadius) return;
+        
+        console.log("INPUT");
+        connectorClicked(rotatedInput.x, rotatedInput.y , gate);
+        toggleSelectGate(selectedGate);
+        drawCanvas();
         return;
-    }
+    });
+        
+    // Check the output connector
+    const rotatedOutput = rotatePoint(gate.x + gateType.output.x, gate.y + gateType.output.y, rotation, gateCenterX, gateCenterY);
+    if (Math.hypot(x - rotatedOutput.x, y - rotatedOutput.y) > clickRadius) return;
 
-    if (!selectedGate) return;
+    console.log("OUTPUT");
+    connectorClicked(rotatedOutput.x, rotatedOutput.y, gate);
+    toggleSelectGate(selectedGate);
+    drawCanvas();
+}
+
+function placeGate(snappedX, snappedY) {
     const _gate = objects[selectedGate]
 
-    // Place new gate if no connector clicked
     placedGates.push({
         x: snappedX, 
         y: snappedY, 
@@ -215,11 +203,22 @@ canvas.addEventListener("click", (event) => {
         output: {x: snappedX + _gate.output.x, y: snappedY + _gate.output.y},
     });
     drawGrid();
-});
+}
 
-canvas.addEventListener("contextmenu", (event) => {
-    event.preventDefault();
+function placeWire(snappedX, snappedY) {
+    placedWires.push({
+        startX: wireStart.x, 
+        startY: wireStart.y, 
+        endX: wireStart.direction === "VERTICAL"? snappedX + 10: snappedX - 10, 
+        endY: wireStart.direction === "HORIZONTAL"? snappedY + 10: snappedY - 10, 
+        state: "off"
+    });
 
+    wireStart = null;
+    drawGrid();
+}
+
+canvas.addEventListener("click", (event) => {
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
@@ -228,6 +227,29 @@ canvas.addEventListener("contextmenu", (event) => {
     const snappedY = Math.floor(y / gridSize) * gridSize;
     const gate = findGate(snappedX, snappedY)
 
+    if (gate) return checkConnectorClicked(gate, x, y);
+    if (selectedGate) return placeGate(snappedX, snappedY);
+    if (wireStart) return placeWire(snappedX, snappedY);
+});
+
+canvas.addEventListener("contextmenu", (event) => {
+    event.preventDefault();
+
+    if (wireStart) {
+        wireStart = null;
+        bufferContext.clearRect(0, 0, canvas.width, canvas.height);
+        drawGrid();
+        drawCanvas();
+        return;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    const snappedX = Math.floor(x / gridSize) * gridSize;
+    const snappedY = Math.floor(y / gridSize) * gridSize;
+    const gate = findGate(snappedX, snappedY)
     
     if (!gate) return;
     placedGates.splice(placedGates.indexOf(gate), 1);
@@ -272,17 +294,15 @@ function drawCanvas() {
     const wireY = wireStart.direction === "HORIZONTAL"? wireStart.y - 10: wireStart.y;
 
     if (snappedX !== wireX && snappedY !== wireY) return;
-    // console.log(wireX, wireY)
-    // console.log(snappedX, snappedY);
-    // console.log(snappedX === wireX, snappedY === wireY)
+    const offSet = findGate(snappedX, snappedY)? 0: 10;
 
     context.strokeStyle = wireColors[wireStart.state];
     context.lineWidth = 2;
     context.beginPath();
     context.moveTo(wireStart.x, wireStart.y);
     context.lineTo(
-        snappedY === wireY? snappedX: wireStart.x, 
-        snappedY === wireY? wireStart.y: snappedY
+        snappedY === wireY? snappedX - offSet: wireStart.x, 
+        snappedY === wireY? wireStart.y: snappedY - offSet
     );
     context.stroke();
 }
@@ -290,8 +310,7 @@ function drawCanvas() {
 const placedWires = [];
 let wireStart = null;
 
-function connectorClicked(connectorType, x, y, gate) {
-    console.log(connectorType)
+function connectorClicked(x, y, gate) {
     toggleSelectGate(selectedGate);
     drawCanvas();
 
