@@ -234,8 +234,8 @@ function placeGate(snappedX, snappedY) {
         movingGate.rotation = rotation;
         movingGate.inputs = _gate.inputs.map((input) => ({x: snappedX + input.x, y: snappedY + input.y}));
         movingGate.output = {x: snappedX + _gate.output.x, y: snappedY + _gate.output.y};
-        movingGate = null;
         
+        movingGate = null;
         editing = false;
         selectedGate = null;
         showGhostGate = false;
@@ -296,9 +296,8 @@ canvas.addEventListener("click", (event) => {
     const snappedY = Math.floor(y / gridSize) * gridSize;
     const gate = findGate(snappedX, snappedY)
 
-    if (gate) {
+    if (gate && movingGate === null) {
         if (checkConnectorClicked(gate, x, y)) return;
-
         return moveGate(gate);
     }
 
@@ -328,10 +327,15 @@ canvas.addEventListener("contextmenu", (event) => {
     const snappedY = Math.floor(y / gridSize) * gridSize;
     const gate = findGate(snappedX, snappedY)
     
-    if (!gate) return;
-    placedGates.splice(placedGates.indexOf(gate), 1);
-    bufferContext.clearRect(0, 0, canvas.width, canvas.height);
+    if (gate) placedGates.splice(placedGates.indexOf(gate), 1);
+    else {
+        const wire = findWire(snappedX, snappedY);
+        
+        if (!wire) return;
+        placedWires.splice(placedWires.indexOf(wire), 1);
+    }
 
+    bufferContext.clearRect(0, 0, canvas.width, canvas.height);
     drawGrid();
     drawCanvas();
 })
