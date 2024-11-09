@@ -62,8 +62,6 @@ bufferCanvas.height = canvas.height;
 
 // Draw grid on buffer canvas
 function drawGrid() {
-    //bufferContext.clearRect(0, 0, canvas.width, canvas.height);
-
     // Draw all placed gates on the buffer
     placedGates.forEach(gate => {
         drawGate(gate.x, gate.y, gate.type, gate.rotation, bufferContext);
@@ -111,7 +109,7 @@ function drawGate(x, y, gateType, rotation, ctx = context) {
     ctx.restore();  // Restore the context to its original state
 }
 
-const wireColors = {"off": "#206e29", "on": "#1cba2e", "test": "blue"};
+const wireColors = {"off": "#1d5723", "on": "#1cba2e", "test": "blue"};
 
 // Draw a wire
 function drawWire(startX, startY, endX, endY, state, ctx = context) {
