@@ -12,7 +12,8 @@ const objects = {
         type: "GATE",
         size: 3,
         inputs: [{ x: 0, y: 10 }, { x: 0, y: 30 }, { x: 0, y: 50 }],
-        output: { x: 60, y: 30 }
+        output: { x: 60, y: 30 },
+        inputStates: [null, 1, null]
     },
     OR: {
         label: "OR",
@@ -20,7 +21,8 @@ const objects = {
         type: "GATE",
         size: 3,
         inputs: [{ x: 0, y: 10 }, { x: 0, y: 30 }, { x: 0, y: 50 }],
-        output: { x: 60, y: 30 }
+        output: { x: 60, y: 30 },
+        inputStates: [null, 0, null]
     },
     NOT: {
         label: "NOT",
@@ -28,7 +30,8 @@ const objects = {
         type: "GATE",
         size: 1,
         inputs: [{ x: 0, y: 10 }],
-        output: { x: 20, y: 10 }
+        output: { x: 20, y: 10 },
+        inputStates: [null],
     },
     INPUT: {
         label: "IN",
@@ -36,7 +39,8 @@ const objects = {
         type: "GATE",
         size: 1,
         inputs: [],
-        output: { x: 20, y: 10}
+        output: { x: 20, y: 10},
+        inputStates: [null]
     },
     OUTPUT: {
         label: "OUT",
@@ -44,7 +48,8 @@ const objects = {
         type: "GATE",
         size: 1,
         inputs: [{ x: 0, y: 10 }],
-        output: {}
+        output: {},
+        inputStates: [null],
     }
 };
 
@@ -207,7 +212,8 @@ canvas.addEventListener("click", (event) => {
         type: selectedGate, 
         rotation: rotation, 
         inputs: _gate.inputs.map((input) => ({x: snappedX + input.x, y: snappedY + input.y})), 
-        output: {x: snappedX + _gate.output.x, y: snappedY + _gate.output.y}
+        output: {x: snappedX + _gate.output.x, y: snappedY + _gate.output.y},
+        inputStates: _gate.inputStates,
     });
     drawGrid();
 });
@@ -223,11 +229,13 @@ canvas.addEventListener("contextmenu", (event) => {
     const snappedY = Math.floor(y / gridSize) * gridSize;
     const gate = findGate(snappedX, snappedY)
 
-    console.log(gate);
-
+    
     if (!gate) return;
     placedGates.splice(placedGates.indexOf(gate), 1);
+    bufferContext.clearRect(0, 0, canvas.width, canvas.height);
+
     drawGrid();
+    drawCanvas();
 })
 
 // Track mouse position for ghost gate
