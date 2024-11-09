@@ -1,40 +1,77 @@
-function hasInput(gate, inputX, inputY) {
-    return gate.inputs.find(input => input.x === inputX && input.y === inputY);
+const gateEvaluators = {
+    INPUT: (states) => states[0] ?? 1,
+    OUTPUT: (states) => states[0] ?? 0,
+    AND: (states) => (states.filter(s => s === 1).length >= 2) ? 1 : 0,
+    OR: (states) => states.some(s => s === 1) ? 1 : 0,
+    NOT: (states) => (states[0] === 1) ? 0 : 1
+};
+
+
+function resetCircuit() {
+    placedGates.forEach(gate => {
+        gate.inputStates = gate.inputs.map(() => null);
+        gate.outputValue = null;
+    });
+
+    placedWires.forEach(wire => {
+        wire.state = "off";
+        wire.visited = false;
+    });
+}
+
+function findConnectedGate(wire) {
+    return placedGates.find(gate => 
+        gate.inputs.find(input => input.x === wire.endX && input.y === wire.endY)
+    );
+}
+
+function findOutputWire(gate) {
+    if (!gate.output.x || !gate.output.y) return null;
+    
+    return placedWires.find(wire => 
+        wire.startX === gate.output.x && 
+        wire.startY === gate.output.y
+    );
 }
 
 function evaluateGate(gate) {
-    if (gate.type === "AND") return gate.inputStates.every(state => state === 1) ? 1 : 0;
-    if (gate.type === "OR") return gate.inputStates.some(state => state === 1) ? 1 : 0;
-    if (gate.type === "NOT") return gate.inputStates[0] === 1 ? 0 : 1;
-    return 0;
+    const evaluator = gateEvaluators[gate.type];
+    if (!evaluator) return 0;
+
+    // Default any null inputs to 0 for evaluation
+    const inputStates = gate.inputStates.map(state => state ?? 0);
+    return evaluator(inputStates);
 }
 
-function propagateGateOutput(gate, value) {
-    const wire = placedWires.find(_wire => _wire.startX === gate.output.x && _wire.startY === gate.output.y);
-    if (!wire) return;
+function propagateSignal(gate, visited = new Set()) {
+    const gateId = `${gate.x},${gate.y},${gate.type}`;
+    if (visited.has(gateId)) return;
+    visited.add(gateId);
 
-    wire.state = value ? "on" : "off";
+    const outputValue = evaluateGate(gate);
+    gate.outputValue = outputValue;
 
-    const nextGate = placedGates.find(_gate => hasInput(_gate, wire.endX, wire.endY));
+    const outputWire = findOutputWire(gate);
+    if (!outputWire) return;
 
-    console.log(nextGate)
+    outputWire.state = outputValue ? "on" : "off";
 
-    if (!nextGate) return;
-    const inputIndex = nextGate.inputs.findIndex(input => input.x === wire.endX && input.y === wire.endY);
-
-    console.log(inputIndex)
+    const connectedGate = findConnectedGate(outputWire);
+    const inputIndex = connectedGate.inputs.findIndex(
+        input => input.x === outputWire.endX && input.y === outputWire.endY
+    );
 
     if (inputIndex < 0) return;
-    nextGate.inputStates[inputIndex] = value;
-
-    if (nextGate.inputStates.find(state => state === null)) return;
-    const outputValue = evaluateGate(nextGate);
-    propagateGateOutput(nextGate, outputValue);
+    connectedGate.inputStates[inputIndex] = outputValue;
+    propagateSignal(connectedGate, visited);
 }
 
 function simulate() {
-    placedGates.filter(_gate => _gate.type === "INPUT").forEach(input => {
-        propagateGateOutput(input, 1);
+    resetCircuit();
+
+    const inputGates = placedGates.filter(gate => gate.type === "INPUT");
+    inputGates.forEach(inputGate => {
+        propagateSignal(inputGate, new Set());
     });
 
     console.log("finish simulation");

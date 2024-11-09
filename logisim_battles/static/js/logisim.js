@@ -13,7 +13,6 @@ const objects = {
         size: 3,
         inputs: [{ x: 0, y: 10 }, { x: 0, y: 30 }, { x: 0, y: 50 }],
         output: { x: 60, y: 30 },
-        inputStates: [null, 1, null]
     },
     OR: {
         label: "OR",
@@ -22,7 +21,6 @@ const objects = {
         size: 3,
         inputs: [{ x: 0, y: 10 }, { x: 0, y: 30 }, { x: 0, y: 50 }],
         output: { x: 60, y: 30 },
-        inputStates: [null, 0, null]
     },
     NOT: {
         label: "NOT",
@@ -31,7 +29,6 @@ const objects = {
         size: 1,
         inputs: [{ x: 0, y: 10 }],
         output: { x: 20, y: 10 },
-        inputStates: [null],
     },
     INPUT: {
         label: "IN",
@@ -40,7 +37,6 @@ const objects = {
         size: 1,
         inputs: [],
         output: { x: 20, y: 10},
-        inputStates: [null]
     },
     OUTPUT: {
         label: "OUT",
@@ -49,7 +45,6 @@ const objects = {
         size: 1,
         inputs: [{ x: 0, y: 10 }],
         output: {},
-        inputStates: [null],
     }
 };
 
@@ -213,7 +208,6 @@ canvas.addEventListener("click", (event) => {
         rotation: rotation, 
         inputs: _gate.inputs.map((input) => ({x: snappedX + input.x, y: snappedY + input.y})), 
         output: {x: snappedX + _gate.output.x, y: snappedY + _gate.output.y},
-        inputStates: _gate.inputStates,
     });
     drawGrid();
 });
