@@ -48,18 +48,16 @@ function evaluateGate(gate, wire, value) {
     propagateSignal(findOutputWire(gate), _value);
 }
 
-const simulatedWires = [];
-
 function propagateSignal(wire, value) {
-    if (!wire) return;
+    if (!wire || wire.visited) return;
     wire.state = value? "on": "off";
-    simulatedWires.push(wire);
+    wire.visited = true;
 
     const gate = findConnectedGate(wire);
     if (gate) return evaluateGate(gate, wire, value);
 
     for (const _wire of placedWires) {
-        if (simulatedWires.indexOf(_wire) !== -1) continue;
+        if (_wire.visited) continue;
         if (
             (_wire.startX === wire.startX && _wire.startY === wire.startY) || 
             (_wire.startX === wire.endX && _wire.startY === wire.endY) ||
@@ -79,8 +77,6 @@ function resetCircuit() {
         wire.state = "off";
         wire.visited = false;
     });
-
-    simulatedWires.length = 0;
 }
 
 function simulate() {

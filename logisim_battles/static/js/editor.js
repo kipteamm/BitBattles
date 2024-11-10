@@ -17,7 +17,7 @@ const objects = {
         size: 3,
         inputs: [{ x: 0, y: 10 }, { x: 0, y: 30 }, { x: 0, y: 50 }],
         output: { x: 60, y: 30 },
-        evaluate: (states) => (states.filter(s => s === 1).length >= 2) ? 1 : 0,
+        evaluate: (states) => (states.filter(s => s === 1).length === states.filter(s => s !== null).length) ? 1 : 0,
     },
     OR: {
         label: "OR",
@@ -26,7 +26,7 @@ const objects = {
         size: 3,
         inputs: [{ x: 0, y: 10 }, { x: 0, y: 30 }, { x: 0, y: 50 }],
         output: { x: 60, y: 30 },
-        evaluate: (states) => states.some(s => s === 1) ? 1 : 0,
+        evaluate: (states) => states.find(s => s === 1) ? 1 : 0,
     },
     NOT: {
         label: "NOT",
@@ -35,7 +35,7 @@ const objects = {
         size: 1,
         inputs: [{ x: 0, y: 10 }],
         output: { x: 20, y: 10 },
-        evaluate: (states) => !states[0],
+        evaluate: (states) => states[0]? 0: 1,
     },
     INPUT: {
         label: "IN",
@@ -68,7 +68,7 @@ let wireStart = null;
 
 let mouseX = 0, mouseY = 0;
 let editing = false;
-let debug = true;
+let debug = false;
 
 function editMode() {
     selectedGate = null;
