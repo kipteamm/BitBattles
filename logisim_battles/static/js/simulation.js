@@ -1,18 +1,9 @@
-function resetCircuit() {
-    placedGates.forEach(gate => {
-        gate.inputStates = gate.inputs.map(() => null);
-        gate.outputValue = null;
-    });
-
-    placedWires.forEach(wire => {
-        wire.state = "off";
-        wire.visited = false;
-    });
-}
-
 function findConnectedGate(wire) {
     return placedGates.find(gate => 
-        gate.inputs.find(input => input.x === wire.endX && input.y === wire.endY)
+        gate.inputs.find(input =>
+            (input.x === wire.endX && input.y === wire.endY) ||
+            (input.x === wire.startX && input.y === wire.startY )
+        )
     );
 }
 
@@ -25,48 +16,87 @@ function findOutputWire(gate) {
     );
 }
 
-function evaluateGate(gate) {
-    const _gate = objects[gate.type]
-    if (!_gate) return 0;
+function findInputWires(gate) {
+    const wires = [];
+    for (const input of gate.inputs) {
+        if (!input.x || !input.y) return;
 
-    // Default any null inputs to 0 for evaluation
-    const inputStates = gate.inputStates.map(state => state ?? 0);
-    return _gate.evaluate(inputStates, gate);
+        const wire = placedWires.find(wire => 
+            (wire.endX === input.x && wire.endY === input.y) ||
+            (wire.startX === input.x && wire.startY === input.y)
+        )
+
+        if (!wire) continue;
+        wires.push(wire);
+    }
+
+    return wires;
 }
 
-function propagateSignal(gate, visited = new Set()) {
-    const gateId = `${gate.x},${gate.y},${gate.type}`;
-    if (visited.has(gateId)) return;
-    visited.add(gateId);
+function evaluateGate(gate, wire, value) {
+    const inputWire = gate.inputStates.find(_wire => _wire === wire);
 
-    const outputValue = evaluateGate(gate);
-    gate.outputValue = outputValue;
+    if (!inputWire) return;
+    gate.inputStates[gate.inputStates.indexOf(inputWire)] = value;
 
-    const outputWire = findOutputWire(gate);
-    if (!outputWire) return;
+    if (gate.inputStates.find(_wire => isNaN(_wire))) return;
+    const _gate = objects[gate.type];
 
-    outputWire.state = outputValue ? "on" : "off";
+    if (!_gate) return;
+    const _value = _gate.evaluate(gate.inputStates, gate);
 
-    const connectedGate = findConnectedGate(outputWire);
-    const inputIndex = connectedGate.inputs.findIndex(
-        input => input.x === outputWire.endX && input.y === outputWire.endY
-    );
+    propagateSignal(findOutputWire(gate), _value);
+}
 
-    if (inputIndex < 0) return;
-    connectedGate.inputStates[inputIndex] = outputValue;
-    propagateSignal(connectedGate, visited);
+const simulatedWires = [];
+
+function propagateSignal(wire, value) {
+    if (!wire) return;
+    wire.state = value? "on": "off";
+    simulatedWires.push(wire);
+
+    const gate = findConnectedGate(wire);
+    if (gate) return evaluateGate(gate, wire, value);
+
+    for (const _wire of placedWires) {
+        if (simulatedWires.indexOf(_wire) !== -1) continue;
+        if (
+            (_wire.startX === wire.startX && _wire.startY === wire.startY) || 
+            (_wire.startX === wire.endX && _wire.startY === wire.endY) ||
+            (_wire.endX === wire.endX && _wire.endY === wire.endY) ||
+            (_wire.endX === wire.startX && _wire.endY === wire.startY)
+        ) propagateSignal(_wire, value);
+    }
+}
+
+function resetCircuit() {
+    placedGates.forEach(gate => {
+        gate.inputStates = findInputWires(gate);
+        gate.outputValue = null;
+    });
+
+    placedWires.forEach(wire => {
+        wire.state = "off";
+        wire.visited = false;
+    });
+
+    simulatedWires.length = 0;
 }
 
 function simulate() {
     resetCircuit();
 
-    const inputGates = placedGates.filter(gate => gate.type === "INPUT");
-    inputGates.forEach(inputGate => {
-        inputGate.value = 1;
-        propagateSignal(inputGate, new Set());
-    });
+    console.log(placedGates);
 
-    console.log("finish simulation");
+    for (const gate of placedGates) {
+        if (gate.type !== "INPUT") continue;
+
+        const wire = findOutputWire(gate);
+        propagateSignal(wire, 1);
+    }
+
     drawGrid();
     drawCanvas();
+
+    console.log("simulation finished");
 }

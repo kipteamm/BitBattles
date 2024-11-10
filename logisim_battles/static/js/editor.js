@@ -68,6 +68,7 @@ let wireStart = null;
 
 let mouseX = 0, mouseY = 0;
 let editing = false;
+let debug = true;
 
 function editMode() {
     selectedGate = null;
@@ -89,7 +90,6 @@ function toggleSelectGate(type) {
     drawCanvas();
     canvas.style.cursor = selectedGate? "pointer": "default";
 }
-
 
 function drawGrid() {
     placedGates.forEach(gate => {
@@ -380,6 +380,9 @@ canvas.addEventListener("contextmenu", (event) => {
         const wire = findWire(snappedX, snappedY);
         
         if (!wire) return;
+        if (debug) {
+            return console.log(wire);
+        }
         placedWires.splice(placedWires.indexOf(wire), 1);
     }
 
@@ -411,13 +414,15 @@ function drawGhostGate(snappedX, snappedY) {
 }
 
 function drawGhostWire(snappedX, snappedY) {
+    // directions don't entirely work
     const direction = wireStart.y - (wireStart.y % gridSize) === snappedY? "HORIZONTAL": "VERTICAL";
     const wireX = direction === "VERTICAL"? wireStart.x - 10: wireStart.x;
     const wireY = direction === "HORIZONTAL"? wireStart.y - 10: wireStart.y;
-    
+
     if (snappedX !== wireX && snappedY !== wireY) return;
     wireStart.direction = direction;
-    const offSet = findGate(snappedX, snappedY)? 0: 10;
+    const gate = findGate(snappedX, snappedY);
+    const offSet = gate? (direction === "HORIZONTAL"? (wireStart.x > snappedX? 20: 0): (wireStart.y > snappedY? 20: 0)): 10;
 
     drawWire(
         wireStart.x, 
@@ -450,13 +455,13 @@ document.addEventListener("keydown", (event) => {
             rotation = 90;
             break;
         case "ArrowLeft":
-            rotation = 180;
+            rotation = 0;
             break;
         case "ArrowDown":
             rotation = 270;
             break;
         case "ArrowRight":
-            rotation = 0;
+            rotation = 180;
             break;
         default:
             return;
