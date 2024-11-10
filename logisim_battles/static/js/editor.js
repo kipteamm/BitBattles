@@ -76,6 +76,7 @@ function editMode() {
     editing = true;
 
     drawCanvas();
+    canvas.style.cursor = "default";
 }
 
 function toggleSelectGate(type) {
@@ -86,7 +87,9 @@ function toggleSelectGate(type) {
     editing = false;
 
     drawCanvas();
+    canvas.style.cursor = selectedGate? "pointer": "default";
 }
+
 
 function drawGrid() {
     placedGates.forEach(gate => {
@@ -94,9 +97,24 @@ function drawGrid() {
         drawGate(gate.x, gate.y, gate.type, gate.rotation, bufferContext);
         bufferContext.globalAlpha = 1.0;
     });
+
+    const points = [];
     placedWires.forEach(wire => {
         drawWire(wire.startX, wire.startY, wire.endX, wire.endY, wire.state, bufferContext);
+
+        const startPoint = `${wire.startX},${wire.startY}`;
+        points[startPoint] = (points[startPoint] || 0) + 1;
+        
+        const endPoint = `${wire.endX},${wire.endY}`;
+        points[endPoint] = (points[endPoint] || 0) + 1;
     });
+
+    for (const [point, occurances] of Object.entries(points)) {
+        if (occurances < 3) continue;
+
+        const [x, y] = point.split(",").map(Number)
+        drawIntersection(x, y, bufferContext)
+    }
 }
 
 function drawGate(x, y, gateType, rotation, ctx = context) {
@@ -144,6 +162,13 @@ function drawWire(startX, startY, endX, endY, state, ctx = context) {
     ctx.moveTo(startX, startY);
     ctx.lineTo(endX, endY);
     ctx.stroke();
+}
+
+function drawIntersection(x, y, ctx = context) {
+    ctx.fillStyle = "black";
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, Math.PI * 2);
+    ctx.fill();
 }
 
 function findGate(snappedX, snappedY) {
@@ -208,7 +233,7 @@ function checkConnectorClicked(gate, x, y) {
         if (Math.hypot(x - rotatedInput.x, y - rotatedInput.y) > clickRadius) continue;
         
         console.log("INPUT");
-        placeWire(rotatedInput.x, rotatedInput.y);
+        placeWire(rotatedInput.x, rotatedInput.y, null);
         toggleSelectGate(selectedGate);
         drawCanvas();
         return true;
@@ -219,7 +244,7 @@ function checkConnectorClicked(gate, x, y) {
     if (Math.hypot(x - rotatedOutput.x, y - rotatedOutput.y) > clickRadius) return false;
     
     console.log("OUTPUT");
-    placeWire(rotatedOutput.x, rotatedOutput.y, gate);
+    placeWire(rotatedOutput.x, rotatedOutput.y, null);
     toggleSelectGate(selectedGate);
     drawCanvas();
     return true;
@@ -256,24 +281,46 @@ function placeGate(snappedX, snappedY) {
     drawGrid();
 }
 
-function placeWire(snappedX, snappedY) {
+function placeWire(snappedX, snappedY, wire) {
     if (!wireStart) {
         wireStart = {x: snappedX, y: snappedY, direction: null, state: "off"};
         return;
     }
 
     if (snappedX !== wireStart.x && snappedY !== wireStart.y) return;
+    if (!wire) {
+        wire = findWire(snappedX - 10, snappedY - 10);
+    }
 
     placedWires.push({
         startX: wireStart.x, 
         startY: wireStart.y, 
-        endX: wireStart.direction === "VERTICAL"? snappedX: snappedX, 
-        endY: wireStart.direction === "HORIZONTAL"? snappedY: snappedY, 
+        endX: snappedX, 
+        endY: snappedY, 
         state: "off"
     });
 
+    if (wire) {
+        placedWires.push({
+            startX: wire.startX, 
+            startY: wire.startY, 
+            endX: snappedX, 
+            endY: snappedY,
+            state: "off",
+        });
+        placedWires.push({
+            startX: snappedX,
+            startY: snappedY,
+            endX: wire.endX,
+            endY: wire.endY,
+            state: "off",
+        });
+        placedWires.splice(placedWires.indexOf(wire), 1);
+    }
+
     wireStart = null;
     drawGrid();
+    drawCanvas();
 }
 
 function moveGate(gate) {
@@ -298,14 +345,15 @@ canvas.addEventListener("click", (event) => {
 
     if (gate && movingGate === null) {
         if (checkConnectorClicked(gate, x, y)) return;
+        if (!editing) return;
         return moveGate(gate);
     }
 
     if (selectedGate) return placeGate(snappedX, snappedY);
-    if (wireStart) return placeWire(snappedX + 10, snappedY + 10);
+    if (wireStart) return placeWire(snappedX + 10, snappedY + 10, null);
     const wire = findWire(snappedX, snappedY);
     
-    if (wire) return placeWire(snappedX + 10, snappedY + 10);
+    if (wire) return placeWire(snappedX + 10, snappedY + 10, wire);
 });
 
 canvas.addEventListener("contextmenu", (event) => {
