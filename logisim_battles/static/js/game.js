@@ -1,9 +1,12 @@
+let timerElement;
 let truthtable;
 
 window.addEventListener("DOMContentLoaded", (event) => {
+    timerElement = document.getElementById("timer");
     truthtable = document.getElementById("truthtable");
     loadTruthtable(battle.truthtable);
     loadGates(battle.truthtable);
+    requestAnimationFrame(updateTimer);
 })
 
 function loadTruthtable(data) {
@@ -71,4 +74,28 @@ function loadGates(data) {
 
     drawGrid();
     drawCanvas();
+}
+
+let secondsElapsed = 0;
+let lastTime = performance.now();
+
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const secondsRemaining = seconds % 60;
+    return (
+        String(minutes).padStart(2, '0') + ':' +
+        String(secondsRemaining).padStart(2, '0')
+    );
+}
+
+function updateTimer(timestamp) {
+    const elapsed = timestamp - lastTime;
+
+    if (elapsed >= 1000) {
+        secondsElapsed++;
+        timerElement.textContent = formatTime(secondsElapsed);
+               
+        lastTime = timestamp;
+    }
+    requestAnimationFrame(updateTimer);
 }
