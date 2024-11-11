@@ -10,10 +10,26 @@ import typing as t
 app_blueprint = Blueprint("app", __name__, url_prefix="/app")
 
 
-@app_blueprint.get("/battles")
+@app_blueprint.route("/battles", methods=["GET", "POST"])
 @login_required
 def battles():
-    return render_template("app/battles.html")
+    if request.method == "GET":
+        return render_template("app/battles.html")
+    
+    player = Player.query.filter_by(user_id=current_user.id).first()
+    if player:
+        return redirect(f"/app/battle/{player.battle_id}")
+
+    battle_id = request.form["battle_id"]
+    battle: t.Optional[Battle] = Battle.query.get(battle_id)
+
+    if not battle:
+        return render_template("app/battles.html")
+    
+    battle.players.append(current_user)
+    db.session.commit()
+
+    return redirect(f"/app/battle/{battle.id}")
 
 
 @app_blueprint.get("/battle/new/")
@@ -46,7 +62,7 @@ def battle(id):
     if battle.started:
         return render_template("app/battle.html")
     
-    return render_template("app/queue.html")
+    return render_template("app/queue.html", battle=battle.serialize(), player=current_user.serialize())
 
 
 @app_blueprint.get("/profile")

@@ -5,11 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Logisim Battles</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+    <script src="/static/js/gameSocket.js" defer></script>
+    <script src="/static/js/queue.js"></script>
+    <script>
+        const battle = {{ battle|tojson }};
+        const player = {{ player|tojson }};
+    </script>
 </head>
 <body>
     <h1>Awaiting start</h1>
 
-    {% if current_user.id == battle.owner_id %}
+    <div id="player-list"></div>
+
+    {% if player.id == battle.owner_id %}
         <button>Start battle</button>
     {% endif %}
 </body>

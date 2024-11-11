@@ -44,3 +44,9 @@ class User(UserMixin, db.Model):
             return user
         
         return None
+    
+    def serialize(self) -> dict:
+        return {
+            "id": self.id,
+            "username": self.username
+        }

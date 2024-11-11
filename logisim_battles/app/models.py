@@ -1,4 +1,7 @@
+from logisim_battles.auth.models import User
 from logisim_battles.extensions import db
+
+import typing as t
 
 import random
 import string
@@ -24,9 +27,21 @@ class Battle(db.Model):
         self.owner_id = owner_id
         self.set_id()
 
+    def serialize(self) -> dict:
+        return {
+            "id": self.id,
+            "owner_id": self.owner_id,
+            "started": self.started,
+            "players": Player.serialize(self.players),
+        }
+
 
 class Player(db.Model):
     __tablename__ = "players"
 
     battle_id = db.Column(db.Integer, db.ForeignKey('battles.id'), primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+
+    @classmethod
+    def serialize(cls, players: list[User]) -> list:
+        return [player.serialize() for player in players]
