@@ -21,7 +21,7 @@
     <div id="player-list"></div>
 
     {% if player.id == battle.owner_id %}
-        <button>Start battle</button>
+        <button onclick="startBattle()">Start battle</button>
     {% endif %}
 
     <button onclick="leaveBattle()">Leave</button>

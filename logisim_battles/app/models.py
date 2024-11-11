@@ -5,6 +5,8 @@ import typing as t
 
 import random
 import string
+import json
+
 
 BATTLE_ID = string.ascii_letters + string.digits
 
@@ -14,9 +16,11 @@ class Battle(db.Model):
 
     id = db.Column(db.String(5), primary_key=True)
     owner_id = db.Column(db.String(128), db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    started = db.Column(db.Boolean(), default=False)
 
     players = db.relationship('User', secondary='players', backref=db.backref('battles', lazy='dynamic'))
+
+    started = db.Column(db.Boolean(), default=False)
+    truthtable = db.Column(db.Text(5000), default=None)
 
     def set_id(self) -> None:
         self.id = "".join(random.choices(BATTLE_ID, k=5))
@@ -31,8 +35,9 @@ class Battle(db.Model):
         return {
             "id": self.id,
             "owner_id": self.owner_id,
-            "started": self.started,
             "players": Player.serialize(self.players),
+            "started": self.started,
+            "truthtable": json.loads(self.truthtable) if self.truthtable else None
         }
 
 

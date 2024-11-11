@@ -31,3 +31,13 @@ async function leaveBattle() {
     if (!response.ok) return;
     return window.location.href="/app/battles"
 }
+
+async function startBattle() {
+    const response = await fetch(`/api/battle/${battle.id}/start`, {
+        method: "POST",
+        headers: {"Authorization": `Bearer ${getCookie("bt")}`}
+    });
+
+    if (!response.ok) return;
+    return window.location.reload();
+}
