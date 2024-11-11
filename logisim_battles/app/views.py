@@ -2,7 +2,7 @@ from logisim_battles.app.models import Battle, Player
 from logisim_battles.extensions import db
 
 from flask_login import login_required, current_user
-from flask import Blueprint, render_template, redirect, request
+from flask import Blueprint, render_template, redirect, request, make_response
 
 import typing as t
 
@@ -29,7 +29,9 @@ def battles():
     battle.players.append(current_user)
     db.session.commit()
 
-    return redirect(f"/app/battle/{battle.id}")
+    response = make_response(redirect(f"/app/battle/{battle.id}"))
+    response.set_cookie("bt", current_user.set_battle_token())
+    return response
 
 
 @app_blueprint.get("/battle/new/")
@@ -40,12 +42,14 @@ def new_battle():
         return redirect(f"/app/battle/{player.battle_id}")
 
     battle = Battle(current_user.id)
+
     battle.players.append(current_user)
-    
     db.session.add(battle)
     db.session.commit()
 
-    return redirect(f"/app/battle/{battle.id}")
+    response = make_response(redirect(f"/app/battle/{battle.id}"))
+    response.set_cookie("bt", current_user.set_battle_token())
+    return response
 
 
 @app_blueprint.get("/battle/<string:id>")
@@ -59,10 +63,9 @@ def battle(id):
     if not battle:
         return redirect("/app/battles")
 
-    if battle.started:
-        return render_template("app/battle.html")
-    
-    return render_template("app/queue.html", battle=battle.serialize(), player=current_user.serialize())
+    response = make_response(render_template(f"app/{'battle' if battle.started else 'queue'}.html", battle=battle.serialize(), player=current_user.serialize()))
+    response.set_cookie("bt", current_user.set_battle_token())
+    return response
 
 
 @app_blueprint.get("/profile")

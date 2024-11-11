@@ -17,3 +17,13 @@ function addPlayer(player) {
 
     playerListElement.appendChild(element);
 }
+
+async function leaveBattle() {
+    const response = await fetch(`/api/battle/${battle.id}/leave`, {
+        method: "DELETE",
+        headers: {"Authorization": `Bearer ${getCookie("bt")}`}
+    });
+
+    if (!response.ok) return;
+    return window.location.href="/app/battles"
+}

@@ -6,6 +6,7 @@ from flask_login import UserMixin
 
 import typing as t
 
+import secrets
 import time
 
 
@@ -45,6 +46,12 @@ class User(UserMixin, db.Model):
         
         return None
     
+    def set_battle_token(self) -> str:
+        self.battle_token = secrets.token_urlsafe(64)
+        db.session.commit()
+        
+        return self.battle_token
+
     def serialize(self) -> dict:
         return {
             "id": self.id,
