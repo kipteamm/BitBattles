@@ -71,4 +71,9 @@ def battle(id):
 @app_blueprint.get("/profile")
 @login_required
 def profile():
+
+    for battle in Battle.query.all():
+        db.session.delete(battle)
+    db.session.commit()
+
     return render_template("app/profile.html")

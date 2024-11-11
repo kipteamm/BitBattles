@@ -11,6 +11,30 @@ div.toolbar {
     border-bottom: solid 2px var(--bg-sec);
 }
 
+div.truthtable {
+    position: fixed;
+    right: 0;
+    display: flex;
+}
+
+div.output {
+    margin-left: 5px;
+}
+div.title {
+    text-align: center;
+    border-bottom: 2px solid black;
+}
+div.cell {
+    padding: 2.5px 5px;
+    color: white;
+}
+div.cell.off {
+    background-color: #1d5723;
+}
+div.cell.on {
+    background-color: #1cba2e;
+}
+
 canvas {
     display: block;
     padding: 0;

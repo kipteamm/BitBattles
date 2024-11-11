@@ -45,7 +45,7 @@ def start_battle(id):
     if len(battle.players) < 2:
         return {"error": "Not enough players."}, 400
     
-    battle.truthtable = json.dumps(TableGenerator(3, 2))
+    battle.truthtable = json.dumps(TableGenerator(3, 2).table)
     battle.started = True
     db.session.commit()
     

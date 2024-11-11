@@ -8,9 +8,13 @@
 
     <script src="/static/js/editor.js" defer></script>
     <script src="/static/js/simulation.js"></script>
-    <script src="/static/js/game.js" defer></script>
+    <script src="/static/js/game.js"></script>
     <link rel="stylesheet" type="text/css" href="/static/css/game.css">
     <link rel="stylesheet" type="text/css" href="/static/css/basics.css">
+    <script>
+        const battle = {{ battle|tojson }};
+        const player = {{ player|tojson }};
+    </script>
 </head>
 <body>
     <div class="toolbar">
@@ -20,6 +24,9 @@
         <button onclick="toggleSelectGate('NOT')">NOT</button>
         <button onclick="simulate()">Simulate</button>
     </div>
+
+    <div class="truthtable" id="truthtable"></div>
+
     <canvas id="game"></canvas>
 </body>
 </html>
