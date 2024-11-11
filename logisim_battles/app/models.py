@@ -20,6 +20,7 @@ class Battle(db.Model):
     players = db.relationship('User', secondary='players', backref=db.backref('battles', lazy='dynamic'))
 
     started = db.Column(db.Boolean(), default=False)
+    started_on = db.Column(db.Float(), default=None)
     truthtable = db.Column(db.Text(5000), default=None)
 
     def set_id(self) -> None:
@@ -37,6 +38,7 @@ class Battle(db.Model):
             "owner_id": self.owner_id,
             "players": Player.serialize(self.players),
             "started": self.started,
+            "started_on": self.started_on,
             "truthtable": json.loads(self.truthtable) if self.truthtable else None
         }
 

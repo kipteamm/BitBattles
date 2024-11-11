@@ -1,12 +1,13 @@
 from logisim_battles.utils.decorators import battle_authorized
-from logisim_battles.utils.battle import TableGenerator
+from logisim_battles.utils.battle import TableGenerator, Simulate
 from logisim_battles.auth.models import User
-from logisim_battles.app.models import Battle
+from logisim_battles.app.models import Battle, Player
 from logisim_battles.extensions import db, socketio
 
-from flask import Blueprint, g
+from flask import Blueprint, g, request
 
 import typing as t
+import time
 import json
 
 
@@ -45,9 +46,31 @@ def start_battle(id):
     if len(battle.players) < 2:
         return {"error": "Not enough players."}, 400
     
-    battle.truthtable = json.dumps(TableGenerator(3, 2).table)
+    battle.truthtable = json.dumps(TableGenerator(2, 1).table)
     battle.started = True
+    battle.started_on = time.time()
     db.session.commit()
     
     socketio.emit("start", room=battle.id)
     return {"success": True}, 204
+
+
+@api_blueprint.post("/battle/<string:id>/submit")
+@battle_authorized
+def submit(id):
+    user: User = g.user
+    player: t.Optional[Player] = Player.query.filter_by(battle_id=id, user_id=user.id).first()
+    if not player:
+        return {"error": "Nothing found."}, 400
+
+    battle: t.Optional[Battle] = Battle.query.get(id)
+
+    try:
+        passed = Simulate(request.json["gates"], request.json["wires"]).test(json.loads(battle.truthtable))
+
+    except:
+        return {"error": "Simulation error, invalid circuit."}, 400
+
+    print(passed)
+
+    return {"passed": passed}, 200

@@ -53,5 +53,5 @@ def login():
         flash(f"Invalid {'email' if '@' in user else 'username'} or password", 'error')
         return render_template('auth/login.html')
     
-    login_user(user)
+    login_user(_user)
     return redirect(request.args.get("next", "/app/battles"))

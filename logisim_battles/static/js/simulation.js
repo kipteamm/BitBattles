@@ -7,7 +7,7 @@ function findConnectedGate(wire) {
     );
 }
 
-function findOutputWire(gate) {
+function getOutputWire(gate) {
     if (!gate.output.x || !gate.output.y) return null;
     
     return placedWires.find(wire => 
@@ -16,10 +16,10 @@ function findOutputWire(gate) {
     );
 }
 
-function findInputWires(gate) {
+function getInputWires(gate) {
     const wires = [];
     for (const input of gate.inputs) {
-        if (!input.x || !input.y) return;
+        if (!input.x || !input.y) continue;
 
         const wire = placedWires.find(wire => 
             (wire.endX === input.x && wire.endY === input.y) ||
@@ -45,7 +45,7 @@ function evaluateGate(gate, wire, value) {
     if (!_gate) return;
     const _value = _gate.evaluate(gate.inputStates, gate);
 
-    propagateSignal(findOutputWire(gate), _value);
+    propagateSignal(getOutputWire(gate), _value);
 }
 
 function propagateSignal(wire, value) {
@@ -69,7 +69,7 @@ function propagateSignal(wire, value) {
 
 function resetCircuit() {
     placedGates.forEach(gate => {
-        gate.inputStates = findInputWires(gate);
+        gate.inputStates = getInputWires(gate);
     });
 
     placedWires.forEach(wire => {
@@ -86,8 +86,8 @@ function simulate() {
     for (const gate of placedGates) {
         if (gate.type !== "INPUT") continue;
 
-        const wire = findOutputWire(gate);
-        propagateSignal(wire, 1);
+        const wire = getOutputWire(gate);
+        propagateSignal(wire, gate.id === "A"? 0: 1);
     }
 
     drawGrid();

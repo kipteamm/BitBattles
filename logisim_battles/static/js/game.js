@@ -46,12 +46,12 @@ function loadGates(data) {
             const gate = objects["OUTPUT"];
 
             placedGates.push({
-                x: 800, 
+                x: 600, 
                 y: outputY, 
                 type: "OUTPUT", 
                 rotation: 0, 
-                inputs: gate.inputs.map((input) => ({x: 800 + input.x, y: outputY + input.y})), 
-                output: {x: 800 + gate.output.x, y: outputY + gate.output.y},
+                inputs: gate.inputs.map((input) => ({x: 600 + input.x, y: outputY + input.y})), 
+                output: {x: 600 + gate.output.x, y: outputY + gate.output.y},
                 id: key,
             });
             outputY += 2 * gridSize;
@@ -98,4 +98,16 @@ function updateTimer(timestamp) {
         lastTime = timestamp;
     }
     requestAnimationFrame(updateTimer);
+}
+
+async function submit() {
+    const response = await fetch(`/api/battle/${battle.id}/submit`, {
+        method: "POST",
+        body: JSON.stringify({"gates": placedGates, "wires": placedWires}),
+        headers: {"Authorization": `Bearer ${getCookie("bt")}`, "Content-Type": "application/json"}
+    });
+
+    if (!response.ok) return;
+    const json = await response.json()
+    console.log(json);
 }
