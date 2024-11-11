@@ -1,35 +1,52 @@
-from logisim_battles.app.models import Battle
+from logisim_battles.app.models import Battle, Player
 from logisim_battles.extensions import db
 
 from flask_login import login_required, current_user
-from flask import Blueprint, render_template, redirect
+from flask import Blueprint, render_template, redirect, request
+
+import typing as t
 
 
 app_blueprint = Blueprint("app", __name__, url_prefix="/app")
 
 
-@app_blueprint.get("/battle")
+@app_blueprint.get("/battles")
 @login_required
-def battle():
-    return render_template("app/battle.html")
+def battles():
+    return render_template("app/battles.html")
 
 
-@app_blueprint.get("/battle/start/")
+@app_blueprint.get("/battle/new/")
 @login_required
-def start_battle():
-    battle = Battle.query.filter_by(owner_id=current_user).first()
-    if battle:
-        db.session.delete(battle)
-
-    #if Player.query.filter_by(user_id=current_user.id).first():
+def new_battle():
+    player = Player.query.filter_by(user_id=current_user.id).first()
+    if player:
+        return redirect(f"/app/battle/{player.battle_id}")
 
     battle = Battle(current_user.id)
-    battle.players.add(current_user)
+    battle.players.append(current_user)
     
     db.session.add(battle)
     db.session.commit()
 
     return redirect(f"/app/battle/{battle.id}")
+
+
+@app_blueprint.get("/battle/<string:id>")
+@login_required
+def battle(id):
+    player = Player.query.filter_by(battle_id=id, user_id=current_user.id)
+    if not player:
+        return redirect("/app/battles")
+
+    battle: t.Optional[Battle] = Battle.query.get(id)
+    if not battle:
+        return redirect("/app/battles")
+
+    if battle.started:
+        return render_template("app/battle.html")
+    
+    return render_template("app/queue.html")
 
 
 @app_blueprint.get("/profile")

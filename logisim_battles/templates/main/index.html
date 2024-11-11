@@ -5,19 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Logisim Battles</title>
-
-    <script src="/static/js/editor.js" defer></script>
-    <script src="/static/js/simulation.js"></script>
-    <script src="/static/js/game.js" defer></script>
-    <link rel="stylesheet" type="text/css" href="/static/css/game.css">
-    <link rel="stylesheet" type="text/css" href="/static/css/basics.css">
 </head>
 <body>
     <h1>Logisim battles</h1>
 
     <a href="/editor">Editor</a>
     {% if user %}
-        <a href="/app/battle">Battle</a>
+        <a href="/app/battles">Battle</a>
         <a href="/app/profile">Profile</a>
     {% else %}
         <a href="/auth/register">Register</a>

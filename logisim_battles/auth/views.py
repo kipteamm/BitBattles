@@ -37,7 +37,7 @@ def register():
     login_user(user)
         
     flash('Registration successful. Welcome!', 'success')
-    return redirect("/app/battle")
+    return redirect("/app/battles")
 
 
 @auth_blueprint.route("/login", methods=["GET", "POST"])
@@ -54,4 +54,4 @@ def login():
         return render_template('auth/login.html')
     
     login_user(user)
-    return redirect(request.args.get("next", "/app/battle"))
+    return redirect(request.args.get("next", "/app/battles"))

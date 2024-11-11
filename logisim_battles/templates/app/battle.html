@@ -13,14 +13,13 @@
     <link rel="stylesheet" type="text/css" href="/static/css/basics.css">
 </head>
 <body>
-    <h1>Logisim battles</h1>
-
-    <form method="POST">
-        <h3>Join battle</h3>
-        <input type="text" maxlength="5" placeholder="battle">
-        <button type="submit">Join</button>
-    </form>
-
-    <button onclick="window.location.href='/app/battle/start/'">Start battle</button>
+    <div class="toolbar">
+        <button onclick="editMode()">Edit</button>
+        <button onclick="toggleSelectGate('AND')">AND</button>
+        <button onclick="toggleSelectGate('OR')">OR</button>
+        <button onclick="toggleSelectGate('NOT')">NOT</button>
+        <button onclick="simulate()">Simulate</button>
+    </div>
+    <canvas id="game"></canvas>
 </body>
 </html>
