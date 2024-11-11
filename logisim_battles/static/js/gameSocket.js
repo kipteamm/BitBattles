@@ -11,7 +11,11 @@ socket.on("disconnect", function() {
     return window.location.href = `/app/battles`;
 })
 
-socket.on("new_player", function(data) {
+socket.on("player_join", function(data) {
     if (document.getElementById(data.id)) return;
     addPlayer(data);
+})
+
+socket.on("player_leave", function(data) {
+    document.getElementById(data.id)?.remove();
 })

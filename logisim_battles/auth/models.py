@@ -17,7 +17,8 @@ class User(UserMixin, db.Model):
     id = db.Column(db.String(128), primary_key=True, default=SnowflakeGenerator.generate_id)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(128), nullable=False)
-    
+    battle_token = db.Column(db.String(128), nullable=True)
+
     username = db.Column(db.String(30), nullable=False, unique=True)
     creation_timestamp = db.Column(db.Float(), nullable=False, unique=False)
 

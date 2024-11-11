@@ -13,7 +13,11 @@ window.addEventListener("DOMContentLoaded", (event) => {
 function addPlayer(player) {
     const element = document.createElement("div");
     element.id = player.id;
-    element.innerHTML = player.username;
+    element.innerText = player.username;
+
+    if (player.id === battle.owner_id) {
+        element.innerText += " (Host)"
+    }
 
     playerListElement.appendChild(element);
 }

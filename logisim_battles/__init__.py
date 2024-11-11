@@ -4,6 +4,7 @@ from logisim_battles.main.views import main_blueprint
 from logisim_battles.auth.views import auth_blueprint
 from logisim_battles.app.events import register_events
 from logisim_battles.app.views import app_blueprint
+from logisim_battles.api.views import api_blueprint
 
 from .extensions import db, socketio
 from .secrets import SECRET_KEY
@@ -20,6 +21,7 @@ def create_app() -> Flask:
     app.register_blueprint(main_blueprint)
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(app_blueprint)
+    app.register_blueprint(api_blueprint)
 
     register_events(socketio)
 
@@ -46,6 +48,5 @@ def create_app() -> Flask:
             next = get_back_url(request=request)
             
         return redirect(f'/auth/login?next={next}')
-
 
     return app
