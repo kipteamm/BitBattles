@@ -11,8 +11,8 @@ function findOutputWire(gate) {
     if (!gate.output.x || !gate.output.y) return null;
     
     return placedWires.find(wire => 
-        wire.startX === gate.output.x && 
-        wire.startY === gate.output.y
+        (wire.startX === gate.output.x && wire.startY === gate.output.y) ||
+        (wire.endX === gate.output.x && wire.endY === gate.output.y)
     );
 }
 
@@ -70,7 +70,6 @@ function propagateSignal(wire, value) {
 function resetCircuit() {
     placedGates.forEach(gate => {
         gate.inputStates = findInputWires(gate);
-        gate.outputValue = null;
     });
 
     placedWires.forEach(wire => {

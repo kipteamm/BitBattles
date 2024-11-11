@@ -94,7 +94,7 @@ function toggleSelectGate(type) {
 function drawGrid() {
     placedGates.forEach(gate => {
         bufferContext.globalAlpha = gate === movingGate? 0.5: 1.0;
-        drawGate(gate.x, gate.y, gate.type, gate.rotation, bufferContext);
+        drawGate(gate.x, gate.y, gate.type, gate.rotation, gate.id, bufferContext);
         bufferContext.globalAlpha = 1.0;
     });
 
@@ -117,7 +117,7 @@ function drawGrid() {
     }
 }
 
-function drawGate(x, y, gateType, rotation, ctx = context) {
+function drawGate(x, y, gateType, rotation, id, ctx = context) {
     const gate = objects[gateType];
     if (!gate) return;
 
@@ -136,7 +136,7 @@ function drawGate(x, y, gateType, rotation, ctx = context) {
     ctx.fillStyle = "white";
     ctx.font = "10px Arial";
     ctx.textAlign = "center";
-    ctx.fillText(gate.label, 0, 4);
+    ctx.fillText(id? id: gate.label, 0, 4);
 
     // Draw input connectors
     ctx.fillStyle = "black";
@@ -257,8 +257,8 @@ function placeGate(snappedX, snappedY) {
         movingGate.x = snappedX;
         movingGate.y = snappedY;
         movingGate.rotation = rotation;
-        movingGate.inputs = _gate.inputs.map((input) => ({x: snappedX + input.x, y: snappedY + input.y}));
-        movingGate.output = {x: snappedX + _gate.output.x, y: snappedY + _gate.output.y};
+        movingGate.inputs = _gate.inputs.map((input) => (rotatePoint(snappedX + input.x, snappedY + input.y, rotation, snappedX + (gridSize * _gate.size) / 2, snappedY + (gridSize * _gate.size) / 2))); 
+        movingGate.output = rotatePoint(snappedX + _gate.output.x, snappedY + _gate.output.y, rotation, snappedX + (gridSize * _gate.size) / 2, snappedY + (gridSize * _gate.size) / 2);
         
         movingGate = null;
         editing = false;
@@ -275,8 +275,9 @@ function placeGate(snappedX, snappedY) {
         y: snappedY, 
         type: selectedGate, 
         rotation: rotation, 
-        inputs: _gate.inputs.map((input) => ({x: snappedX + input.x, y: snappedY + input.y})), 
-        output: {x: snappedX + _gate.output.x, y: snappedY + _gate.output.y},
+        inputs: _gate.inputs.map((input) => (rotatePoint(snappedX + input.x, snappedY + input.y, rotation, snappedX + (gridSize * _gate.size) / 2, snappedY + (gridSize * _gate.size) / 2))), 
+        output: rotatePoint(snappedX + _gate.output.x, snappedY + _gate.output.y, rotation, snappedX + (gridSize * _gate.size) / 2, snappedY + (gridSize * _gate.size) / 2),
+        id: null,
     });
     drawGrid();
 }
@@ -375,7 +376,8 @@ canvas.addEventListener("contextmenu", (event) => {
     const snappedY = Math.floor(y / gridSize) * gridSize;
     const gate = findGate(snappedX, snappedY)
     
-    if (gate) placedGates.splice(placedGates.indexOf(gate), 1);
+    if (gate && debug) return console.log(gate);
+    if (gate && !gate.id) placedGates.splice(placedGates.indexOf(gate), 1);
     else {
         const wire = findWire(snappedX, snappedY);
         
@@ -407,7 +409,7 @@ function drawGhostGate(snappedX, snappedY) {
     if (findGate(snappedX, snappedY)) return;
         
     context.globalAlpha = editing? 1.0: 0.5;  // Set transparency for ghost gate
-    drawGate(snappedX, snappedY, selectedGate, rotation, context);
+    drawGate(snappedX, snappedY, selectedGate, rotation, movingGate?.id, context);
     context.globalAlpha = 1.0;  // Reset transparency
 
     return;
