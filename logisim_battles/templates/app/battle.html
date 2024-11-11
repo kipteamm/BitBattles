@@ -15,13 +15,12 @@
 <body>
     <h1>Logisim battles</h1>
 
-    <a href="/editor">Editor</a>
-    {% if user %}
-        <a href="/app/battle">Battle</a>
-        <a href="/app/profile">Profile</a>
-    {% else %}
-        <a href="/auth/register">Register</a>
-        <a href="/auth/login">Login</a>
-    {% endif %}
+    <form method="POST">
+        <h3>Join battle</h3>
+        <input type="text" maxlength="5" placeholder="battle">
+        <button type="submit">Join</button>
+    </form>
+
+    <button onclick="window.location.href='/app/battle/start/'">Start battle</button>
 </body>
 </html>

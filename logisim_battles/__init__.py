@@ -13,7 +13,6 @@ from flask_login import LoginManager
 from flask import Flask, request, redirect
 
 
-
 def create_app() -> Flask:
     app = Flask(__name__, static_folder="static", static_url_path="/static")
 
