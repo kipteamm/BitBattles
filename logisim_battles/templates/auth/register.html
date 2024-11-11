@@ -13,15 +13,21 @@
     <link rel="stylesheet" type="text/css" href="/static/css/basics.css">
 </head>
 <body>
-    <div class="toolbar">
-        <button onclick="editMode()">Edit</button>
-        <button onclick="toggleSelectGate('INPUT')">INPUT</button>
-        <button onclick="toggleSelectGate('OUTPUT')">OUTPUT</button>
-        <button onclick="toggleSelectGate('AND')">AND</button>
-        <button onclick="toggleSelectGate('OR')">OR</button>
-        <button onclick="toggleSelectGate('NOT')">NOT</button>
-        <button onclick="simulate()">Test</button>
-    </div>
-    <canvas id="game"></canvas>
+    <h1>Register</h1>
+
+    <form method="POST">
+        <h3>Username</h3>
+        <input type="text" maxlength="30" placeholder="Username...">
+
+        <h3>Email address</h3>
+        <input type="text" placeholder="Email address...">
+
+        <h3>Password</h3>
+        <input type="password" placeholder="Password...">
+
+        <button type="submit">Register</button>
+    </form>
+
+    Already have an account? <a href="/auth/login">Login!</a>
 </body>
 </html>
