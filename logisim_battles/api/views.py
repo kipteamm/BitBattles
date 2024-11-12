@@ -43,7 +43,7 @@ def start_battle(id):
     if battle.owner_id != user.id:
         return {"error": "You are not hosting this battle."}, 400
     
-    if len(battle.players) < 2: # type: ignore
+    if battle.players.count() < 2: # type: ignore
         return {"error": "Not enough players."}, 400
     
     battle.truthtable = json.dumps(TableGenerator(battle.inputs, battle.outputs).table)
@@ -90,14 +90,14 @@ def submit(id):
         db.session.commit()
         return {"error": "Simulation error, invalid circuit."}, 400
 
-    players = len(battle.players)
+    players = battle.players.count()
     submitted = Player.query.filter(Player.battle_id == player.battle_id, Player.attempts > 0).count()
     
     if passed:
         socketio.emit("finish", {"id": user.id, "username": user.username, "submission_on": player.submission_on, "gates": player.gates}, room=player.battle_id)
-        player.position += submitted
 
     if players == submitted == 2 or submitted == 3:
+        battle.score_players()
         socketio.emit("new_stage", room=battle.id)
         battle.stage = "results"
 

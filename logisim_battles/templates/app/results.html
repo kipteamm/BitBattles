@@ -22,7 +22,7 @@
 <body>
     {% for _player in battle.players %}
         <div class="entry">
-            {{ _player.username }} {% if player.id == _player.id %}(You){% endif %} Time: {{ _player.time }} Gates: {{ _player.gates }}
+            {{ _player.username }} {% if player.id == _player.id %}(You){% endif %} Time: {{ _player.time }} Gates: {{ _player.gates }} Score: {{ _player.score }}
         </div>
     {% endfor %}
 </body>
