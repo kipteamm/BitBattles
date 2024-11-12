@@ -1,13 +1,15 @@
 let timerElement;
 let truthtable;
+let alertsElement;
 
 window.addEventListener("DOMContentLoaded", (event) => {
     timerElement = document.getElementById("timer");
     truthtable = document.getElementById("truthtable");
+    alertsElement = document.getElementById("alerts");
     loadTruthtable(battle.truthtable);
     loadGates(battle.truthtable);
     requestAnimationFrame(updateTimer);
-})
+});
 
 function loadTruthtable(data) {
     let firstOutput = false;
@@ -107,7 +109,43 @@ async function submit() {
         headers: {"Authorization": `Bearer ${getCookie("bt")}`, "Content-Type": "application/json"}
     });
 
-    if (!response.ok) return;
-    const json = await response.json()
-    console.log(json);
+    try {
+        const json = await response.json()
+        if (!response.ok) return sendAlert(json.error);
+        if (!json.passed) return sendAlert("You did not pass the test.");
+    } catch {
+        sendAlert("Unexpected error.");
+    }
+}
+
+let alerts = [];
+
+function sendAlert(message) {
+    if (alerts.length >= 5) {
+        const element = alerts.shift();
+        element.remove();
+    }
+
+    const alertElement = document.createElement("div");
+    alertElement.classList.add("alert");
+    alertElement.innerText = message;
+    alerts.push(alertElement);
+    alertsElement.appendChild(alertElement);
+
+    updateAlertPositions();
+
+    setTimeout(() => {
+        const index = alerts.indexOf(alertElement);
+        if (index > -1) {
+            alerts.splice(index, 1);
+            alertElement.remove();
+            updateAlertPositions();
+        }
+    }, 30000);
+}
+
+function updateAlertPositions() {
+    alerts.forEach((alert, index) => {
+        alert.style.bottom = `${10 + (30 * index)}px`;
+    });
 }

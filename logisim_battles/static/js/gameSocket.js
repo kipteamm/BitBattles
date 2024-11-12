@@ -25,5 +25,5 @@ socket.on("player_leave", function(data) {
 });
 
 socket.on("finish", function(data) {
-    console.log(`${data.username} finished in ${data.submission_on - battle.started_on} with ${data.gates} gates`);
+    sendAlert(`${data.username} finished in ${data.submission_on - battle.started_on} with ${data.gates} gates`);
 });

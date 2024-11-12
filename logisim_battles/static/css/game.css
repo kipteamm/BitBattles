@@ -48,3 +48,15 @@ canvas {
     background-size: 20px 20px;
     background-image: radial-gradient(circle, var(--bg-sec) 1px, rgba(0, 0, 0, 0) 1px);
 }
+
+div.alert {
+    position: fixed;
+    right: 10px;
+    background-color: rgb(0, 0, 0, .5);
+    color: #fff;
+    padding: 5px 10px;
+    font-size: 14px;
+    bottom: -100%;
+    transition: 1s;
+    border-radius: 5px;
+}

@@ -91,6 +91,7 @@ def submit(id):
         db.session.commit()
         return {"error": "Simulation error, invalid circuit."}, 400
 
-    socketio.emit("finish", {"id": user.id, "username": user.username, "submission_on": player.submission_on, "gates": player.gates}, room=player.battle_id)
+    if passed:
+        socketio.emit("finish", {"id": user.id, "username": user.username, "submission_on": player.submission_on, "gates": player.gates}, room=player.battle_id)
 
     return {"passed": passed}, 200
