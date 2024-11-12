@@ -43,10 +43,10 @@ def start_battle(id):
     if battle.owner_id != user.id:
         return {"error": "You are not hosting this battle."}, 400
     
-    if len(battle.players) < 2:
+    if len(battle.players) < 2: # type: ignore
         return {"error": "Not enough players."}, 400
     
-    battle.truthtable = json.dumps(TableGenerator(2, 1).table)
+    battle.truthtable = json.dumps(TableGenerator(3, 2).table)
     battle.started = True
     battle.started_on = time.time()
     db.session.commit()
@@ -63,10 +63,18 @@ def submit(id):
     if not player:
         return {"error": "Nothing found."}, 400
 
+    if not request.json:
+        return {"error": "Invalid body."}, 400
+
     battle: t.Optional[Battle] = Battle.query.get(id)
+    if not battle:
+        return {"error": "Battle not found."}, 400
 
     try:
-        passed = Simulate(request.json["gates"], request.json["wires"]).test(json.loads(battle.truthtable))
+        passed = Simulate(
+            request.json.get("gates"), 
+            request.json.get("wires")
+            ).test(json.loads(battle.truthtable))
 
     except:
         return {"error": "Simulation error, invalid circuit."}, 400

@@ -78,7 +78,7 @@ function resetCircuit() {
     });
 }
 
-function simulate() {
+function simulate(states = {}) {
     resetCircuit();
 
     console.log(placedGates);
@@ -86,12 +86,41 @@ function simulate() {
     for (const gate of placedGates) {
         if (gate.type !== "INPUT") continue;
 
+        console.log(states[gate.id])
+
         const wire = getOutputWire(gate);
-        propagateSignal(wire, gate.id === "A"? 0: 1);
+        propagateSignal(wire, states[gate.id] !== undefined? states[gate.id]: 1);
     }
 
     drawGrid();
     drawCanvas();
 
     console.log("simulation finished");
+}
+
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function test() {
+    for (let i = 0; i < battle.truthtable["A"].length; i++) {
+        let inputs = {};
+        let outputs = {};
+
+        for (const [key, value] of Object.entries(battle.truthtable)) {
+            if (key.charCodeAt(0) > 77) {
+                outputs[key] = value[i];
+            } else {
+                inputs[key] = value[i];
+            }
+        }
+
+        console.log("start simulation");
+        simulate(inputs);
+
+        await delay(2000);
+        console.log("waited 2 seconds");
+    }
+
+    console.log("finished");
 }
