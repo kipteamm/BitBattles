@@ -6,8 +6,10 @@
 
     <title>Logisim Battles</title>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
     <script src="/static/js/editor.js" defer></script>
     <script src="/static/js/simulation.js"></script>
+    <script src="/static/js/gameSocket.js"></script>
     <script src="/static/js/basics.js"></script>
     <script src="/static/js/game.js"></script>
     <link rel="stylesheet" type="text/css" href="/static/css/game.css">
@@ -24,6 +26,7 @@
         <button onclick="toggleSelectGate('OR')">OR</button>
         <button onclick="toggleSelectGate('NOT')">NOT</button>
         <button onclick="simulate()">Simulate</button>
+        <button onclick="test()">Test</button>
         <button onclick="submit()">Submit</button>
         <span id="timer">00:00</span>
     </div>

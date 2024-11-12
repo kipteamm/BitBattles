@@ -46,12 +46,12 @@ function loadGates(data) {
             const gate = objects["OUTPUT"];
 
             placedGates.push({
-                x: 600, 
+                x: 550, 
                 y: outputY, 
                 type: "OUTPUT", 
                 rotation: 0, 
-                inputs: gate.inputs.map((input) => ({x: 600 + input.x, y: outputY + input.y})), 
-                output: {x: 600 + gate.output.x, y: outputY + gate.output.y},
+                inputs: gate.inputs.map((input) => ({x: 550 + input.x, y: outputY + input.y})), 
+                output: {x: 550 + gate.output.x, y: outputY + gate.output.y},
                 id: key,
             });
             outputY += 2 * gridSize;

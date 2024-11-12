@@ -19,6 +19,7 @@ div.truthtable {
     border-left: 2px solid var(--bg-sec);
     border-bottom: 2px solid var(--bg-sec);
     background-color: var(--bg-pri);
+    border-radius: 0px 0px 0px 5px;
 }
 
 div.output {

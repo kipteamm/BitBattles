@@ -46,7 +46,7 @@ def start_battle(id):
     if len(battle.players) < 2: # type: ignore
         return {"error": "Not enough players."}, 400
     
-    battle.truthtable = json.dumps(TableGenerator(3, 2).table)
+    battle.truthtable = json.dumps(TableGenerator(battle.inputs, battle.outputs).table)
     battle.started = True
     battle.started_on = time.time()
     db.session.commit()
@@ -69,16 +69,28 @@ def submit(id):
     battle: t.Optional[Battle] = Battle.query.get(id)
     if not battle:
         return {"error": "Battle not found."}, 400
+    
+    gates, wires = request.json.get("gates"), request.json.get("wires")
+
+    if not gates or not wires:
+        return {"error": "Invalid circuit."}, 400
+
+    player.attempts += 1
 
     try:
         passed = Simulate(
-            request.json.get("gates"), 
-            request.json.get("wires")
+            gates, 
+            wires
             ).test(json.loads(battle.truthtable))
 
+        player.gates = len(gates) - battle.inputs - battle.outputs
+        player.submission_on = time.time()
+        db.session.commit()
+
     except:
+        db.session.commit()
         return {"error": "Simulation error, invalid circuit."}, 400
 
-    print(passed)
+    socketio.emit("finish", {"id": user.id, "username": user.username, "submission_on": player.submission_on, "gates": player.gates}, room=player.battle_id)
 
     return {"passed": passed}, 200

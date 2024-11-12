@@ -37,6 +37,7 @@ function evaluateGate(gate, wire, value) {
     const inputWire = gate.inputStates.find(_wire => _wire === wire);
 
     if (!inputWire) return;
+    gate.visits += 1;
     gate.inputStates[gate.inputStates.indexOf(inputWire)] = value;
 
     if (gate.inputStates.find(_wire => isNaN(_wire))) return;
@@ -69,6 +70,7 @@ function propagateSignal(wire, value) {
 
 function resetCircuit() {
     placedGates.forEach(gate => {
+        gate.visits = 0;
         gate.inputStates = getInputWires(gate);
     });
 

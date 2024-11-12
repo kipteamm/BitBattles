@@ -57,13 +57,13 @@ const objects = {
     }
 };
 
-const placedGates = [];
+let placedGates = [];
 let selectedGate = null;
 let showGhostGate = false;
 let movingGate = null;
 let rotation = 0;
 
-const placedWires = [];
+let placedWires = [];
 let wireStart = null;
 
 let mouseX = 0, mouseY = 0;

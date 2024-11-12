@@ -17,6 +17,8 @@ class Battle(db.Model):
     id = db.Column(db.String(5), primary_key=True)
     owner_id = db.Column(db.String(128), db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
+    inputs = db.Column(db.Integer(), default=3)
+    outputs = db.Column(db.Integer(), default=2)
     players = db.relationship('User', secondary='players', backref=db.backref('battles', lazy='dynamic'))
 
     started = db.Column(db.Boolean(), default=False)
@@ -46,8 +48,12 @@ class Battle(db.Model):
 class Player(db.Model):
     __tablename__ = "players"
 
-    battle_id = db.Column(db.Integer, db.ForeignKey('battles.id'), primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    battle_id = db.Column(db.String(128), db.ForeignKey('battles.id', ondelete="CASCADE"), primary_key=True)
+    user_id = db.Column(db.String(128), db.ForeignKey('users.id', ondelete="CASCADE"), primary_key=True)
+
+    gates = db.Column(db.Integer(), default=0)
+    attempts = db.Column(db.Integer(), default=0)
+    submission_on = db.Column(db.Integer(), default=0)
 
     @classmethod
     def serialize(cls, players: list[User]) -> list:
