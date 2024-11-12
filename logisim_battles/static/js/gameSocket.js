@@ -11,7 +11,7 @@ socket.on("disconnect", function() {
     return window.location.href = `/app/battles`;
 });
 
-socket.on("start", function() {
+socket.on("new_stage", function() {
     return window.location.reload();
 });
 

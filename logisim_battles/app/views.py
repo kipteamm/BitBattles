@@ -41,7 +41,7 @@ def new_battle():
     if player:
         return redirect(f"/app/battle/{player.battle_id}")
 
-    battle = Battle(current_user.id)
+    battle = Battle(current_user.id, 2, 1)
 
     battle.players.append(current_user)
     db.session.add(battle)
@@ -63,7 +63,7 @@ def battle(id):
     if not battle:
         return redirect("/app/battles")
 
-    response = make_response(render_template(f"app/{'battle' if battle.started else 'queue'}.html", battle=battle.serialize(), player=current_user.serialize()))
+    response = make_response(render_template(f"app/{battle.stage}.html", battle=battle.serialize(), player=current_user.serialize()))
     response.set_cookie("bt", current_user.set_battle_token())
     return response
 

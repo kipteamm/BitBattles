@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Logisim Battles</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+    <script src="/static/js/editor.js" defer></script>
+    <script src="/static/js/simulation.js"></script>
+    <script src="/static/js/gameSocket.js"></script>
+    <script src="/static/js/basics.js"></script>
+    <script src="/static/js/game.js"></script>
+    <link rel="stylesheet" type="text/css" href="/static/css/game.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/basics.css">
+    <script>
+        const battle = {{ battle|tojson }};
+        const player = {{ player|tojson }};
+    </script>
+</head>
+<body>
+    {% for _player in battle.players %}
+        <div class="entry">
+            {{ _player.username }} {% if player.id == _player.id %}(You){% endif %} Time: {{ _player.time }} Gates: {{ _player.gates }}
+        </div>
+    {% endfor %}
+</body>
+</html>
