@@ -3,7 +3,7 @@ const socket = io();
 socket.on("connect", function() {
     console.log("connect");
 
-    socket.emit("join", {battle_id: battle.id, player_id: player.id}); // room=
+    socket.emit("join", {battle_id: battle.id, player_id: player.id});
 });
 
 socket.on("disconnect", function() {
@@ -26,4 +26,8 @@ socket.on("player_leave", function(data) {
 
 socket.on("finish", function(data) {
     sendAlert(`${data.username} finished in ${data.submission_on - battle.started_on} with ${data.gates} gates`);
+});
+
+socket.on("disband", function() {
+    return window.location.href="/app/battles";
 });

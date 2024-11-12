@@ -21,7 +21,7 @@ def battles():
         return redirect(f"/app/battle/{player.battle_id}")
 
     battle_id = request.form["battle_id"]
-    battle: t.Optional[Battle] = Battle.query.get(battle_id)
+    battle: t.Optional[Battle] = Battle.query.filter_by(id=battle_id, stage="queue").first()
 
     if not battle:
         return render_template("app/battles.html")
@@ -41,7 +41,7 @@ def new_battle():
     if player:
         return redirect(f"/app/battle/{player.battle_id}")
 
-    battle = Battle(current_user.id, 2, 1)
+    battle = Battle(current_user.id, 3, 2)
 
     battle.players.append(current_user)
     db.session.add(battle)

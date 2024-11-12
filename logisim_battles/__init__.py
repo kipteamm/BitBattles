@@ -3,6 +3,7 @@ from logisim_battles.auth.models import User
 from logisim_battles.main.views import main_blueprint
 from logisim_battles.auth.views import auth_blueprint
 from logisim_battles.app.events import register_events
+from logisim_battles.app.models import Battle, Player
 from logisim_battles.app.views import app_blueprint
 from logisim_battles.api.views import api_blueprint
 
@@ -11,8 +12,10 @@ from .secrets import SECRET_KEY
 from .config import DEBUG
 
 from flask_migrate import Migrate
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user, AnonymousUserMixin
 from flask import Flask, request, redirect
+
+import typing as t
 
 
 def create_app() -> Flask:
@@ -48,5 +51,27 @@ def create_app() -> Flask:
             next = get_back_url(request=request)
             
         return redirect(f'/auth/login?next={next}')
+
+    @socketio.on('disconnect')
+    def handle_disconnect():
+        if isinstance(current_user, AnonymousUserMixin):
+            return
+
+        player: t.Optional[Player] = Player.query.filter_by(user_id=current_user.id).first()
+        if not player:
+            return
+
+        battle: t.Optional[Battle] = Battle.query.get(player.battle_id)
+        if not battle:
+            return
+        
+        if battle.owner_id == current_user.id:  
+            db.session.delete(battle)
+            socketio.emit("disband", room=battle.id)
+        else:
+            battle.players.remove(current_user)
+            socketio.emit("player_leave", {"id": current_user.id}, room=battle.id)
+        
+        db.session.commit()
 
     return app
