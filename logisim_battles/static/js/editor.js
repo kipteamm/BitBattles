@@ -195,7 +195,7 @@ function findWire(snappedX, snappedY) {
             const maxX = Math.max(_wire.startX, _wire.endX);  
 
             return (
-                snappedY === _wire.startY - (_wire.startY % gridSize) &&
+                snappedY === _wire.startY - 10 &&
                 snappedX >= minX - 10 && snappedX <= maxX
             );
         }
@@ -204,7 +204,7 @@ function findWire(snappedX, snappedY) {
         const maxY = Math.max(_wire.startY, _wire.endY);
 
         return (
-            snappedX === _wire.startX - (_wire.startX % gridSize) &&
+            snappedX === _wire.startX - 10 &&
             snappedY >= minY - 10 && snappedY <= maxY
         );
     });
@@ -222,47 +222,46 @@ function rotatePoint(px, py, angle, gateCenterX, gateCenterY) {
     };
 }
 
-function checkConnectorClicked(gate, x, y) {
-    const gateType = objects[gate.type];
-    const clickRadius = 10;
-    const gateCenterX = gate.x + (gridSize * gateType.size) / 2;
-    const gateCenterY = gate.y + (gridSize * gateType.size) / 2;
-    const rotation = gate.rotation;
+function setConnectors(gate, snappedX, snappedY) {
+    const outputCoordinates = rotatePoint(snappedX + gate.output.x, snappedY + gate.output.y, rotation, snappedX + (gridSize * gate.size) / 2, snappedY + (gridSize * gate.size) / 2);
+    const inputCoordinates = [];
+    gate.inputs.forEach(input => {
+        inputCoordinates.push(rotatePoint(
+            snappedX + input.x, 
+            snappedY + input.y, 
+            rotation, snappedX + (gridSize * gate.size) / 2, 
+            snappedY + (gridSize * gate.size) / 2)
+        );
+    });
 
-    for (const input of gateType.inputs) {
-        const rotatedInput = rotatePoint(gate.x + input.x, gate.y + input.y, rotation, gateCenterX, gateCenterY);
-        if (Math.hypot(x - rotatedInput.x, y - rotatedInput.y) > clickRadius) continue;
-        
-        console.log("INPUT");
-        placeWire(rotatedInput.x, rotatedInput.y, null);
-        toggleSelectGate(selectedGate);
-        drawCanvas();
-        return true;
-    };
+    placedConnectors.push(...inputCoordinates);
+    placedConnectors.push(outputCoordinates);
 
-    if (isNaN(gate.output.x)) return false;
-    const rotatedOutput = rotatePoint(gate.x + gateType.output.x, gate.y + gateType.output.y, rotation, gateCenterX, gateCenterY);
-    if (Math.hypot(x - rotatedOutput.x, y - rotatedOutput.y) > clickRadius) return false;
-    
-    console.log("OUTPUT");
-    placeWire(rotatedOutput.x, rotatedOutput.y, null);
-    toggleSelectGate(selectedGate);
-    drawCanvas();
-    return true;
+    return [inputCoordinates, outputCoordinates];
+}
+
+function removeConnectors(gate) {
+    gate.inputs.forEach(input => {
+        placedConnectors.splice(placedConnectors.indexOf(input), 1);
+    })
+    placedConnectors.splice(placedConnectors.indexOf(gate.output), 1);
 }
 
 function placeGate(snappedX, snappedY) {
     const _gate = objects[selectedGate];
 
     if (movingGate) {
+        removeConnectors(movingGate);
+
         movingGate.x = snappedX;
         movingGate.y = snappedY;
         movingGate.rotation = rotation;
-        movingGate.inputs = _gate.inputs.map((input) => (rotatePoint(snappedX + input.x, snappedY + input.y, rotation, snappedX + (gridSize * _gate.size) / 2, snappedY + (gridSize * _gate.size) / 2))); 
-        movingGate.output = rotatePoint(snappedX + _gate.output.x, snappedY + _gate.output.y, rotation, snappedX + (gridSize * _gate.size) / 2, snappedY + (gridSize * _gate.size) / 2);
+        
+        const [inputCoordinates, outputCoordinates] = setConnectors(_gate, snappedX, snappedY);
+        movingGate.inputs =  inputCoordinates;
+        movingGate.output = outputCoordinates;
         
         movingGate = null;
-        editing = false;
         selectedGate = null;
         showGhostGate = false;
 
@@ -271,17 +270,7 @@ function placeGate(snappedX, snappedY) {
         return drawCanvas();
     }
 
-    const outputCoordinates = rotatePoint(snappedX + _gate.output.x, snappedY + _gate.output.y, rotation, snappedX + (gridSize * _gate.size) / 2, snappedY + (gridSize * _gate.size) / 2);
-    const inputCoordinates = [];
-    _gate.inputs.forEach(input => {
-        inputCoordinates.push(rotatePoint(
-            snappedX + input.x, 
-            snappedY + input.y, 
-            rotation, snappedX + (gridSize * _gate.size) / 2, 
-            snappedY + (gridSize * _gate.size) / 2)
-        );
-    });
-
+    const [inputCoordinates, outputCoordinates] = setConnectors(_gate, snappedX, snappedY);
     placedGates.push({
         x: snappedX, 
         y: snappedY, 
@@ -291,9 +280,32 @@ function placeGate(snappedX, snappedY) {
         output: outputCoordinates,
         id: null,
     });
-    placedConnectors.push(...inputCoordinates);
-    placedConnectors.push(outputCoordinates);
     drawGrid();
+}
+
+function splitWire(wire, snappedX, snappedY, startFrom) {
+    if (
+        (wire.startX === wireStart.x && wire.startY === wireStart.y)  || 
+        (wire.startX === snappedX && wire.startY === snappedY) ||
+        (wire.endX === wireStart.x && wire.endY === wireStart.y) ||
+        (wire.endX === snappedX && wire.endY === snappedY)
+    ) return;
+
+    placedWires.push({
+        startX: wire.startX, 
+        startY: wire.startY, 
+        endX: startFrom? wireStart.x: snappedX, 
+        endY: startFrom? wireStart.y: snappedY,
+        state: "off",
+    });
+    placedWires.push({
+        startX: startFrom? wireStart.x: snappedX,
+        startY: startFrom? wireStart.y: snappedY,
+        endX: wire.endX,
+        endY: wire.endY,
+        state: "off",
+    });
+    placedWires.splice(placedWires.indexOf(wire), 1);
 }
 
 function placeWire(snappedX, snappedY, wire) {
@@ -303,8 +315,14 @@ function placeWire(snappedX, snappedY, wire) {
     }
 
     if (snappedX !== wireStart.x && snappedY !== wireStart.y) return;
+    let startFrom = false;
     if (!wire) {
         wire = findWire(snappedX - 10, snappedY - 10);
+    }
+
+    if (!wire) {
+        wire = findWire(wireStart.x - 10, wireStart.y - 10);
+        startFrom = true;
     }
 
     placedWires.push({
@@ -315,23 +333,7 @@ function placeWire(snappedX, snappedY, wire) {
         state: "off"
     });
 
-    if (wire) {
-        placedWires.push({
-            startX: wire.startX, 
-            startY: wire.startY, 
-            endX: snappedX, 
-            endY: snappedY,
-            state: "off",
-        });
-        placedWires.push({
-            startX: snappedX,
-            startY: snappedY,
-            endX: wire.endX,
-            endY: wire.endY,
-            state: "off",
-        });
-        placedWires.splice(placedWires.indexOf(wire), 1);
-    }
+    if (wire) splitWire(wire, snappedX, snappedY, startFrom);
 
     wireStart = null;
     drawGrid();
@@ -381,6 +383,11 @@ canvas.addEventListener("click", (event) => {
     if (wire) return placeWire(snappedX + 10, snappedY + 10, wire);
 });
 
+function removeGate(gate) {
+    removeConnectors(gate);
+    placedGates.splice(placedGates.indexOf(gate), 1);
+}
+
 canvas.addEventListener("contextmenu", (event) => {
     event.preventDefault();
 
@@ -401,7 +408,7 @@ canvas.addEventListener("contextmenu", (event) => {
     const gate = findGate(snappedX, snappedY)
     
     if (gate && debug) return console.log(gate);
-    if (gate && !gate.id) placedGates.splice(placedGates.indexOf(gate), 1);
+    if (gate && !gate.id) removeGate(gate);
     else {
         const wire = findWire(snappedX, snappedY);
         
@@ -475,8 +482,11 @@ function drawCanvas() {
     if (showGhostGate) return drawGhostGate(snappedX, snappedY);
     if (wireStart) return drawGhostWire(snappedX, snappedY);
     const connector = findConnector(mouseX, mouseY);
+        
+    if (connector && !findWire(connector.x - 10, connector.y - 10)) return drawGhostConnector(connector.x, connector.y, context);
+    const wire = findWire(snappedX, snappedY);
 
-    if (connector) return drawGhostConnector(connector.x, connector.y, context);
+    if (wire) return drawGhostConnector(snappedX + 10, snappedY + 10);
 }
 
 document.addEventListener("keydown", (event) => {
