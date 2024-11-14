@@ -16,6 +16,10 @@ div.toolbar {
     height: 40px;
     background-color: var(--bg-pri);
     border-bottom: solid 2px var(--bg-sec);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0px 10px;
 }
 
 div.truthtable {
