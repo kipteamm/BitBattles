@@ -17,11 +17,15 @@ api_blueprint = Blueprint("api", __name__, url_prefix="/api")
 @api_blueprint.delete("/battle/<string:id>/leave")
 @battle_authorized
 def leave_battle(id):
+    user: User = g.user
+    player: t.Optional[Player] = Player.query.filter_by(battle_id=id, user_id=user.id).first()
+    if not player:
+        return {"error": "Nothing found."}, 400
+    
     battle: t.Optional[Battle] = Battle.query.get(id)
     if not battle:
         return {"error": "Nothing found."}, 400
     
-    user: User = g.user
     if battle.owner_id == user.id:
         db.session.delete(battle)
     else:
@@ -52,8 +56,7 @@ def start_battle(id):
     battle.started_on = time.time()
     db.session.commit()
     
-    socketio.emit("new_stage", {"stage": "battle"}, to=battle.id)
-    socketio.emit("start_battle", table, to=battle.id)
+    socketio.emit("update_battle", battle.serialize(), to=battle.id)
     return {"success": True}, 204
 
 
@@ -100,8 +103,8 @@ def submit(id):
 
     if players == submitted == 2 or submitted == 3:
         battle.score_players()
-        socketio.emit("new_stage", {"stage": "results"}, to=battle.id)
         battle.stage = "results"
+        socketio.emit("update_battle", battle.serialize(), to=battle.id)
 
     db.session.commit()
 

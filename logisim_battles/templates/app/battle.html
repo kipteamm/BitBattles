@@ -16,7 +16,7 @@
     <link rel="stylesheet" type="text/css" href="/static/css/game.css">
     <link rel="stylesheet" type="text/css" href="/static/css/basics.css">
     <script>
-        const battle = {{ battle|tojson }};
+        battle = {{ battle|tojson }};
         const player = {{ player|tojson }};
     </script>
 </head>
@@ -52,7 +52,7 @@
     </div>
 
     <div class="stage" id="results">
-        <div id="resulst-player-list"></div>
+        <div id="results-player-list"></div>
     </div>
 </body>
 </html>

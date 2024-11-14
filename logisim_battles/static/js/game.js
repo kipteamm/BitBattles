@@ -5,7 +5,7 @@ let resultsPlayerList;
 let currentStage = null;
 
 window.addEventListener("DOMContentLoaded", (event) => {
-    newStage(battle.stage);
+    loadStage(battle.stage);
     timerElement = document.getElementById("timer");
     truthtable = document.getElementById("truthtable");
     alertsElement = document.getElementById("alerts");
@@ -13,10 +13,18 @@ window.addEventListener("DOMContentLoaded", (event) => {
     requestAnimationFrame(updateTimer);
 });
 
-function newStage(stage) {
+function loadStage(stage) {
     if (currentStage) currentStage.classList.remove("active");
     currentStage = document.getElementById(stage);
     currentStage.classList.add("active");
+
+    if (stage === "battle") {
+        loadTruthtable(battle.truthtable);
+        loadGates(battle.truthtable);
+    }
+    if (stage === "results") {
+        loadResults();
+    }
 }
 
 function loadTruthtable(data) {
@@ -166,14 +174,10 @@ function addResultPlayer(_player) {
     return element;
 }
 
-async function getResults() {
-    const response = await fetch(`/api/battle/${battle.id}/results`, {
-        method: "GET",
-        headers: {"Authorization": `Bearer ${getCookie('bt')}`}
-    })
-
-    if (!response.ok) return;
-    response.player.forEach(_player => {
+async function loadResults() {
+    battle.players.forEach(_player => {
         resultsPlayerList.appendChild(addResultPlayer(_player));
-    })
+    });
+
+    resultsPlayerList.innerHTML += `<div>Average gates: ${battle.average_gates}</div>`
 }

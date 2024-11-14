@@ -10,10 +10,6 @@ socket.on("disconnect", function() {
     return window.location.href = `/app/battles`;
 });
 
-socket.on("new_stage", function(data) {
-    newStage(data.stage);
-});
-
 socket.on("player_join", function(data) {
     if (document.getElementById(data.id)) return;
     addPlayer(data);
@@ -27,9 +23,9 @@ socket.on("finish", function(data) {
     sendAlert(`${data.username} finished in ${data.submission_on - battle.started_on} with ${data.gates} gates`);
 });
 
-socket.on("start_battle", function(data) {
-    loadTruthtable(data);
-    loadGates(data);
+socket.on("update_battle", function(data) {
+    battle = data;
+    loadStage(data.stage);
 });
 
 socket.on("disband", function() {

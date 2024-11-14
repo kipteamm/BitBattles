@@ -41,7 +41,7 @@ def new_battle():
     if player:
         return redirect(f"/app/battle/{player.battle_id}")
 
-    battle = Battle(current_user.id, 3, 2)
+    battle = Battle(current_user.id, 2, 1)
 
     battle.players.append(current_user)
     db.session.add(battle)

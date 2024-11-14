@@ -28,6 +28,8 @@ class Battle(db.Model):
     started_on = db.Column(db.Float(), default=0)
     truthtable = db.Column(db.Text(5000), default=None)
 
+    average_gates = db.Column(db.Integer(), default=0)
+
     def set_id(self) -> None:
         self.id = "".join(random.choices(BATTLE_ID, k=5))
         while Battle.query.get(self.id):
@@ -57,9 +59,10 @@ class Battle(db.Model):
     
     def score_players(self) -> None:
         average = math.floor(db.session.query(func.avg(Player.gates)).filter(Player.battle_id == self.id, Player.attempts > 0).scalar())
+        self.average_gates = average
 
         for player in Player.query.filter_by(battle_id=self.id).all():
-            player.score = round(player.submission_on - self.started_on) - ((average - player.gates) * 5)
+            player.score = round(player.submission_on - self.started_on) - ((average - player.gates) * 10)
         
         db.session.commit()
 
@@ -70,7 +73,8 @@ class Battle(db.Model):
             "players": self._get_players(),
             "stage": self.stage,
             "started_on": self.started_on,
-            "truthtable": json.loads(self.truthtable) if self.truthtable else None
+            "truthtable": json.loads(self.truthtable) if self.truthtable else None,
+            "average_gates": self.average_gates
         }
 
 
