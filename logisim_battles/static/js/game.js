@@ -46,14 +46,15 @@ function loadGates(data) {
     for (const key of Object.keys(data)) {
         if (key.charCodeAt(0) > 77) {
             const gate = objects["OUTPUT"];
+            const [inputCoordinates, outputCoordinates] = setConnectors(gate, 550, outputY);
 
             placedGates.push({
                 x: 550, 
                 y: outputY, 
                 type: "OUTPUT", 
                 rotation: 0, 
-                inputs: gate.inputs.map((input) => ({x: 550 + input.x, y: outputY + input.y})), 
-                output: {x: 550 + gate.output.x, y: outputY + gate.output.y},
+                inputs: inputCoordinates, 
+                output: outputCoordinates,
                 id: key,
             });
             outputY += 2 * gridSize;
@@ -61,14 +62,15 @@ function loadGates(data) {
         }
 
         const gate = objects["INPUT"];
+        const [inputCoordinates, outputCoordinates] = setConnectors(gate, 20, inputY);
 
         placedGates.push({
             x: 20, 
             y: inputY, 
             type: "INPUT",
             rotation: 0, 
-            inputs: gate.inputs.map((input) => ({x: 20 + input.x, y: inputY + input.y})), 
-            output: {x: 20 + gate.output.x, y: inputY + gate.output.y},
+            inputs: inputCoordinates, 
+            output: outputCoordinates,
             id: key,
         });
         inputY += 2 * gridSize;

@@ -369,7 +369,7 @@ canvas.addEventListener("click", (event) => {
     if (selectedGate) return placeGate(snappedX, snappedY);
     const connector = findConnector(x, y);
 
-    if (!selectedGate && connector) return placeWire(connector.x, connector.y);
+    if (connector && !findWire(connector.x - 10, connector.y - 10)) return placeWire(connector.x, connector.y);
     const gate = findGate(snappedX, snappedY)
 
     if (gate && movingGate === null) {
