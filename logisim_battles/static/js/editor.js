@@ -366,7 +366,7 @@ canvas.addEventListener("click", (event) => {
 
     const snappedX = Math.floor(x / gridSize) * gridSize;
     const snappedY = Math.floor(y / gridSize) * gridSize;
-    const gate = findGate(snappedX, snappedY)
+    const gate = findGate(snappedX, snappedY);
     
     if (selectedGate && !gate) return placeGate(snappedX, snappedY);
     const connector = findConnector(x, y);
@@ -424,7 +424,6 @@ canvas.addEventListener("contextmenu", (event) => {
     drawCanvas();
 })
 
-// Track mouse position for ghost gate
 canvas.addEventListener("mousemove", (event) => {
     const rect = canvas.getBoundingClientRect();
     mouseX = event.clientX - rect.left;
@@ -433,20 +432,18 @@ canvas.addEventListener("mousemove", (event) => {
     drawCanvas();
 });
 
-// Render buffer canvas
 function drawGhostGate(snappedX, snappedY) {
     if (!selectedGate) return;
     if (findGate(snappedX, snappedY)) return;
         
-    context.globalAlpha = editing? 1.0: 0.5;  // Set transparency for ghost gate
+    context.globalAlpha = editing? 1.0: 0.5;
     drawGate(snappedX, snappedY, selectedGate, rotation, movingGate?.id, context);
-    context.globalAlpha = 1.0;  // Reset transparency
+    context.globalAlpha = 1.0;
 
     return;
 }
 
 function drawGhostWire(snappedX, snappedY, connector) {
-    // directions don't entirely work
     const direction = wireStart.y - (wireStart.y % gridSize) === snappedY? "HORIZONTAL": "VERTICAL";
     const wireX = direction === "VERTICAL"? wireStart.x - 10: wireStart.x;
     const wireY = direction === "HORIZONTAL"? wireStart.y - 10: wireStart.y;
@@ -464,7 +461,7 @@ function drawGhostWire(snappedX, snappedY, connector) {
     )
 }
 
-function drawGhostConnector(x, y) {
+function drawConnectorOutline(x, y) {
     context.fillStyle = "black";
     context.beginPath();
     context.arc(x, y, 5, 0, Math.PI * 2);
@@ -491,8 +488,8 @@ function drawCanvas() {
     if (wireStart) drawGhostWire(snappedX, snappedY, connector);
     const wire = findWire(snappedX, snappedY);
 
-    if (wire) return drawGhostConnector(snappedX + 10, snappedY + 10);
-    if (connector) return drawGhostConnector(connector.x, connector.y);
+    if (wire) return drawConnectorOutline(snappedX + 10, snappedY + 10);
+    if (connector) return drawConnectorOutline(connector.x, connector.y);
     const gate = findGate(snappedX, snappedY);
 
     if (gate && editing) return drawGateOutline(gate);

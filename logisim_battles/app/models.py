@@ -63,7 +63,7 @@ class Battle(db.Model):
 
         for player in Player.query.filter_by(battle_id=self.id).all():
             player.score = round(player.submission_on - self.started_on) - ((average - player.gates) * 10)
-        
+
         db.session.commit()
 
     def serialize(self) -> dict:
