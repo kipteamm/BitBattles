@@ -19,17 +19,12 @@ def register():
         flash(error, 'error')
         return render_template('auth/register.html')
     
-    email, error = validate_field(request.form["email"], 3, 255, "email")
-    if not email:
-        flash(error, 'error')
-        return render_template('auth/register.html')
-    
     password, error = validate_field(request.form["password"], 8, 255)
     if not password:
         flash(error, 'error')
         return render_template('auth/register.html')
 
-    user = User(email, password, username)
+    user = User(password, username)
 
     db.session.add(user)
     db.session.commit()
@@ -50,7 +45,7 @@ def login():
         
     _user = User.authenticate(user, password)
     if not _user:
-        flash(f"Invalid {'email' if '@' in user else 'username'} or password", 'error')
+        flash(f"Invalid username or password", 'error')
         return render_template('auth/login.html')
     
     login_user(_user)

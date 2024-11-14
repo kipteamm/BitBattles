@@ -11,10 +11,6 @@ def validate_field(value: str, min_length: int=0, max_length: int=0, type: t.Opt
     
     if len(value) > max_length:
         return None, "Too long"
-    
-    if type == "email":
-        if User.query.filter(db.func.lower(User.email) == db.func.lower(value)).first():
-            return None, "Already exists"
 
     elif type == "username":
         if User.query.filter(db.func.lower(User.username) == db.func.lower(value)).first():
