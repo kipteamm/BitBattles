@@ -46,12 +46,14 @@ def start_battle(id):
     if battle.players.count() < 2: # type: ignore
         return {"error": "Not enough players."}, 400
     
-    battle.truthtable = json.dumps(TableGenerator(battle.inputs, battle.outputs).table)
+    table = TableGenerator(battle.inputs, battle.outputs).table
+    battle.truthtable = json.dumps(table)
     battle.stage = "battle"
     battle.started_on = time.time()
     db.session.commit()
     
-    socketio.emit("new_stage", to=battle.id)
+    socketio.emit("new_stage", {"stage": "battle"}, to=battle.id)
+    socketio.emit("start_battle", table, to=battle.id)
     return {"success": True}, 204
 
 
@@ -98,7 +100,7 @@ def submit(id):
 
     if players == submitted == 2 or submitted == 3:
         battle.score_players()
-        socketio.emit("new_stage", to=battle.id)
+        socketio.emit("new_stage", {"stage": "results"}, to=battle.id)
         battle.stage = "results"
 
     db.session.commit()

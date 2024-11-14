@@ -55,7 +55,7 @@ def new_battle():
 @app_blueprint.get("/battle/<string:id>")
 @login_required
 def battle(id):
-    player = Player.query.filter_by(battle_id=id, user_id=current_user.id)
+    player = Player.query.filter_by(battle_id=id, user_id=current_user.id).first()
     if not player:
         return redirect("/app/battles")
 
@@ -63,7 +63,7 @@ def battle(id):
     if not battle:
         return redirect("/app/battles")
 
-    response = make_response(render_template(f"app/{battle.stage}.html", battle=battle.serialize(), player=current_user.serialize()))
+    response = make_response(render_template(f"app/battle.html", battle=battle.serialize(), player=current_user.serialize()))
     response.set_cookie("bt", current_user.set_battle_token())
     return response
 
@@ -72,8 +72,9 @@ def battle(id):
 @login_required
 def profile():
 
-    for battle in Battle.query.all():
-        db.session.delete(battle)
-    db.session.commit()
+    if current_user.username == "kipteam":
+        for battle in Battle.query.all():
+            db.session.delete(battle)
+        db.session.commit()
 
     return render_template("app/profile.html")

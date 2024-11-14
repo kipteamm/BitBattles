@@ -3,6 +3,13 @@ body {
     user-select: none;
 }
 
+.stage {
+    display: none;
+}
+.stage.active {
+    display: block;
+}
+
 div.toolbar {
     position: fixed;
     width: 100vw;

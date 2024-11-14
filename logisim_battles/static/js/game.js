@@ -1,15 +1,23 @@
 let timerElement;
 let truthtable;
 let alertsElement;
+let resultsPlayerList;
+let currentStage = null;
 
 window.addEventListener("DOMContentLoaded", (event) => {
+    newStage(battle.stage);
     timerElement = document.getElementById("timer");
     truthtable = document.getElementById("truthtable");
     alertsElement = document.getElementById("alerts");
-    loadTruthtable(battle.truthtable);
-    loadGates(battle.truthtable);
+    resultsPlayerList = document.getElementById("results-player-list");
     requestAnimationFrame(updateTimer);
 });
+
+function newStage(stage) {
+    if (currentStage) currentStage.classList.remove("active");
+    currentStage = document.getElementById(stage);
+    currentStage.classList.add("active");
+}
 
 function loadTruthtable(data) {
     let firstOutput = false;
@@ -150,4 +158,22 @@ function updateAlertPositions() {
     alerts.forEach((alert, index) => {
         alert.style.bottom = `${10 + (30 * index)}px`;
     });
+}
+
+function addResultPlayer(_player) {
+    const element = document.createElement("div");
+    element.innerHTML = `${_player.username} ${_player.id === player.id? "(you)": ""} Time: ${_player.time} Gates: ${_player.gates} [DEBUG] Score: ${_player.score}`
+    return element;
+}
+
+async function getResults() {
+    const response = await fetch(`/api/battle/${battle.id}/results`, {
+        method: "GET",
+        headers: {"Authorization": `Bearer ${getCookie('bt')}`}
+    })
+
+    if (!response.ok) return;
+    response.player.forEach(_player => {
+        resultsPlayerList.appendChild(addResultPlayer(_player));
+    })
 }

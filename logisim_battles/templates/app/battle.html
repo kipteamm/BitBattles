@@ -11,6 +11,7 @@
     <script src="/static/js/simulation.js"></script>
     <script src="/static/js/gameSocket.js"></script>
     <script src="/static/js/basics.js"></script>
+    <script src="/static/js/queue.js"></script>
     <script src="/static/js/game.js"></script>
     <link rel="stylesheet" type="text/css" href="/static/css/game.css">
     <link rel="stylesheet" type="text/css" href="/static/css/basics.css">
@@ -20,20 +21,38 @@
     </script>
 </head>
 <body>
-    <div class="toolbar">
-        <button onclick="editMode()">Edit</button>
-        <button onclick="toggleSelectGate('AND')">AND</button>
-        <button onclick="toggleSelectGate('OR')">OR</button>
-        <button onclick="toggleSelectGate('NOT')">NOT</button>
-        <button onclick="simulate()">Simulate</button>
-        <button onclick="test()">Test</button>
-        <button onclick="submit()">Submit</button>
-        <span id="timer">00:00</span>
+    <div class="stage" id="queue">
+        <h1>Awaiting start</h1>
+
+        <div id="queue-player-list"></div>
+
+        {% if player.id == battle.owner_id %}
+            <button onclick="startBattle()">Start battle</button>
+        {% endif %}
+
+        <button onclick="leaveBattle()">Leave</button>
     </div>
 
-    <div class="truthtable" id="truthtable"></div>
-    <div id="alerts"></div>
+    <div class="stage" id="battle">
+        <div class="toolbar">
+            <button onclick="editMode()">Edit</button>
+            <button onclick="toggleSelectGate('AND')">AND</button>
+            <button onclick="toggleSelectGate('OR')">OR</button>
+            <button onclick="toggleSelectGate('NOT')">NOT</button>
+            <button onclick="simulate()">Simulate</button>
+            <button onclick="test()">Test</button>
+            <button onclick="submit()">Submit</button>
+            <span id="timer">00:00</span>
+        </div>
 
-    <canvas id="game"></canvas>
+        <div class="truthtable" id="truthtable"></div>
+        <div id="alerts"></div>
+
+        <canvas id="game"></canvas>
+    </div>
+
+    <div class="stage" id="results">
+        <div id="resulst-player-list"></div>
+    </div>
 </body>
 </html>

@@ -1,7 +1,7 @@
 let playerListElement;
 
 window.addEventListener("DOMContentLoaded", (event) => {
-    playerListElement = document.getElementById("player-list");
+    playerListElement = document.getElementById("queue-player-list");
     
     for (const player of battle.players) {
         if (document.getElementById(player.id)) continue;
@@ -39,5 +39,4 @@ async function startBattle() {
     });
 
     if (!response.ok) return;
-    return window.location.reload();
 }
