@@ -58,6 +58,7 @@ const objects = {
 };
 
 let placedGates = [];
+let placedConnectors = [];
 let selectedGate = null;
 let showGhostGate = false;
 let movingGate = null;
@@ -270,15 +271,28 @@ function placeGate(snappedX, snappedY) {
         return drawCanvas();
     }
 
+    const outputCoordinates = rotatePoint(snappedX + _gate.output.x, snappedY + _gate.output.y, rotation, snappedX + (gridSize * _gate.size) / 2, snappedY + (gridSize * _gate.size) / 2);
+    const inputCoordinates = [];
+    _gate.inputs.forEach(input => {
+        inputCoordinates.push(rotatePoint(
+            snappedX + input.x, 
+            snappedY + input.y, 
+            rotation, snappedX + (gridSize * _gate.size) / 2, 
+            snappedY + (gridSize * _gate.size) / 2)
+        );
+    });
+
     placedGates.push({
         x: snappedX, 
         y: snappedY, 
         type: selectedGate, 
         rotation: rotation, 
-        inputs: _gate.inputs.map((input) => (rotatePoint(snappedX + input.x, snappedY + input.y, rotation, snappedX + (gridSize * _gate.size) / 2, snappedY + (gridSize * _gate.size) / 2))), 
-        output: rotatePoint(snappedX + _gate.output.x, snappedY + _gate.output.y, rotation, snappedX + (gridSize * _gate.size) / 2, snappedY + (gridSize * _gate.size) / 2),
+        inputs: inputCoordinates, 
+        output: outputCoordinates,
         id: null,
     });
+    placedConnectors.push(...inputCoordinates);
+    placedConnectors.push(outputCoordinates);
     drawGrid();
 }
 
@@ -335,6 +349,13 @@ function moveGate(gate) {
     drawCanvas();
 }
 
+function findConnector(x, y) {
+    return placedConnectors.find(connector => 
+        (x - 5 <= connector.x && connector.x <= x + 5) &&
+        (y - 5 <= connector.y && connector.y <= y + 5)
+    );
+}
+
 canvas.addEventListener("click", (event) => {
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
@@ -342,15 +363,18 @@ canvas.addEventListener("click", (event) => {
 
     const snappedX = Math.floor(x / gridSize) * gridSize;
     const snappedY = Math.floor(y / gridSize) * gridSize;
+    
+    if (selectedGate) return placeGate(snappedX, snappedY);
+    const connector = findConnector(x, y);
+
+    if (!selectedGate && connector) return placeWire(connector.x, connector.y);
     const gate = findGate(snappedX, snappedY)
 
     if (gate && movingGate === null) {
-        if (checkConnectorClicked(gate, x, y)) return;
         if (!editing) return;
         return moveGate(gate);
     }
 
-    if (selectedGate) return placeGate(snappedX, snappedY);
     if (wireStart) return placeWire(snappedX + 10, snappedY + 10, null);
     const wire = findWire(snappedX, snappedY);
     
@@ -395,7 +419,6 @@ canvas.addEventListener("contextmenu", (event) => {
 
 // Track mouse position for ghost gate
 canvas.addEventListener("mousemove", (event) => {
-    if (!selectedGate && !wireStart) return;
     const rect = canvas.getBoundingClientRect();
     mouseX = event.clientX - rect.left;
     mouseY = event.clientY - rect.top;
@@ -436,16 +459,24 @@ function drawGhostWire(snappedX, snappedY) {
     )
 }
 
+function drawGhostConnector(x, y, ctx = context) {
+    ctx.fillStyle = "black";
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.stroke();
+}
+
 function drawCanvas() {
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.drawImage(bufferCanvas, 0, 0);
-    if (!showGhostGate && !wireStart) return;
-
     const snappedX = Math.floor(mouseX / gridSize) * gridSize;
     const snappedY = Math.floor(mouseY / gridSize) * gridSize;
     
     if (showGhostGate) return drawGhostGate(snappedX, snappedY);
     if (wireStart) return drawGhostWire(snappedX, snappedY);
+    const connector = findConnector(mouseX, mouseY);
+
+    if (connector) return drawGhostConnector(connector.x, connector.y, context);
 }
 
 document.addEventListener("keydown", (event) => {
