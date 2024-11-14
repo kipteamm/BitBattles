@@ -49,7 +49,7 @@ class Simulate:
                 continue
 
             if len(_wires) > 1:
-                raise ValueError("Invalid input")
+                raise ValueError("Invalid circuit. Gate inputs cannot have more than one input wire.")
 
             wire = _wires[0]
             wires.append(wire)
@@ -130,7 +130,7 @@ class Simulate:
             gate["value"] = inputs[0]
             return gate["value"]
 
-        raise ValueError("Invalid gate 2")
+        raise ValueError("Invalid circuit. Gate does not exist")
 
     def _evaluate_gate(self, gate: dict, wire: dict, state: int) -> None:
         input_wire_index = self._get_input_wire_index(gate, wire)

@@ -67,10 +67,10 @@ def create_app() -> Flask:
         
         if battle.owner_id == current_user.id:  
             db.session.delete(battle)
-            socketio.emit("disband", room=battle.id)
+            socketio.emit("disband", to=battle.id)
         else:
             battle.players.remove(current_user)
-            socketio.emit("player_leave", {"id": current_user.id}, room=battle.id)
+            socketio.emit("player_leave", {"id": current_user.id}, to=battle.id)
         
         db.session.commit()
 

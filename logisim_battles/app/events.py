@@ -18,4 +18,4 @@ def register_events(socketio: SocketIO):
             return
 
         join_room(player.battle_id)
-        socketio.emit("player_join", {"id": user.id, "username": user.username}, room=player.battle_id)
+        socketio.emit("player_join", {"id": user.id, "username": user.username}, to=player.battle_id)
