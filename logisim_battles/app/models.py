@@ -22,7 +22,7 @@ class Battle(db.Model):
 
     inputs = db.Column(db.Integer(), default=3)
     outputs = db.Column(db.Integer(), default=2)
-    gates = db.Column(db.String(128), nullable=False)
+    gates = db.Column(db.String(128), default="['AND', 'NOT', 'OR']")
     players = db.relationship('User', secondary='players', backref=db.backref('battles', lazy='dynamic'), lazy='dynamic')
 
     stage = db.Column(db.String(128), default="queue")
