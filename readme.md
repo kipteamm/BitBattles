@@ -37,9 +37,9 @@ flask db upgraed
 
 ## Hosting on pythonanywhere
 ```bash
-pa website create --domain BitBattles.pythonanywhere.com --command '/home/BitBattles/.virtualenvs/venv/bin/gunicorn --worker-class eventlet -w 1 --chdir /home/BitBattles/BitBattles --bind unix:${DOMAIN_SOCKET} app:app'
+pa website create --domain LogisimBattles.pythonanywhere.com --command '/home/LogisimBattles/.virtualenvs/venv/bin/gunicorn --worker-class eventlet -w 1 --chdir /home/LogisimBattles/BitBattles --bind unix:${DOMAIN_SOCKET} app:app'
 ```
 
 ```bash
-pa website reload --domain BitBattles.pythonanywhere.com
+pa website reload --domain LogisimBattles.pythonanywhere.com
 ```
