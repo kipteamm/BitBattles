@@ -37,6 +37,15 @@ const objects = {
         output: { x: 20, y: 10 },
         evaluate: (states) => states[0]? 0: 1,
     },
+    XOR: {
+        label: "XOR",
+        color: "#da42fc",
+        type: "GATE",
+        size: 3,
+        inputs: [{ x: 0, y: 10 }, { x: 0, y: 30 }, { x: 0, y: 50 }],
+        output: { x: 60, y: 30 },
+        evaluate: (states) => states.filter(state => state).length === 1,
+    },
     INPUT: {
         label: "IN",
         color: "#acbaba",
