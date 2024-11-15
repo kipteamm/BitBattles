@@ -6,7 +6,11 @@ canvas.height = window.innerHeight;
 const bufferCanvas = document.createElement("canvas");
 const bufferContext = bufferCanvas.getContext("2d");
 bufferCanvas.width = canvas.width;
-bufferCanvas.height = canvas.height;
+bufferCanvas.height = canvas.height - 40;
+
+let camX = 0;
+let camY = 0;
+let zoom = 1;
 
 const gridSize = 20;
 const objects = {
@@ -102,6 +106,16 @@ function toggleSelectGate(type) {
     canvas.style.cursor = selectedGate? "pointer": "default";
 }
 
+function prepareTransform(ctx = context) {
+    ctx.save();
+    ctx.translate(camX, camY);
+    ctx.scale(zoom, zoom);
+}
+
+function undoTransform(ctx = context) {
+    ctx.restore();
+}
+
 function drawGrid() {
     placedGates.forEach(gate => {
         bufferContext.globalAlpha = gate === movingGate? 0.5: 1.0;
@@ -135,7 +149,7 @@ function drawGate(x, y, gateType, rotation, id, ctx = context) {
     const gateSizePx = gridSize * gate.size;
 
     // Translate to the center of the gate, then rotate
-    ctx.save();
+    prepareTransform(ctx);
     ctx.translate(x + gateSizePx / 2, y + gateSizePx / 2);
     ctx.rotate((rotation * Math.PI) / 180);
 
@@ -162,24 +176,28 @@ function drawGate(x, y, gateType, rotation, id, ctx = context) {
     ctx.arc(gate.output.x - gateSizePx / 2, gate.output.y - gateSizePx / 2, 3, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.restore();
+    undoTransform(ctx);
 }
 
 const wireColors = {"off": "#1d5723", "on": "#1cba2e"};
 function drawWire(startX, startY, endX, endY, state, ctx = context) {
+    prepareTransform(ctx);
     ctx.strokeStyle = wireColors[state];
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(startX, startY);
     ctx.lineTo(endX, endY);
     ctx.stroke();
+    undoTransform(ctx);
 }
 
 function drawIntersection(x, y, ctx = context) {
+    prepareTransform(ctx);
     ctx.fillStyle = "black";
     ctx.beginPath();
     ctx.arc(x, y, 3, 0, Math.PI * 2);
     ctx.fill();
+    undoTransform(ctx);
 }
 
 function findGate(snappedX, snappedY) {
@@ -366,8 +384,8 @@ function findConnector(x, y) {
 
 canvas.addEventListener("click", (event) => {
     const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    const x = (event.clientX - rect.left - camX) / zoom;
+    const y = (event.clientY - rect.top - camY) / zoom;
 
     const snappedX = Math.floor(x / gridSize) * gridSize;
     const snappedY = Math.floor(y / gridSize) * gridSize;
@@ -409,8 +427,8 @@ canvas.addEventListener("contextmenu", (event) => {
     }
 
     const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    const x = (event.clientX - rect.left - camX) / zoom;
+    const y = (event.clientY - rect.top - camY) / zoom;
 
     const snappedX = Math.floor(x / gridSize) * gridSize;
     const snappedY = Math.floor(y / gridSize) * gridSize;
@@ -433,10 +451,28 @@ canvas.addEventListener("contextmenu", (event) => {
     drawCanvas();
 })
 
+function updateBackgroundPosition() {
+    canvas.style.backgroundPosition = `${(gridSize * zoom) / 2 + camX}px ${(gridSize * zoom) / 2 + camY}px`;
+}
+
 canvas.addEventListener("mousemove", (event) => {
     const rect = canvas.getBoundingClientRect();
-    mouseX = event.clientX - rect.left;
-    mouseY = event.clientY - rect.top;
+
+    let oldMouseX = mouseX;
+    let oldMouseY = mouseY;
+
+    mouseX = (event.clientX - rect.left - camX) / zoom;
+    mouseY = (event.clientY - rect.top - camY) / zoom;
+
+    if (event.buttons & (2)) {
+        camX += mouseX - oldMouseX;
+        camY += mouseY - oldMouseY;
+        updateBackgroundPosition();
+        bufferContext.clearRect(0, 0, canvas.width, canvas.height);
+        drawGrid();
+        drawCanvas();
+        return;
+    }
 
     drawCanvas();
 });
@@ -472,18 +508,22 @@ function drawGhostWire(snappedX, snappedY, connector) {
 }
 
 function drawConnectorOutline(x, y) {
+    prepareTransform();
     context.fillStyle = "black";
     context.beginPath();
     context.arc(x, y, 5, 0, Math.PI * 2);
     context.stroke();
+    undoTransform();
 }
 
 function drawGateOutline(gate) {
     const _gate = objects[gate.type];
+    prepareTransform();
     context.fillStyle = "black";
     context.beginPath();
     context.roundRect(gate.x - 5, gate.y - 5, _gate.size * gridSize + 10, _gate.size * gridSize + 10, [5, 5, 5, 5]);
     context.stroke();
+    undoTransform();
 }
 
 function drawCanvas() {
@@ -505,8 +545,32 @@ function drawCanvas() {
     if (gate && editing) return drawGateOutline(gate);
 }
 
+function setZoom(newZoom) {
+    if (newZoom <= 0) return;
+
+    let oldMouseX = (mouseX) * zoom;
+    let oldMouseY = (mouseY) * zoom;
+    zoom = newZoom;
+    mouseX = (oldMouseX) / zoom;
+    mouseY = (oldMouseY) / zoom;
+
+    canvas.style.backgroundSize = `${gridSize * zoom}px ${gridSize * zoom}px`;
+    updateBackgroundPosition();
+    canvas.style.backgroundImage = `radial-gradient(circle, var(--bg-sec) ${Math.floor(zoom)}px, rgba(0, 0, 0, 0) 1px)`
+
+    bufferContext.clearRect(0, 0, canvas.width, canvas.height);
+    drawGrid();
+    drawCanvas();
+}
+
 document.addEventListener("keydown", (event) => {
     switch(event.key) {
+        case "+":
+            setZoom(zoom + 0.5);
+            return;
+        case "-":
+            setZoom(zoom - 0.5);
+            return;
         case "z":
             rotation = rotation === 360? 90: rotation + 90;
             break;
