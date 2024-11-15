@@ -1,4 +1,4 @@
-from logisim_battles.utils.forms import validate_field
+from logisim_battles.utils.forms import validate_string
 from logisim_battles.auth.models import User
 from logisim_battles.extensions import db
 
@@ -14,12 +14,12 @@ def register():
     if request.method == "GET":
         return render_template("auth/register.html")
 
-    username, error = validate_field(request.form["username"], 1, 30, "username")
+    username, error = validate_string(request.form["username"], 1, 30, "username")
     if not username:
         flash(error, 'error')
         return render_template('auth/register.html')
     
-    password, error = validate_field(request.form["password"], 8, 255)
+    password, error = validate_string(request.form["password"], 8, 255)
     if not password:
         flash(error, 'error')
         return render_template('auth/register.html')

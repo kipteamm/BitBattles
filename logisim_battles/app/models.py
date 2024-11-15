@@ -22,6 +22,7 @@ class Battle(db.Model):
 
     inputs = db.Column(db.Integer(), default=3)
     outputs = db.Column(db.Integer(), default=2)
+    gates = db.Column(db.String(128), nullable=False)
     players = db.relationship('User', secondary='players', backref=db.backref('battles', lazy='dynamic'), lazy='dynamic')
 
     stage = db.Column(db.String(128), default="queue")
@@ -35,10 +36,11 @@ class Battle(db.Model):
         while Battle.query.get(self.id):
             self.id = "".join(random.choices(BATTLE_ID, k=5))
 
-    def __init__(self, owner_id: str, inputs: int=3, outputs: int=2) -> None:
+    def __init__(self, owner_id: str, inputs: int=3, outputs: int=2, gates: list=["AND", "NOT", "OR"]) -> None:
         self.owner_id = owner_id
         self.inputs = inputs
         self.outputs = outputs
+        self.gates = json.dumps(gates)
         self.set_id()
 
     def _get_players(self) -> list:
@@ -74,7 +76,8 @@ class Battle(db.Model):
             "stage": self.stage,
             "started_on": self.started_on,
             "truthtable": json.loads(self.truthtable) if self.truthtable else None,
-            "average_gates": self.average_gates
+            "average_gates": self.average_gates,
+            "gates": json.loads(self.gates)
         }
 
 

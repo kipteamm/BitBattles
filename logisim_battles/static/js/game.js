@@ -19,6 +19,7 @@ function loadStage(stage) {
     currentStage.classList.add("active");
 
     if (stage === "battle") {
+        loadGateButtons(battle.gates);
         loadTruthtable(battle.truthtable);
         loadGates(battle.truthtable);
     }
@@ -26,6 +27,12 @@ function loadStage(stage) {
         loadResults();
     }
 }
+
+function loadGateButtons(gates) {
+    gates.forEach(gate => {
+        document.getElementById(`${gate}-btn`).classList.add("active");
+    });
+} 
 
 function loadTruthtable(data) {
     let firstOutput = false;
