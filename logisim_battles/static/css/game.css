@@ -67,6 +67,10 @@ canvas {
     background-image: radial-gradient(circle, var(--bg-sec) 1px, rgba(0, 0, 0, 0) 1px);
 }
 
+.canvasContainer {
+    padding-top: 40px;
+}
+
 div.alert {
     position: fixed;
     right: 10px;
