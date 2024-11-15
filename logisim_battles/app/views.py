@@ -1,5 +1,6 @@
 from logisim_battles.utils.forms import validate_int
-from logisim_battles.app.models import Battle, Player
+from logisim_battles.auth.models import User
+from logisim_battles.app.models import Battle, Player, BattleStatistic
 from logisim_battles.extensions import db
 
 from flask_login import login_required, current_user
@@ -81,13 +82,15 @@ def battle(id):
     return response
 
 
-@app_blueprint.get("/profile")
+@app_blueprint.get("/user/<string:username>")
 @login_required
-def profile():
+def profile(username: str):
+    if username == current_user.username:
+        user = current_user
+    else:
+        user = User.query.filter_by(username=username).first()
 
-    if current_user.username == "kipteam":
-        for battle in Battle.query.all():
-            db.session.delete(battle)
-        db.session.commit()
+    if not user:
+        return redirect(f"/app/user/{current_user.username}")
 
-    return render_template("app/profile.html")
+    return render_template("app/user.html", user=user, statistics=BattleStatistic.query.filter_by(user_id=user.id).all())

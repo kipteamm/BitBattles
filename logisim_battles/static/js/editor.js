@@ -438,11 +438,9 @@ canvas.addEventListener("contextmenu", (event) => {
     if (gate && !gate.id) removeGate(gate);
     else {
         const wire = findWire(snappedX, snappedY);
-        
         if (!wire) return;
-        if (debug) {
-            return console.log(wire);
-        }
+        if (debug) return console.log(wire);
+
         placedWires.splice(placedWires.indexOf(wire), 1);
     }
 
@@ -464,16 +462,12 @@ canvas.addEventListener("mousemove", (event) => {
     mouseX = (event.clientX - rect.left - camX) / zoom;
     mouseY = (event.clientY - rect.top - camY) / zoom;
 
-    if (event.buttons & (2)) {
-        camX += mouseX - oldMouseX;
-        camY += mouseY - oldMouseY;
-        updateBackgroundPosition();
-        bufferContext.clearRect(0, 0, canvas.width, canvas.height);
-        drawGrid();
-        drawCanvas();
-        return;
-    }
-
+    if (!(event.buttons & (2))) return drawCanvas();
+    camX += mouseX - oldMouseX;
+    camY += mouseY - oldMouseY;
+    updateBackgroundPosition();
+    bufferContext.clearRect(0, 0, canvas.width, canvas.height);
+    drawGrid();
     drawCanvas();
 });
 
@@ -566,6 +560,7 @@ function setZoom(newZoom) {
 document.addEventListener("keydown", (event) => {
     switch(event.key) {
         case "+":
+        case "=":
             setZoom(zoom + 0.5);
             return;
         case "-":

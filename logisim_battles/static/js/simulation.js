@@ -146,7 +146,7 @@ async function test() {
     sendAlert("Your tests finished.");
 }
 
-function inputClick() {
+function inputClicked() {
     const states = {};
     for (let i = 0; i < placedGates.length; i++) {
         const gate = placedGates[i];

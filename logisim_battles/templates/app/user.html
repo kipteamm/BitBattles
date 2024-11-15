@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Logisim Battles</title>
+</head>
+<body>
+    <h1>{{ user.username }}</h1>
+    {% for statistic in statistics %}
+        <div>
+            <b>{{ statistic.battle_type }}</b>
+            {% if statistic.winner %}You won this battle.{% endif %}
+            Your score: {{ statistic.score }}
+        </div>
+    {% endfor %}
+</body>
+</html>
