@@ -40,6 +40,19 @@ div.truthtable {
     border-radius: 0px 0px 0px 5px;
 }
 
+div.test {
+    margin-right: 5px;
+}
+div.test .cell {
+    color: var(--bg-sec);
+}
+div.test .cell.failed {
+    color: #ff5b5b;
+}
+div.test .cell.passed {
+    color: #1cba2e;
+}
+
 div.output {
     margin-left: 5px;
 }

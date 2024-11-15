@@ -69,6 +69,7 @@ function propagateSignal(wire, value) {
 }
 
 function resetCircuit() {
+    outputGates = [];
     placedGates.forEach(gate => {
         gate.visits = 0;
         gate.inputStates = getInputWires(gate);
@@ -80,15 +81,18 @@ function resetCircuit() {
     });
 }
 
+let outputGates = [];
+
 function simulate(states = {}) {
     resetCircuit();
 
-    console.log(placedGates);
-
     for (const gate of placedGates) {
-        if (gate.type !== "INPUT") continue;
+        if (gate.type === "OUTPUT") {
+            outputGates.push(gate);
+            continue;
+        }
 
-        console.log(states[gate.id])
+        if (gate.type !== "INPUT") continue;
 
         const wire = getOutputWire(gate);
         propagateSignal(wire, states[gate.id] !== undefined? states[gate.id]: 1);
@@ -118,11 +122,26 @@ async function test() {
         }
 
         console.log("start simulation");
-        simulate(inputs);
+        simulate(inputs);   
+
+        const test = document.getElementById(`test-${i}`);
+        test.classList.remove("passed");
+        test.classList.remove("failed");
+
+        outputGates.forEach(gate => {
+            if (gate.inputStates[0] !== outputs[gate.id]) {
+                test.classList.remove("passed");
+                test.classList.add("failed");
+                test.innerHTML = "x";
+            } else if (!test.classList.contains("failed")) {
+                test.classList.add("passed");
+                test.classList.remove("failed");
+                test.innerHTML = "v";
+            }
+        });
 
         await delay(2000);
-        console.log("waited 2 seconds");
     }
 
-    console.log("finished");
+    sendAlert("Your tests finished.");
 }

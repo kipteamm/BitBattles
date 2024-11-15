@@ -34,8 +34,11 @@ function loadGateButtons(gates) {
     });
 } 
 
+
 function loadTruthtable(data) {
+    const testColumn = document.getElementById("test-column");
     let firstOutput = false;
+    let columnLength = 0;
 
     for (const [key, values] of Object.entries(data)) {
         const column = document.createElement("div");
@@ -59,6 +62,16 @@ function loadTruthtable(data) {
         }
 
         truthtable.appendChild(column);
+        columnLength = values.length;
+    }
+
+    for (let i = 0; i < columnLength; i++) {
+        const cell = document.createElement("div");
+        cell.classList.add("cell");
+        cell.innerText = "v";
+        cell.id = `test-${i}`;
+
+        testColumn.appendChild(cell);
     }
 }
 
