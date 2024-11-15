@@ -53,6 +53,7 @@ const objects = {
         size: 1,
         inputs: [],
         output: { x: 20, y: 10},
+        value: 0,
         evaluate: (states, input) => input.value,
     },
     OUTPUT: {
@@ -146,7 +147,7 @@ function drawGate(x, y, gateType, rotation, id, ctx = context) {
     ctx.fillStyle = "white";
     ctx.font = "10px Arial";
     ctx.textAlign = "center";
-    ctx.fillText(id? id: gate.label, 0, 4);
+    ctx.fillText(id? isNaN(id)? id: gate.label: gate.label, 0, 4);
 
     // Draw input connectors
     ctx.fillStyle = "black";
@@ -318,22 +319,16 @@ function splitWire(wire, snappedX, snappedY, startFrom) {
     placedWires.splice(placedWires.indexOf(wire), 1);
 }
 
-function placeWire(snappedX, snappedY, wire) {
+function placeWire(snappedX, snappedY, startWire) {
     if (!wireStart) {
         wireStart = {x: snappedX, y: snappedY, direction: null, state: "off"};
         return;
     }
 
     if (snappedX !== wireStart.x && snappedY !== wireStart.y) return;
-    let startFrom = false;
-    if (!wire) {
-        wire = findWire(snappedX - 10, snappedY - 10);
-    }
-
-    if (!wire) {
-        wire = findWire(wireStart.x - 10, wireStart.y - 10);
-        startFrom = true;
-    }
+    if (snappedX === wireStart.x && snappedY === wireStart.y) return;
+    const endWire = findWire(snappedX - 10, snappedY - 10);
+    startWire = findWire(wireStart.x - 10, wireStart.y - 10);
 
     placedWires.push({
         startX: wireStart.x, 
@@ -343,7 +338,8 @@ function placeWire(snappedX, snappedY, wire) {
         state: "off"
     });
 
-    if (wire) splitWire(wire, snappedX, snappedY, startFrom);
+    if (startWire) splitWire(startWire, snappedX, snappedY, true);
+    if (endWire) splitWire(endWire, snappedX, snappedY, false);
 
     wireStart = null;
     drawGrid();
@@ -380,8 +376,12 @@ canvas.addEventListener("click", (event) => {
     if (selectedGate && !gate) return placeGate(snappedX, snappedY);
     const connector = findConnector(x, y);
 
-    if (connector && !findWire(connector.x - 10, connector.y - 10)) return placeWire(connector.x, connector.y);
+    if (connector && !findWire(connector.x - 10, connector.y - 10)) return placeWire(connector.x, connector.y, null);
     if (gate && movingGate === null) {
+        if (!editing && gate.type === "INPUT") {
+            gate.value = gate.value? 0: 1;
+            return inputClicked();
+        }
         if (!editing) return;
         return moveGate(gate);
     }
@@ -458,6 +458,7 @@ function drawGhostWire(snappedX, snappedY, connector) {
     const wireY = direction === "HORIZONTAL"? wireStart.y - 10: wireStart.y;
 
     if (snappedX !== wireX && snappedY !== wireY) return;
+    if (snappedX === wireX && snappedX === wireY) return;
     wireStart.direction = direction;
 
     drawWire(

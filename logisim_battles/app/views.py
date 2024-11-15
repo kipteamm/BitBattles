@@ -45,7 +45,7 @@ def new_battle():
     if request.method == "GET":
         return render_template("app/new_battle.html")
 
-    inputs, error = validate_int(request.form.get("inputs", 2, int), 1, 3)
+    inputs, error = validate_int(request.form.get("inputs", 2, int), 1, 4)
     outputs, error = validate_int(request.form.get("outputs", 2, int), 1, 6)
     if not inputs or not outputs:
         flash(error, "error")

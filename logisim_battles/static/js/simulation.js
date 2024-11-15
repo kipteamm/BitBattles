@@ -95,7 +95,7 @@ function simulate(states = {}) {
         if (gate.type !== "INPUT") continue;
 
         const wire = getOutputWire(gate);
-        propagateSignal(wire, states[gate.id] !== undefined? states[gate.id]: 1);
+        propagateSignal(wire, states[gate.id] !== undefined? states[gate.id]: 0);
     }
 
     drawGrid();
@@ -144,4 +144,16 @@ async function test() {
     }
 
     sendAlert("Your tests finished.");
+}
+
+function inputClick() {
+    const states = {};
+    for (let i = 0; i < placedGates.length; i++) {
+        const gate = placedGates[i];
+        if (gate.type !== "INPUT") continue;
+        gate.id = gate.id? gate.id: i;
+        states[gate.id] = gate.value;
+    }
+    
+    simulate(states);
 }

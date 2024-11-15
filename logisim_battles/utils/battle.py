@@ -112,7 +112,7 @@ class Simulate:
 
     def _evaluate(self, gate: dict) -> int:
         gate_type = gate["type"]
-        inputs = gate["inputStates"]
+        inputs: list = gate["inputStates"]
 
         if gate_type == "AND":
             return int(all(inputs))
@@ -123,8 +123,11 @@ class Simulate:
         if gate_type == "NOT":
             return int(not inputs[0])
 
+        if gate_type == "XOR":
+            return int(inputs.count(1) == 1)
+        
         if gate_type == "INPUT":
-            raise ValueError("Inputs should not evaluated")
+            raise ValueError("Inputs should not evaluated")      
 
         if gate_type == "OUTPUT":
             gate["value"] = inputs[0]
