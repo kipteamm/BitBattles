@@ -4,9 +4,9 @@
     <h1>Bit Battles</h1>
 
     <a href="/editor">Editor</a>
-    {% if user %}
-        <a href="/app/battles">Battle</a>
-        <a href="/app/profile">Profile</a>
+    {% if current_user %}
+        <a href="/app/battles">Battles</a>
+        <a href="/app/user/{{ current_user.username }}">Profile</a>
     {% else %}
         <a href="/auth/register">Register</a>
         <a href="/auth/login">Login</a>

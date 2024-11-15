@@ -3,8 +3,10 @@ from bit_battles.auth.models import User
 from bit_battles.app.models import Battle, Player, BattleStatistic
 from bit_battles.extensions import db
 
+from collections import defaultdict
 from flask_login import login_required, current_user
 from flask import Blueprint, render_template, redirect, request, make_response, flash
+
 
 import typing as t
 
@@ -93,4 +95,9 @@ def profile(username: str):
     if not user:
         return redirect(f"/app/user/{current_user.username}")
 
-    return render_template("app/user.html", user=user, statistics=BattleStatistic.query.filter_by(user_id=user.id).all())
+    battle_statistics = defaultdict(list)
+        
+    for battle in BattleStatistic.query.filter_by(user_id=user.id).all():
+        battle_statistics[battle.battle_type].append(battle.serialize())
+
+    return render_template("app/user.html", user=user, statistics=battle_statistics)

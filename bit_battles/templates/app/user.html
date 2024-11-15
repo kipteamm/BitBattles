@@ -2,11 +2,14 @@
 
 {% block content %}
     <h1>{{ user.username }}</h1>
-    {% for statistic in statistics %}
-        <div>
-            <b>{{ statistic.battle_type }}</b>
-            {% if statistic.winner %}You won this battle.{% endif %}
-            Your score: {{ statistic.score }}
-        </div>
+
+    {% for statistic, values in statistics.items() %}
+        <h2>{{ statistic}}</h2>
+        {% for battle in values %}  
+            <div>
+                {% if battle.winner %}You won this battle.{% endif %}
+                Your score: {{ battle.score }}
+            </div>
+        {% endfor %}
     {% endfor %}
 {% endblock %}
