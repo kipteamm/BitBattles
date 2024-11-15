@@ -1,7 +1,7 @@
-from logisim_battles.utils.forms import validate_int
-from logisim_battles.auth.models import User
-from logisim_battles.app.models import Battle, Player, BattleStatistic
-from logisim_battles.extensions import db
+from bit_battles.utils.forms import validate_int
+from bit_battles.auth.models import User
+from bit_battles.app.models import Battle, Player, BattleStatistic
+from bit_battles.extensions import db
 
 from flask_login import login_required, current_user
 from flask import Blueprint, render_template, redirect, request, make_response, flash

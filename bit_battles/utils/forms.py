@@ -1,6 +1,6 @@
-from logisim_battles.auth.models import User
-from logisim_battles.extensions import db
-from logisim_battles.config import ALLOWED_CHARACTERS_REGEX
+from bit_battles.auth.models import User
+from bit_battles.extensions import db
+from bit_battles.config import ALLOWED_CHARACTERS_REGEX
 
 import typing as t
 

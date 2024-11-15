@@ -1,8 +1,8 @@
-from logisim_battles.utils.decorators import battle_authorized
-from logisim_battles.utils.battle import TableGenerator, Simulate
-from logisim_battles.auth.models import User
-from logisim_battles.app.models import Battle, Player
-from logisim_battles.extensions import db, socketio
+from bit_battles.utils.decorators import battle_authorized
+from bit_battles.utils.battle import TableGenerator, Simulate
+from bit_battles.auth.models import User
+from bit_battles.app.models import Battle, Player
+from bit_battles.extensions import db, socketio
 
 from flask import Blueprint, g, request
 

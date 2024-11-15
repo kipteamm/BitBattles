@@ -1,5 +1,5 @@
-from logisim_battles.utils.snowflakes import SnowflakeGenerator 
-from logisim_battles.extensions import db
+from bit_battles.utils.snowflakes import SnowflakeGenerator 
+from bit_battles.extensions import db
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin

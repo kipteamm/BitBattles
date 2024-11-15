@@ -1,6 +1,8 @@
 :root {
     --bg-pri: #f1f1f1;
     --bg-sec: #b9b9b9;
+
+    --font-family: "Geist Mono"
 }
 
 * {
@@ -11,4 +13,9 @@ body {
     margin: 0px;
     background-color: var(--bg-pri);
     overflow-x: hidden;
+    font-family: var(--font-family);
+}
+
+button, input {
+    font-family: var(--font-family);
 }

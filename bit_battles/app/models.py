@@ -1,6 +1,6 @@
-from logisim_battles.utils.snowflakes import SnowflakeGenerator
-from logisim_battles.auth.models import User
-from logisim_battles.extensions import db
+from bit_battles.utils.snowflakes import SnowflakeGenerator
+from bit_battles.auth.models import User
+from bit_battles.extensions import db
 
 from sqlalchemy import func
 

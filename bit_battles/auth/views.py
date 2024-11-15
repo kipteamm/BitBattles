@@ -1,6 +1,6 @@
-from logisim_battles.utils.forms import validate_string
-from logisim_battles.auth.models import User
-from logisim_battles.extensions import db
+from bit_battles.utils.forms import validate_string
+from bit_battles.auth.models import User
+from bit_battles.extensions import db
 
 from flask_login import login_user
 from flask import Blueprint, render_template, request, flash, redirect

@@ -1,11 +1,11 @@
-from logisim_battles.utils.functions import get_back_url
-from logisim_battles.auth.models import User
-from logisim_battles.main.views import main_blueprint
-from logisim_battles.auth.views import auth_blueprint
-from logisim_battles.app.events import register_events
-from logisim_battles.app.models import Battle, Player
-from logisim_battles.app.views import app_blueprint
-from logisim_battles.api.views import api_blueprint
+from bit_battles.utils.functions import get_back_url
+from bit_battles.auth.models import User
+from bit_battles.main.views import main_blueprint
+from bit_battles.auth.views import auth_blueprint
+from bit_battles.app.events import register_events
+from bit_battles.app.models import Battle, Player
+from bit_battles.app.views import app_blueprint
+from bit_battles.api.views import api_blueprint
 
 from .extensions import db, socketio
 from .secrets import SECRET_KEY

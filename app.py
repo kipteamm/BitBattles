@@ -1,4 +1,4 @@
-from logisim_battles import create_app, socketio
+from bit_battles import create_app, socketio
 
 
 app = create_app()

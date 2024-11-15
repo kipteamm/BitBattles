@@ -1,5 +1,5 @@
-from logisim_battles.auth.models import User
-from logisim_battles.app.models import Player
+from bit_battles.auth.models import User
+from bit_battles.app.models import Player
 
 from flask_socketio import SocketIO, join_room
 

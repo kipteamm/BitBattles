@@ -1,4 +1,4 @@
-from logisim_battles.auth.models import User
+from bit_battles.auth.models import User
 
 from functools import wraps
 from flask import request, g
