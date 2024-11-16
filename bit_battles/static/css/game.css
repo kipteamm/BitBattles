@@ -9,6 +9,10 @@ body {
 .stage.active {
     display: block;
 }
+.stage.results {
+    height: 100vh;
+    overflow-y: auto;
+}
 
 div.toolbar {
     position: fixed;

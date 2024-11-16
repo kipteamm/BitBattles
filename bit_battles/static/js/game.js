@@ -221,7 +221,7 @@ function addResultPlayer(_player) {
 }
 
 async function loadResults() {
-    resultsPlayerList.innerHTML += `<h2>Battle ${gamesCounter}</h2>`;
+    resultsPlayerList.innerHTML += `<h2>Battle ${gamesCounter + 1}</h2>`;
     battle.players.forEach(_player => {
         resultsPlayerList.appendChild(addResultPlayer(_player));
     });

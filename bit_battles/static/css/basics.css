@@ -19,3 +19,13 @@ body {
 button, input {
     font-family: var(--font-family);
 }
+
+.user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user img {
+    border-radius: 100%;
+}
