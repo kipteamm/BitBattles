@@ -18,7 +18,7 @@ app_blueprint = Blueprint("app", __name__, url_prefix="/app")
 @login_required
 def battles():
     if request.method == "GET":
-        return render_template("app/battles.html")
+        return render_template("app/battles.html", battles=Battle.query.filter_by(stage="queue", private=False).count())
     
     player = Player.query.filter_by(user_id=current_user.id).first()
     if player:
@@ -28,7 +28,7 @@ def battles():
     battle: t.Optional[Battle] = Battle.query.filter_by(id=battle_id, stage="queue").first()
 
     if not battle:
-        return render_template("app/battles.html")
+        return render_template("app/battles.html", battles=Battle.query.filter_by(stage="queue", private=False).count())
     
     battle.players.append(current_user)
     db.session.commit()
@@ -58,11 +58,34 @@ def new_battle():
     if request.form.get("XOR", "off") == "on":
         gates.append("XOR")
 
-    battle = Battle(current_user.id, inputs, outputs, gates)
+    private = False
+    if request.form.get("private", "off") == "on":
+        private = True
+
+    battle = Battle(current_user.id, inputs, outputs, gates, private)
     battle.players.append(current_user)
     db.session.add(battle)
     db.session.commit()
     
+    response = make_response(redirect(f"/app/battle/{battle.id}"))
+    response.set_cookie("bt", current_user.set_battle_token())
+    return response
+
+
+@app_blueprint.get("/battle/random/")
+@login_required
+def random_battle():
+    player = Player.query.filter_by(user_id=current_user.id).first()
+    if player:
+        return redirect(f"/app/battle/{player.battle_id}")
+
+    battle = Battle.query.filter_by(stage="queue", private=False).first()
+    if not battle:
+        return redirect("/app/battles")
+
+    battle.players.append(current_user)
+    db.session.commit()
+
     response = make_response(redirect(f"/app/battle/{battle.id}"))
     response.set_cookie("bt", current_user.set_battle_token())
     return response
