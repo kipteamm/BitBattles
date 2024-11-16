@@ -216,7 +216,7 @@ function updateAlertPositions() {
 
 function addResultPlayer(_player) {
     const element = document.createElement("div");
-    element.innerHTML = `${_player.username} ${_player.id === player.id? "(you)": ""} Time: ${_player.time} Gates: ${_player.gates} [DEBUG] Score: ${_player.score}`
+    element.innerHTML = `${_player.username} ${_player.id === player.id? "(you)": ""} Time: ${_player.time} Gates: ${_player.gates} Longest path: ${_player.longest_path} [DEBUG] Score: ${_player.score}`
     return element;
 }
 

@@ -111,13 +111,15 @@ def submit(id):
     player.attempts += 1
 
     try:
-        passed = Simulate(
+        passed, longest_path = Simulate(
             gates, 
             wires
             ).test(json.loads(battle.truthtable))
 
         player.gates = len(gates) - battle.inputs - battle.outputs
+        player.longest_path = longest_path
         player.submission_on = time.time()
+        player.passed = passed
 
     except Exception as e:
         db.session.commit()
@@ -127,12 +129,9 @@ def submit(id):
     players_passed = Player.query.filter(Player.battle_id == player.battle_id, Player.attempts > 0, Player.passed == True).count()
     
     if passed:
-        player.passed = True
-        players_passed += 1
-        socketio.emit("finish", {"id": user.id, "username": user.username, "submission_on": player.submission_on, "gates": player.gates}, to=player.battle_id)
+        socketio.emit("finish", {"id": user.id, "username": user.username, "submission_on": player.submission_on, "gates": player.gates, "longest_path": player.longest_path}, to=player.battle_id)
 
     if players == players_passed == 2 or players_passed == 3:
-        player.passed = passed
         battle.score_players()
         battle.stage = "results"
         socketio.emit("update_battle", battle.serialize(), to=battle.id)

@@ -10,6 +10,7 @@ import random
 import string
 import json
 import math
+import time
 import os
 
 
@@ -95,6 +96,7 @@ class Battle(db.Model):
                 "user_id": player.user_id,
                 "gates": player.gates,
                 "attempts": player.attempts,
+                "longest_path": player.longest_path,
                 "duration": round(player.submission_on - self.started_on, 3),
             })
 
@@ -112,6 +114,7 @@ class Battle(db.Model):
                 (player == winner),
                 player.passed,
                 player.gates, 
+                player.longest_path,
                 player.attempts, 
                 (player.submission_on - self.started_on),
                 (highest_score - player.score) + (50 * player.passed)
@@ -128,7 +131,7 @@ class Battle(db.Model):
 
         # Ensure a directory for storing JSON files
         os.makedirs("battle_data", exist_ok=True)
-        json_file_path = os.path.join("battle_data", f"{self.id}.json")
+        json_file_path = os.path.join("battle_data", f"{self.id}-{self.started_on}.json")
 
         with open(json_file_path, "w") as json_file:
             json.dump(battle_data, json_file, indent=4)
@@ -154,6 +157,7 @@ class Player(db.Model):
 
     gates = db.Column(db.Integer(), default=0)
     attempts = db.Column(db.Integer(), default=0)
+    longest_path = db.Column(db.Integer(), default=0)
     submission_on = db.Column(db.Integer(), default=0)
     passed = db.Column(db.Boolean(), default=False)
     score = db.Column(db.Integer(), default=0)
@@ -162,7 +166,9 @@ class Player(db.Model):
         return {
             "gates": self.gates,
             "attempts": self.attempts,
+            "longest_path": self.longest_path,
             "submission_on": self.submission_on,
+            "passed": self.passed,
             "score": self.score
         }
     
@@ -177,19 +183,24 @@ class BattleStatistic(db.Model):
     winner = db.Column(db.Boolean(), default=False)
     passed = db.Column(db.Boolean(), default=False)
     gates = db.Column(db.Integer(), default=0)
+    longest_path = db.Column(db.Integer(), default=0)
     attempts = db.Column(db.Integer(), default=0)
     duration = db.Column(db.Float(), default=0)
     score = db.Column(db.Integer(), default=0)
 
-    def __init__(self, battle: Battle, user_id: str, winner: bool, passed: bool, gates: int, attempts: int, duration: float, score: int) -> None:
+    creation_timestamp = db.Column(db.Float(), default=0)
+
+    def __init__(self, battle: Battle, user_id: str, winner: bool, passed: bool, gates: int, longest_path: int, attempts: int, duration: float, score: int) -> None:
         self.user_id = user_id
         self.battle_type = f"{battle.inputs}-{battle.outputs}-{battle.gates}"
         self.winner = winner
         self.passed = passed
         self.gates = gates
+        self.longest_path = longest_path
         self.attempts = attempts
         self.duration = duration
         self.score = score
+        self.creation_timestamp = time.time()
 
     def serialize(self) -> dict:
         battle_type = self.battle_type.split("-")
@@ -200,7 +211,9 @@ class BattleStatistic(db.Model):
             "outputs": battle_type[1],
             "battle_gates": battle_type[2],
             "winner": self.winner,
+            "passed": self.passed,
             "gates": self.gates,
+            "longest_path": self.longest_path,
             "attempts": self.attempts,
             "duration": self.duration,
             "score": self.score

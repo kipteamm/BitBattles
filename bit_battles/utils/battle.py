@@ -71,6 +71,7 @@ class Simulate:
         for wire in self._wires:
             wire["state"] = "off"
             wire["visited"] = False
+            wire["path"] = {"input": None, "gates": 0}
 
             if self._prepared:
                 continue
@@ -80,6 +81,7 @@ class Simulate:
 
         for gate in self._gates:
             gate["inputStates"] = self._get_input_wires(gate)
+            gate["path"] = {"input": None, "gates": 0}
 
         self._prepared = True
 
@@ -134,8 +136,19 @@ class Simulate:
             return gate["value"]
 
         raise ValueError("Invalid circuit. Gate does not exist")
+    
+    def _update_path(self, path_1, path_2) -> None:
+        if path_1 == path_2:
+            return
+        
+        if path_1["path"]["gates"] > path_2["path"]["gates"]:
+            return
+        
+        path_1["path"]["input"] = path_2["path"]["input"]
+        path_1["path"]["gates"] = path_2["path"]["gates"]
 
     def _evaluate_gate(self, gate: dict, wire: dict, state: int) -> None:
+        self._update_path(gate, wire)
         input_wire_index = self._get_input_wire_index(gate, wire)
         gate["inputStates"][input_wire_index] = state
 
@@ -144,14 +157,16 @@ class Simulate:
 
         _state = self._evaluate(gate)
         output_wire = self._get_output_wire(gate)
+        gate["path"]["gates"] += 1
 
         if output_wire:
-            return self._propagate_signal(output_wire, _state)
+            return self._propagate_signal(output_wire, _state, gate)
 
-    def _propagate_signal(self, wire: dict, state: int) -> None:
+    def _propagate_signal(self, wire: dict, state: int, path_2: dict) -> None:
         if wire["visited"]:
             return
 
+        self._update_path(wire, path_2)
         wire["state"] = "on" if state else "off"
         wire["visited"] = True
 
@@ -165,11 +180,11 @@ class Simulate:
         wires = self._wire_lookup.get(f"{wire['startX']},{wire['startY']}", [])
         wires.extend(self._wire_lookup.get(f"{wire['endX']},{wire['endY']}", []))
 
-        for wire in wires:
-            if wire["visited"]:
+        for _wire in wires:
+            if _wire["visited"]:
                 continue
 
-            self._propagate_signal(wire, state)
+            self._propagate_signal(_wire, state, wire)
 
     def simulate(self, initial_states: dict) -> None:
         self._prepare()
@@ -187,9 +202,12 @@ class Simulate:
                 continue
                 #raise ValueError("Invalid circuit. Inputs not connected.")
 
-            self._propagate_signal(wire, initial_states.get(gate["id"], 1))
+            wire["path"]["gate"] = gate
+            self._propagate_signal(wire, initial_states.get(gate["id"], 1), wire)
 
-    def test(self, truthtable: dict) -> bool:
+    def test(self, truthtable: dict) -> t.Tuple[bool, int]:
+        longest_path = 0
+
         for i in range(len(truthtable["A"])):
             inputs = {}
             outputs = {}
@@ -203,7 +221,8 @@ class Simulate:
             self.simulate(inputs)
 
             for output in self._outputs:
+                longest_path = max(longest_path, output["path"]["gates"] - 1)
                 if output["value"] != outputs[output["id"]]:
-                    return False
+                    return False, 0
 
-        return True
+        return True, longest_path
