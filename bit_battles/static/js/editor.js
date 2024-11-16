@@ -179,7 +179,7 @@ function drawGate(x, y, gateType, rotation, id, ctx = context) {
     undoTransform(ctx);
 }
 
-const wireColors = {"off": "#1d5723", "on": "#1cba2e"};
+const wireColors = {"off": "#1d5723", "on": "#1cba2e", "invalid": "#A60000"};
 function drawWire(startX, startY, endX, endY, state, ctx = context) {
     prepareTransform(ctx);
     ctx.strokeStyle = wireColors[state];
@@ -487,8 +487,20 @@ function drawGhostWire(snappedX, snappedY, connector) {
     const wireX = direction === "VERTICAL"? wireStart.x - 10: wireStart.x;
     const wireY = direction === "HORIZONTAL"? wireStart.y - 10: wireStart.y;
 
-    if (snappedX !== wireX && snappedY !== wireY) return;
-    if (snappedX === wireX && snappedX === wireY) return;
+    if (snappedX !== wireX && snappedY !== wireY ||
+        snappedX === wireX && snappedX === wireY) {
+        context.globalAlpha = 0.125;
+        drawWire(
+            wireStart.x, 
+            wireStart.y,
+            connector? connector.x: snappedX + 10, 
+            connector? connector.y: snappedY + 10, 
+            "invalid",
+            context,
+            );
+        context.globalAlpha = 1.0;
+        return;
+    }
     wireStart.direction = direction;
 
     drawWire(
