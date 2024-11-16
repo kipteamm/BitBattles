@@ -611,6 +611,9 @@ document.addEventListener("keydown", (event) => {
         case "ArrowRight":
             rotation = 180;
             break;
+        case "Escape":
+            editMode();
+            break;
         default:
             return;
     }
