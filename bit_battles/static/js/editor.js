@@ -453,22 +453,38 @@ function updateBackgroundPosition() {
     canvas.style.backgroundPosition = `${(gridSize * zoom) / 2 + camX}px ${(gridSize * zoom) / 2 + camY}px`;
 }
 
+let draggingCamera = false;
+let screenMouseX, screenMouseY;
+
 canvas.addEventListener("mousemove", (event) => {
     const rect = canvas.getBoundingClientRect();
 
-    let oldMouseX = mouseX;
-    let oldMouseY = mouseY;
-
+    let newScreenMouseX = (event.clientX - rect.left);
+    let newScreenMouseY = (event.clientY - rect.top);
+    
     mouseX = (event.clientX - rect.left - camX) / zoom;
     mouseY = (event.clientY - rect.top - camY) / zoom;
 
     if (!(event.buttons & (2))) return drawCanvas();
-    camX += mouseX - oldMouseX;
-    camY += mouseY - oldMouseY;
+    if (!draggingCamera) {
+        draggingCamera = true;
+        screenMouseX = newScreenMouseX;
+        screenMouseY = newScreenMouseY;
+        return;
+    }
+    camX += (newScreenMouseX - screenMouseX);
+    camY += (newScreenMouseY - screenMouseY);
+    screenMouseX = newScreenMouseX;
+    screenMouseY = newScreenMouseY;
+    
     updateBackgroundPosition();
     bufferContext.clearRect(0, 0, canvas.width, canvas.height);
     drawGrid();
     drawCanvas();
+});
+
+canvas.addEventListener("mouseup", () => {
+    draggingCamera = false;
 });
 
 function drawGhostGate(snappedX, snappedY) {
@@ -483,7 +499,9 @@ function drawGhostGate(snappedX, snappedY) {
 }
 
 function drawGhostWire(snappedX, snappedY, connector) {
-    const direction = wireStart.y - (wireStart.y % gridSize) === snappedY? "HORIZONTAL": "VERTICAL";
+    let offsetComponent = wireStart.y % gridSize;
+    if (offsetComponent < 0) offsetComponent = (offsetComponent + gridSize) % gridSize;
+    const direction = wireStart.y - (offsetComponent) === snappedY? "HORIZONTAL": "VERTICAL";
     const wireX = direction === "VERTICAL"? wireStart.x - 10: wireStart.x;
     const wireY = direction === "HORIZONTAL"? wireStart.y - 10: wireStart.y;
 
