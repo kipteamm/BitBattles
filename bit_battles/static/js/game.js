@@ -10,21 +10,47 @@ window.addEventListener("DOMContentLoaded", (event) => {
     truthtable = document.getElementById("truthtable");
     alertsElement = document.getElementById("alerts");
     resultsPlayerList = document.getElementById("results-player-list");
-    requestAnimationFrame(updateTimer);
 });
+
+function resetGame() {
+    secondsElapsed = 0;
+    placedGates = [];
+    placedWires = [];
+    placedConnectors = [];
+    
+    bufferContext.clearRect(0, 0, canvas.width, canvas.height);
+    drawGrid();
+    drawCanvas();
+
+    const children = [...truthtable.children];
+    for (const child of children) {
+        if (child.id === "test-column") {
+            child.innerHTML = '<div class="title">Pass</div>';
+            continue;
+        }
+        child.remove();
+    }
+}
+
+let gamesCounter = 0;
 
 function loadStage(stage) {
     if (currentStage) currentStage.classList.remove("active");
     currentStage = document.getElementById(stage);
     currentStage.classList.add("active");
 
+    if (stage === "queue" && gamesCounter) {
+        resetGame();
+    }
     if (stage === "battle") {
+        requestAnimationFrame(updateTimer);
         loadGateButtons(battle.gates);
         loadTruthtable(battle.truthtable);
         loadGates(battle.truthtable);
     }
     if (stage === "results") {
         loadResults();
+        gamesCounter++;
     }
 }
 
@@ -195,9 +221,19 @@ function addResultPlayer(_player) {
 }
 
 async function loadResults() {
+    resultsPlayerList.innerHTML += `<h2>Battle ${gamesCounter}</h2>`;
     battle.players.forEach(_player => {
         resultsPlayerList.appendChild(addResultPlayer(_player));
     });
 
     resultsPlayerList.innerHTML += `<div>Average gates: ${battle.average_gates}</div>`
+}
+
+async function restartGame() {
+    const response = await fetch(`/api/battle/${battle.id}/restart`, {
+        method: "POST",
+        headers: {"Authorization": `Bearer ${getCookie("bt")}`}
+    });
+
+    if (!response.ok) return;
 }

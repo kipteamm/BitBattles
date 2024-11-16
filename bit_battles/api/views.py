@@ -60,6 +60,34 @@ def start_battle(id):
     return {"success": True}, 204
 
 
+@api_blueprint.post("/battle/<string:id>/restart")
+@battle_authorized
+def restart_battle(id):
+    battle: t.Optional[Battle] = Battle.query.get(id)
+    if not battle:
+        return {"error": "Nothing found."}, 400
+    
+    user: User = g.user
+    if battle.owner_id != user.id:
+        return {"error": "You are not hosting this battle."}, 400
+    
+    if battle.players.count() < 2: # type: ignore
+        return {"error": "Not enough players."}, 400
+    
+    for player in Player.query.filter_by(battle_id=battle.id).all():
+        player.gates = 0
+        player.attempts = 0
+        player.submission_on = 0
+        player.passed = False
+        player.score = 0
+
+    battle.stage = "queue"
+    db.session.commit()
+    
+    socketio.emit("update_battle", battle.serialize(), to=battle.id)
+    return {"success": True}, 204
+
+
 @api_blueprint.post("/battle/<string:id>/submit")
 @battle_authorized
 def submit(id):
@@ -96,12 +124,14 @@ def submit(id):
         return {"error": str(e)}, 400
 
     players = battle.players.count()
-    submitted = Player.query.filter(Player.battle_id == player.battle_id, Player.attempts > 0).count()
+    players_passed = Player.query.filter(Player.battle_id == player.battle_id, Player.attempts > 0, Player.passed == True).count()
     
     if passed:
+        player.passed = True
+        players_passed += 1
         socketio.emit("finish", {"id": user.id, "username": user.username, "submission_on": player.submission_on, "gates": player.gates}, to=player.battle_id)
 
-    if players == submitted == 2 or submitted == 3:
+    if players == players_passed == 2 or players_passed == 3:
         battle.score_players()
         battle.stage = "results"
         socketio.emit("update_battle", battle.serialize(), to=battle.id)

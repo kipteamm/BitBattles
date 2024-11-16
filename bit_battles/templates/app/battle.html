@@ -67,6 +67,9 @@
 
     <div class="stage" id="results">
         <div id="results-player-list"></div>
+        {% if player.id == battle.owner_id %}
+            <button onclick="restartGame()">Restart</div>
+        {% endif %}
     </div>
 </body>
 </html>

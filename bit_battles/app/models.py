@@ -66,11 +66,14 @@ class Battle(db.Model):
         average = math.floor(db.session.query(func.avg(Player.gates)).filter(Player.battle_id == self.id, Player.attempts > 0).scalar())
         self.average_gates = average
 
-        highest_score = None
+        highest_score = 0
         lowest_score, winner = None, None
         players = []
 
         for player in Player.query.filter_by(battle_id=self.id).all():
+            if not player.passed:
+                continue
+
             player.score = round(player.submission_on - self.started_on) - ((average - player.gates) * 10)
             players.append(player)
 
@@ -86,14 +89,18 @@ class Battle(db.Model):
             if not user:
                 continue
 
+            if not player.passed:
+                player.score = highest_score
+
             battle_statistics = BattleStatistic(
                 self, 
                 player.user_id,
                 (player == winner),
+                player.passed,
                 player.gates, 
                 player.attempts, 
                 (player.submission_on - self.started_on),
-                (highest_score - player.score) + 50
+                ((highest_score - player.score) + 50) * player.passed
             )
             db.session.add(battle_statistics)
 
@@ -121,6 +128,7 @@ class Player(db.Model):
     gates = db.Column(db.Integer(), default=0)
     attempts = db.Column(db.Integer(), default=0)
     submission_on = db.Column(db.Integer(), default=0)
+    passed = db.Column(db.Boolean(), default=False)
     score = db.Column(db.Integer(), default=0)
 
     def serialize(self) -> dict:
@@ -141,16 +149,18 @@ class BattleStatistic(db.Model):
     battle_type = db.Column(db.String(128), nullable=False)
 
     winner = db.Column(db.Boolean(), default=False)
+    passed = db.Column(db.Boolean(), default=False)
     gates = db.Column(db.Integer(), default=0)
     attempts = db.Column(db.Integer(), default=0)
     duration = db.Column(db.Float(), default=0)
     score = db.Column(db.Integer(), default=0)
 
-    def __init__(self, battle: Battle, user_id: str, winner: bool, gates: int, attempts: int, duration: float, score: int) -> None:
+    def __init__(self, battle: Battle, user_id: str, winner: bool, passed: bool, gates: int, attempts: int, duration: float, score: int) -> None:
         self.battle_id = battle.id
         self.user_id = user_id
         self.battle_type = f"{battle.inputs}-{battle.outputs}-{battle.gates}"
         self.winner = winner
+        self.passed = passed
         self.gates = gates
         self.attempts = attempts
         self.duration = duration

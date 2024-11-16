@@ -184,7 +184,8 @@ class Simulate:
 
             wire = self._get_output_wire(gate)
             if not wire:
-                raise ValueError("Invalid circuit. Inputs not connected.")
+                continue
+                #raise ValueError("Invalid circuit. Inputs not connected.")
 
             self._propagate_signal(wire, initial_states.get(gate["id"], 1))
 

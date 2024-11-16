@@ -10,4 +10,8 @@
 
     <button onclick="window.location.href='/app/battle/new/'">New battle</button>
     <button onclick="window.location.href='/app/battle/random/'">Join random battle ({{ battles }})</button>
+
+    <br>
+
+    <a href="/app/user/{{ current_user.username }}">Profile</a>
 {% endblock %}
