@@ -132,6 +132,7 @@ def submit(id):
         socketio.emit("finish", {"id": user.id, "username": user.username, "submission_on": player.submission_on, "gates": player.gates}, to=player.battle_id)
 
     if players == players_passed == 2 or players_passed == 3:
+        player.passed = passed
         battle.score_players()
         battle.stage = "results"
         socketio.emit("update_battle", battle.serialize(), to=battle.id)

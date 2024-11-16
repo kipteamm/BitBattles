@@ -10,6 +10,7 @@ import random
 import string
 import json
 import math
+import os
 
 
 BATTLE_ID = string.ascii_letters + string.digits
@@ -63,11 +64,16 @@ class Battle(db.Model):
         return players
     
     def score_players(self) -> None:
-        average = math.floor(db.session.query(func.avg(Player.gates)).filter(Player.battle_id == self.id, Player.attempts > 0).scalar())
+        average = math.floor(
+            db.session.query(func.avg(Player.gates))
+            .filter(Player.battle_id == self.id, Player.attempts > 0)
+            .scalar()
+        )
         self.average_gates = average
 
         highest_score = 0
         lowest_score, winner = None, None
+        players_data = []  # Data to be saved to JSON
         players = []
 
         for player in Player.query.filter_by(battle_id=self.id).all():
@@ -83,6 +89,14 @@ class Battle(db.Model):
             elif not lowest_score or player.score < lowest_score:
                 lowest_score = player.score
                 winner = player
+
+            # Collect player stats for JSON
+            players_data.append({
+                "user_id": player.user_id,
+                "gates": player.gates,
+                "attempts": player.attempts,
+                "duration": round(player.submission_on - self.started_on, 3),
+            })
 
         for player in players:
             user: t.Optional[User] = User.query.get(player.user_id)
@@ -100,11 +114,24 @@ class Battle(db.Model):
                 player.gates, 
                 player.attempts, 
                 (player.submission_on - self.started_on),
-                ((highest_score - player.score) + 50) * player.passed
+                (highest_score - player.score) + (50 * player.passed)
             )
             db.session.add(battle_statistics)
 
         db.session.commit()
+
+        # Save battle data to JSON
+        battle_data = {
+            "battle_id": self.id,
+            "players": players_data,
+        }
+
+        # Ensure a directory for storing JSON files
+        os.makedirs("battle_data", exist_ok=True)
+        json_file_path = os.path.join("battle_data", f"{self.id}.json")
+
+        with open(json_file_path, "w") as json_file:
+            json.dump(battle_data, json_file, indent=4)
 
     def serialize(self) -> dict:
         return {
@@ -144,7 +171,6 @@ class BattleStatistic(db.Model):
     __tablename__ = "battle_statistics"
 
     id = db.Column(db.String(128), primary_key=True, default=SnowflakeGenerator.generate_id)
-    battle_id = db.Column(db.String(128), db.ForeignKey("battles.id", ondelete="CASCADE"))
     user_id = db.Column(db.String(128), db.ForeignKey("users.id", ondelete="CASCADE"))
     battle_type = db.Column(db.String(128), nullable=False)
 
@@ -156,7 +182,6 @@ class BattleStatistic(db.Model):
     score = db.Column(db.Integer(), default=0)
 
     def __init__(self, battle: Battle, user_id: str, winner: bool, passed: bool, gates: int, attempts: int, duration: float, score: int) -> None:
-        self.battle_id = battle.id
         self.user_id = user_id
         self.battle_type = f"{battle.inputs}-{battle.outputs}-{battle.gates}"
         self.winner = winner
@@ -170,7 +195,6 @@ class BattleStatistic(db.Model):
         battle_type = self.battle_type.split("-")
         
         return {
-            "battle_id": self.battle_id,
             "user_id": self.user_id,
             "inputs": battle_type[0],
             "outputs": battle_type[1],

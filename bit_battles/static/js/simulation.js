@@ -33,24 +33,34 @@ function getInputWires(gate) {
     return wires;
 }
 
+function updatePath(path1, path2) {
+    if (path1 === path2) return;
+    if (path1.path.gates > path2.path.gates) return;
+    path1.path.input = path2.path.input;
+    path1.path.gates = path2.path.gates;
+}
+
 function evaluateGate(gate, wire, value) {
     const inputWire = gate.inputStates.find(_wire => _wire === wire);
 
     if (!inputWire) return;
-    gate.visits += 1;
     gate.inputStates[gate.inputStates.indexOf(inputWire)] = value;
+    updatePath(gate, wire);
 
     if (gate.inputStates.find(_wire => isNaN(_wire))) return;
     const _gate = objects[gate.type];
 
     if (!_gate) return;
     const _value = _gate.evaluate(gate.inputStates, gate);
+    const _wire = getOutputWire(gate);
+    gate.path.gates += 1;
 
-    propagateSignal(getOutputWire(gate), _value);
+    propagateSignal(_wire, _value, gate);
 }
 
-function propagateSignal(wire, value) {
+function propagateSignal(wire, value, path2) {
     if (!wire || wire.visited) return;
+    updatePath(wire, path2);
     wire.state = value? "on": "off";
     wire.visited = true;
 
@@ -64,20 +74,21 @@ function propagateSignal(wire, value) {
             (_wire.startX === wire.endX && _wire.startY === wire.endY) ||
             (_wire.endX === wire.endX && _wire.endY === wire.endY) ||
             (_wire.endX === wire.startX && _wire.endY === wire.startY)
-        ) propagateSignal(_wire, value);
+        ) propagateSignal(_wire, value, wire);
     }
 }
 
 function resetCircuit() {
     outputGates = [];
     placedGates.forEach(gate => {
-        gate.visits = 0;
         gate.inputStates = getInputWires(gate);
+        gate.path = {input: null, gates: 0}
     });
-
+    
     placedWires.forEach(wire => {
         wire.state = "off";
         wire.visited = false;
+        wire.path = {input: null, gates: 0}
     });
 }
 
@@ -95,7 +106,8 @@ function simulate(states = {}) {
         if (gate.type !== "INPUT") continue;
 
         const wire = getOutputWire(gate);
-        propagateSignal(wire, states[gate.id] !== undefined? states[gate.id]: 0);
+        wire.path.input = gate;
+        propagateSignal(wire, states[gate.id] !== undefined? states[gate.id]: 0, wire);
     }
 
     drawGrid();
@@ -109,6 +121,7 @@ function delay(ms) {
 }
 
 async function test() {
+    let longestPath = 0;
     for (let i = 0; i < battle.truthtable["A"].length; i++) {
         let inputs = {};
         let outputs = {};
@@ -138,12 +151,14 @@ async function test() {
                 test.classList.remove("failed");
                 test.innerHTML = "v";
             }
+            longestPath = Math.max(longestPath, gate.path.gates - 1);
         });
 
         await delay(2000);
     }
 
     sendAlert("Your tests finished.");
+    console.log(`Longest path: ${longestPath}`);
 }
 
 function inputClicked() {
@@ -156,4 +171,14 @@ function inputClicked() {
     }
     
     simulate(states);
+}
+
+function findLongestPath() {
+    let longestPath = 0;
+    
+    outputGates.forEach(gate => {
+        longestPath = Math.max(longestPath, gate.path.gates - 1);
+    });
+
+    console.log(longestPath);
 }
