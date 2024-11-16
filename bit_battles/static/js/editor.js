@@ -179,7 +179,7 @@ function drawGate(x, y, gateType, rotation, id, ctx = context) {
     undoTransform(ctx);
 }
 
-const wireColors = {"off": "#1d5723", "on": "#1cba2e"};
+const wireColors = {"off": "#1d5723", "on": "#1cba2e", "invalid": "#A60000"};
 function drawWire(startX, startY, endX, endY, state, ctx = context) {
     prepareTransform(ctx);
     ctx.strokeStyle = wireColors[state];
@@ -453,22 +453,38 @@ function updateBackgroundPosition() {
     canvas.style.backgroundPosition = `${(gridSize * zoom) / 2 + camX}px ${(gridSize * zoom) / 2 + camY}px`;
 }
 
+let draggingCamera = false;
+let screenMouseX, screenMouseY;
+
 canvas.addEventListener("mousemove", (event) => {
     const rect = canvas.getBoundingClientRect();
 
-    let oldMouseX = mouseX;
-    let oldMouseY = mouseY;
-
+    let newScreenMouseX = (event.clientX - rect.left);
+    let newScreenMouseY = (event.clientY - rect.top);
+    
     mouseX = (event.clientX - rect.left - camX) / zoom;
     mouseY = (event.clientY - rect.top - camY) / zoom;
 
     if (!(event.buttons & (2))) return drawCanvas();
-    camX += mouseX - oldMouseX;
-    camY += mouseY - oldMouseY;
+    if (!draggingCamera) {
+        draggingCamera = true;
+        screenMouseX = newScreenMouseX;
+        screenMouseY = newScreenMouseY;
+        return;
+    }
+    camX += (newScreenMouseX - screenMouseX);
+    camY += (newScreenMouseY - screenMouseY);
+    screenMouseX = newScreenMouseX;
+    screenMouseY = newScreenMouseY;
+    
     updateBackgroundPosition();
     bufferContext.clearRect(0, 0, canvas.width, canvas.height);
     drawGrid();
     drawCanvas();
+});
+
+canvas.addEventListener("mouseup", () => {
+    draggingCamera = false;
 });
 
 function drawGhostGate(snappedX, snappedY) {
@@ -483,12 +499,26 @@ function drawGhostGate(snappedX, snappedY) {
 }
 
 function drawGhostWire(snappedX, snappedY, connector) {
-    const direction = wireStart.y - (wireStart.y % gridSize) === snappedY? "HORIZONTAL": "VERTICAL";
+    let offsetComponent = wireStart.y % gridSize;
+    if (offsetComponent < 0) offsetComponent = (offsetComponent + gridSize) % gridSize;
+    const direction = wireStart.y - (offsetComponent) === snappedY? "HORIZONTAL": "VERTICAL";
     const wireX = direction === "VERTICAL"? wireStart.x - 10: wireStart.x;
     const wireY = direction === "HORIZONTAL"? wireStart.y - 10: wireStart.y;
 
-    if (snappedX !== wireX && snappedY !== wireY) return;
-    if (snappedX === wireX && snappedX === wireY) return;
+    if (snappedX !== wireX && snappedY !== wireY ||
+        snappedX === wireX && snappedX === wireY) {
+        context.globalAlpha = 0.125;
+        drawWire(
+            wireStart.x, 
+            wireStart.y,
+            connector? connector.x: snappedX + 10, 
+            connector? connector.y: snappedY + 10, 
+            "invalid",
+            context,
+            );
+        context.globalAlpha = 1.0;
+        return;
+    }
     wireStart.direction = direction;
 
     drawWire(
