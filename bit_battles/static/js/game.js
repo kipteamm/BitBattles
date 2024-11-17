@@ -218,15 +218,15 @@ function updateAlertPositions() {
 
 function addResultPlayer(_player, gatesAverage, pathAverage, timeAverage) {
     const element = document.createElement("div");
-    const timePerformance = _player.time - timeAverage;
-    const gatePerformance = _player.gates - gatesAverage;
-    const pathPerformance = _player.longest_path - pathAverage;
+    const timePerformance = (_player.time - timeAverage).toFixed(2);
+    const gatePerformance = (_player.gates - gatesAverage).toFixed(2);
+    const pathPerformance = (_player.longest_path - pathAverage).toFixed(2);
     element.innerHTML = `
         <h4>[${_player.score}] ${_player.username}${_player.id === player.id? " (you)": ""}</h4>
         <p>
-            Time: ${_player.time} (${timePerformance <= 0? 
-                `<span class="good">${timePerformance}</span>`: 
-                `<span class="bad">+${timePerformance}</span>`
+            Time: ${formatSeconds(_player.time)} (${timePerformance <= 0? 
+                `<span class="good">${timePerformance}s</span>`: 
+                `<span class="bad">+${timePerformance}s</span>`
             }) Gates: ${_player.gates} (${gatePerformance <= 0? 
                 `<span class="good">${gatePerformance}</span>`: 
                 `<span class="bad">+${gatePerformance}</span>`
@@ -263,7 +263,7 @@ async function loadResults() {
         <ul>
             <li>Average gates: ${gatesAverage}</li>
             <li>Average longest path: ${pathAverage}</li>
-            <li>Average time: ${timeAverage}</li>
+            <li>Average time: ${formatSeconds(timeAverage)}</li>
         </ul>    
     `
 }
@@ -275,4 +275,11 @@ async function restartGame() {
     });
 
     if (!response.ok) return;
+}
+
+function formatSeconds(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = (seconds % 60).toFixed(3);
+
+    return `${minutes}m ${remainingSeconds}s`;
 }

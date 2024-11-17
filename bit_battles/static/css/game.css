@@ -1,3 +1,8 @@
+:root {
+    --success: #1cba2e;
+    --error: #f94747;
+}
+
 body {
     overflow: hidden;
     user-select: none;
@@ -15,10 +20,10 @@ body {
 }
 
 .stage.results span.good {
-    color: #1cba2e;
+    color: var(--success);
 }
 .stage.results span.bad {
-    color: #ff5b5b;
+    color: var(--error);
 }
 
 div.toolbar {
@@ -58,10 +63,10 @@ div.test .cell {
     color: var(--bg-sec);
 }
 div.test .cell.failed {
-    color: #ff5b5b;
+    color: var(--error);
 }
 div.test .cell.passed {
-    color: #1cba2e;
+    color: var(--success);
 }
 
 div.output {
@@ -79,7 +84,7 @@ div.cell.off {
     background-color: #1d5723;
 }
 div.cell.on {
-    background-color: #1cba2e;
+    background-color: var(--success);
 }
 
 canvas {

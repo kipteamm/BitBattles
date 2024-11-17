@@ -19,7 +19,7 @@ socket.on("player_leave", function(data) {
 });
 
 socket.on("finish", function(data) {
-    sendAlert(`${data.username} finished in ${Math.round(data.submission_on - battle.started_on)} with ${data.gates} gate${data.gates === 1? "": "s"} (longest path: ${data.longest_path})`);
+    sendAlert(`${data.username} finished in ${formatSeconds(data.submission_on - battle.started_on)} with ${data.gates} gate${data.gates === 1? "": "s"} (longest path: ${data.longest_path})`);
 });
 
 socket.on("update_battle", function(data) {
