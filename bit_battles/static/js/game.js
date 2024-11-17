@@ -17,6 +17,7 @@ function resetGame() {
     placedGates = [];
     placedWires = [];
     placedConnectors = [];
+    rotation = 0;
     
     bufferContext.clearRect(0, 0, canvas.width, canvas.height);
     drawGrid();
