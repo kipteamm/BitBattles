@@ -215,19 +215,57 @@ function updateAlertPositions() {
     });
 }
 
-function addResultPlayer(_player) {
+
+function addResultPlayer(_player, gatesAverage, pathAverage, timeAverage) {
     const element = document.createElement("div");
-    element.innerHTML = `${_player.username} ${_player.id === player.id? "(you)": ""} Time: ${_player.time} Gates: ${_player.gates} Longest path: ${_player.longest_path} [DEBUG] Score: ${_player.score}`
+    const timePerformance = _player.time - timeAverage;
+    const gatePerformance = _player.gates - gatesAverage;
+    const pathPerformance = _player.longest_path - pathAverage;
+    element.innerHTML = `
+        <h4>[${_player.score}] ${_player.username}${_player.id === player.id? " (you)": ""}</h4>
+        <p>
+            Time: ${_player.time} (${timePerformance <= 0? 
+                `<span class="good">${timePerformance}</span>`: 
+                `<span class="bad">+${timePerformance}</span>`
+            }) Gates: ${_player.gates} (${gatePerformance <= 0? 
+                `<span class="good">${gatePerformance}</span>`: 
+                `<span class="bad">+${gatePerformance}</span>`
+            }) Longest path: ${_player.longest_path} (${pathPerformance <= 0? 
+                `<span class="good">${pathPerformance}</span>`: 
+                `<span class="bad">+${pathPerformance}</span>`
+            })
+        </p>
+    `
     return element;
 }
 
 async function loadResults() {
-    resultsPlayerList.innerHTML += `<h2>Battle ${gamesCounter + 1}</h2>`;
+    let gatesAverage = 0;
+    let pathAverage = 0;
+    let timeAverage = 0;
+
     battle.players.forEach(_player => {
-        resultsPlayerList.appendChild(addResultPlayer(_player));
+        gatesAverage += _player.gates;
+        pathAverage += _player.longest_path;
+        timeAverage += _player.time;
     });
 
-    resultsPlayerList.innerHTML += `<div>Average gates: ${battle.average_gates}</div>`
+    gatesAverage /= battle.players.length;
+    pathAverage /= battle.players.length;
+    timeAverage /= battle.players.length;
+
+    resultsPlayerList.innerHTML += `<h2>Battle ${gamesCounter + 1}</h2>`;
+    battle.players.forEach(_player => {
+        resultsPlayerList.appendChild(addResultPlayer(_player, gatesAverage, pathAverage, timeAverage));
+    });
+
+    resultsPlayerList.innerHTML += `
+        <ul>
+            <li>Average gates: ${gatesAverage}</li>
+            <li>Average longest path: ${pathAverage}</li>
+            <li>Average time: ${timeAverage}</li>
+        </ul>    
+    `
 }
 
 async function restartGame() {

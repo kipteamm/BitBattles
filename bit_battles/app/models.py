@@ -15,6 +15,9 @@ import os
 
 
 BATTLE_ID = string.ascii_letters + string.digits
+PATH_WEIGHT = 40
+GATE_WEIGHT = 30
+DURATION_WEIGHT = 20
 
 
 class Battle(db.Model):
@@ -33,8 +36,6 @@ class Battle(db.Model):
     started_on = db.Column(db.Float(), default=0)
     truthtable = db.Column(db.Text(5000), default=None)
 
-    average_gates = db.Column(db.Integer(), default=0)
-
     def set_id(self) -> None:
         self.id = "".join(random.choices(BATTLE_ID, k=5))
         while Battle.query.get(self.id):
@@ -50,8 +51,8 @@ class Battle(db.Model):
 
     def _get_players(self) -> list:
         players = []
-        # Using .order_by on self.players, now a query object
-        for user in self.players.order_by(Player.score): # type: ignore
+
+        for user in self.players.order_by(Player.score.desc()): # type: ignore
             data = user.serialize()
             player = Player.query.filter_by(battle_id=self.id, user_id=user.id).first()
 
@@ -65,34 +66,45 @@ class Battle(db.Model):
         return players
     
     def score_players(self) -> None:
-        average = math.floor(
-            db.session.query(func.avg(Player.gates))
-            .filter(Player.battle_id == self.id, Player.attempts > 0)
-            .scalar()
+        metrics = (
+            db.session.query(
+                func.min(Player.longest_path),
+                func.min(Player.gates),
+                func.max(Player.submission_on)
+            )
+            .filter(Player.battle_id == self.id, Player.passed == True)
+            .first()
         )
-        self.average_gates = average
 
-        highest_score = 0
-        lowest_score, winner = None, None
-        players_data = []  # Data to be saved to JSON
-        players = []
+        if not metrics:
+            return
 
-        for player in Player.query.filter_by(battle_id=self.id).all():
+        shortest_path, least_gates, longest_submission_on = metrics
+        shortest_path = shortest_path * PATH_WEIGHT
+        least_gates = least_gates * GATE_WEIGHT
+        longest_duration = (longest_submission_on - self.started_on) * DURATION_WEIGHT
+
+        players = Player.query.filter_by(battle_id=self.id).all()
+        highest_score, winner = None, None
+        battle_data = []
+
+        for player in players:
             if not player.passed:
                 continue
 
-            player.score = round(player.submission_on - self.started_on) - ((average - player.gates) * 10)
-            players.append(player)
+            player_duration = player.submission_on - self.started_on
+            player.score = round(
+                (shortest_path / max(player.longest_path, 1))
+                + (least_gates / max(player.gates, 1))
+                + (longest_duration / max(player_duration, 1))
+            )
 
+            # Determine winner
             if not highest_score or player.score > highest_score:
                 highest_score = player.score
-
-            if not lowest_score or player.score < lowest_score:
-                lowest_score = player.score
                 winner = player
 
-            # Collect player stats for JSON
-            players_data.append({
+            battle_data.append({
                 "user_id": player.user_id,
                 "gates": player.gates,
                 "attempts": player.attempts,
@@ -100,41 +112,31 @@ class Battle(db.Model):
                 "duration": round(player.submission_on - self.started_on, 3),
             })
 
-        for player in players:
-            user: t.Optional[User] = User.query.get(player.user_id)
-            if not user:
-                continue
-
-            if not player.passed:
-                player.score = highest_score
-
-            battle_statistics = BattleStatistic(
-                self, 
+        battle_statistics = [
+            BattleStatistic(
+                self,
                 player.user_id,
-                (player == winner),
+                player == winner,
                 player.passed,
-                player.gates, 
+                player.gates,
                 player.longest_path,
-                player.attempts, 
-                (player.submission_on - self.started_on),
-                (highest_score - player.score) + (50 * player.passed)
+                player.attempts,
+                player.submission_on - self.started_on,
+                player.score
             )
-            db.session.add(battle_statistics)
+            for player in players
+            if User.query.get(player.user_id)
+        ]
 
+        db.session.bulk_save_objects(battle_statistics)
         db.session.commit()
-
-        # Save battle data to JSON
-        battle_data = {
-            "battle_id": self.id,
-            "players": players_data,
-        }
 
         # Ensure a directory for storing JSON files
         os.makedirs("battle_data", exist_ok=True)
         json_file_path = os.path.join("battle_data", f"{self.id}-{self.started_on}.json")
 
         with open(json_file_path, "w") as json_file:
-            json.dump(battle_data, json_file, indent=4)
+            json.dump({"battle_id": self.id, "players": battle_data,}, json_file, indent=4)
 
     def serialize(self) -> dict:
         return {
@@ -144,7 +146,6 @@ class Battle(db.Model):
             "stage": self.stage,
             "started_on": self.started_on,
             "truthtable": json.loads(self.truthtable) if self.truthtable else None,
-            "average_gates": self.average_gates,
             "gates": json.loads(self.gates)
         }
 

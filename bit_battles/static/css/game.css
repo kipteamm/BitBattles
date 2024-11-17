@@ -14,6 +14,13 @@ body {
     overflow-y: auto;
 }
 
+.stage.results span.good {
+    color: #1cba2e;
+}
+.stage.results span.bad {
+    color: #ff5b5b;
+}
+
 div.toolbar {
     position: fixed;
     width: 100vw;
