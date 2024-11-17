@@ -28,6 +28,7 @@ def leave_battle(id):
     
     if battle.owner_id == user.id:
         db.session.delete(battle)
+        socketio.emit("disband", to=battle.id)
     else:
         battle.players.remove(user)
         socketio.emit("player_leave", {"id": user.id}, to=battle.id)

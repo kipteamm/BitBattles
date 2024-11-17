@@ -87,7 +87,7 @@ class Battle(db.Model):
             if not highest_score or player.score > highest_score:
                 highest_score = player.score
 
-            elif not lowest_score or player.score < lowest_score:
+            if not lowest_score or player.score < lowest_score:
                 lowest_score = player.score
                 winner = player
 

@@ -40,13 +40,13 @@ def login():
     if request.method == "GET":
         return render_template("auth/login.html")
 
-    user = request.form['user']
+    username = request.form['user']
     password = request.form['password']
-        
-    _user = User.authenticate(user, password)
-    if not _user:
+
+    user = User.authenticate(username, password)
+    if not user:
         flash(f"Invalid username or password", 'error')
         return render_template('auth/login.html')
     
-    login_user(_user)
+    login_user(user)
     return redirect(request.args.get("next", "/app/battles"))

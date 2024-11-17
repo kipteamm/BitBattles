@@ -6,8 +6,7 @@ socket.on("connect", function() {
 });
 
 socket.on("disconnect", function() {
-    console.log("disconnect");
-    return window.location.href = `/app/battles`;
+    console.log("disconnected");
 });
 
 socket.on("player_join", function(data) {
