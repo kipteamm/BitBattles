@@ -106,7 +106,7 @@
 
 .battles .actions form {
     display: flex;
-    gap: 25px;
+    gap: 10px;
 }
 .battles .actions form input {
     flex: 1;
