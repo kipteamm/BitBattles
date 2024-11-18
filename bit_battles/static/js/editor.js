@@ -48,7 +48,7 @@ const objects = {
         size: 3,
         inputs: [{ x: 0, y: 10 }, { x: 0, y: 30 }, { x: 0, y: 50 }],
         output: { x: 60, y: 30 },
-        evaluate: (states) => states.filter(state => state).length === 1,
+        evaluate: (states) => states.filter(state => state).length === 1? 1: 0,
     },
     INPUT: {
         label: "IN",
