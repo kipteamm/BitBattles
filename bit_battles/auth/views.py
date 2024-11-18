@@ -42,7 +42,7 @@ def login():
 
     username = request.form['user']
     password = request.form['password']
-
+    
     user = User.authenticate(username, password)
     if not user:
         flash(f"Invalid username or password", 'error')

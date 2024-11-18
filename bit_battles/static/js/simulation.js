@@ -106,7 +106,7 @@ function simulate(states = {}) {
         if (gate.type !== "INPUT") continue;
 
         const wire = getOutputWire(gate);
-        wire.path.input = gate;
+        if (wire) wire.path.input = gate;
         propagateSignal(wire, states[gate.id] !== undefined? states[gate.id]: 0, wire);
     }
 
@@ -141,18 +141,16 @@ async function test() {
         test.classList.remove("passed");
         test.classList.remove("failed");
 
-        outputGates.forEach(gate => {
-            if (gate.inputStates[0] !== outputs[gate.id]) {
-                test.classList.remove("passed");
-                test.classList.add("failed");
-                test.innerHTML = "x";
-            } else if (!test.classList.contains("failed")) {
-                test.classList.add("passed");
-                test.classList.remove("failed");
-                test.innerHTML = "v";
-            }
+        let failed = false;
+        for (const gate of outputGates) {
             longestPath = Math.max(longestPath, gate.path.gates - 1);
-        });
+
+            if (failed) continue;
+            failed = (gate.inputStates[0] ?? 0) !== outputs[gate.id]? true: false;
+        }
+
+        test.classList.add(failed? "failed": "passed");
+        test.innerHTML = failed? "x": "v";
 
         await delay(2000);
     }
