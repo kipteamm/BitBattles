@@ -1,8 +1,6 @@
 {% extends "app/app_base.html" %}
 
 {% block content %}
-    <a href="/app/battles">Battles</a>
-    
     <div class="user">
         <img src="https://api.dicebear.com/9.x/shapes/svg?seed={{ user.username }}&backgroundColor=b6e3f4&size=32" alt="{{ user.username }}'s avatar">
         <h1>{{ user.username }}</h1>

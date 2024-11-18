@@ -18,6 +18,13 @@ body {
 
 button, input {
     font-family: var(--font-family);
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+nav {
+    text-align: center;
+    margin: 25px;
 }
 
 .user {

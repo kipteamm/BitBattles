@@ -1,17 +1,49 @@
 {% extends "app/app_base.html" %}
 
 {% block content %}
-    <h1>Bit Battles</h1>
-
-    <form method="POST">
-        <input type="text" name="battle_id" maxlength="5" placeholder="battle">
-        <button type="submit">Join</button>
-    </form>
-
-    <button onclick="window.location.href='/app/battle/new/'">New battle</button>
-    <button onclick="window.location.href='/app/battle/random/'">Join random battle ({{ battles }})</button>
-
-    <br>
-
-    <a href="/app/user/{{ current_user.username }}">Profile</a>
+    <link rel="stylesheet" type="text/css" href="/static/css/battles.css">
+    
+    <div class="battles">
+        <h1>Bit Battles</h1>
+        <div class="position-container">
+            <div class="position second">
+                <div class="top"></div>
+                <div class="front"></div>
+                <img class="content" src="https://api.dicebear.com/9.x/shapes/svg?seed={{ winners.0.username }}&backgroundColor=b6e3f4&size=96" alt="{{ winners.0.username }}'s avatar">
+                <div class="content player">
+                    <h4>[{{ winners.0.score }}] {{ winners.0.username }}</h4>
+                    <span>{{ winners.0.relative_timestamp }}<span>
+                </div>
+            </div>
+            <div class="position first">
+                <div class="top"></div>
+                <div class="front"></div>
+                <img class="content" src="https://api.dicebear.com/9.x/shapes/svg?seed={{ winners.1.username }}&backgroundColor=b6e3f4&size=96" alt="{{ winners.1.username }}'s avatar">
+                <div class="content player">
+                    <h4>[{{ winners.1.score }}] {{ winners.1.username }}</h4>
+                    <span>{{ winners.1.relative_timestamp }}<span>
+                </div>
+            </div>
+            <div class="position third">
+                <div class="top"></div>
+                <div class="front"></div>
+                <img class="content" src="https://api.dicebear.com/9.x/shapes/svg?seed={{ winners.2.username }}&backgroundColor=b6e3f4&size=96" alt="{{ winners.2.username }}'s avatar">
+                <div class="content player">
+                    <h4>[{{ winners.2.score }}] {{ winners.2.username }}</h4>
+                    <span>{{ winners.2.relative_timestamp }}<span>
+                </div>
+            </div>
+        </div>
+        <div class="overlay"></div>
+        
+        <div class="actions">
+            <button class="action" onclick="window.location.href='/app/battle/new/'">New battle</button>
+            <form class="action" method="POST">
+                <input type="text" name="battle_id" maxlength="5" placeholder="battle">
+                <button type="submit">Join</button>
+            </form>
+            <button class="action" onclick="window.location.href='/app/battle/random/'">Join random battle</button>
+        </div>
+    </div>
+    
 {% endblock %}

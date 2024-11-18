@@ -14,11 +14,32 @@ import typing as t
 app_blueprint = Blueprint("app", __name__, url_prefix="/app")
 
 
+@app_blueprint.get("/editor")
+def editor():
+    return render_template("app/editor.html")
+
+
 @app_blueprint.route("/battles", methods=["GET", "POST"])
 @login_required
 def battles():
     if request.method == "GET":
-        return render_template("app/battles.html", battles=Battle.query.filter_by(stage="queue", private=False).count())
+        winners = (
+            BattleStatistic.query
+            .filter(
+                BattleStatistic.winner == True,
+                BattleStatistic.score <= 300
+            )
+            .order_by(
+                BattleStatistic.creation_timestamp.desc(),
+                BattleStatistic.score.desc()
+            )
+            .limit(3)
+            .all()
+        )
+
+        winners = sorted([winner.leaderboard_serialize() for winner in winners], key=lambda x: x["score"], reverse=True)
+        
+        return render_template("app/battles.html", winners=winners)
     
     player = Player.query.filter_by(user_id=current_user.id).first()
     if player:

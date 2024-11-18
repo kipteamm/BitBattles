@@ -253,19 +253,18 @@ async function loadResults() {
     gatesAverage /= battle.players.length;
     pathAverage /= battle.players.length;
     timeAverage /= battle.players.length;
-
-    resultsPlayerList.innerHTML += `<h2>Battle ${gamesCounter + 1}</h2>`;
-    battle.players.forEach(_player => {
-        resultsPlayerList.appendChild(addResultPlayer(_player, gatesAverage, pathAverage, timeAverage));
-    });
-
+    
     resultsPlayerList.innerHTML += `
+        <h2>Battle ${gamesCounter + 1}</h2>
         <ul>
             <li>Average gates: ${gatesAverage}</li>
             <li>Average longest path: ${pathAverage}</li>
             <li>Average time: ${formatSeconds(timeAverage)}</li>
         </ul>    
     `
+    battle.players.forEach(_player => {
+        resultsPlayerList.appendChild(addResultPlayer(_player, gatesAverage, pathAverage, timeAverage));
+    });
 }
 
 async function restartGame() {

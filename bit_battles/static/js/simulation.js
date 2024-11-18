@@ -170,13 +170,3 @@ function inputClicked() {
     
     simulate(states);
 }
-
-function findLongestPath() {
-    let longestPath = 0;
-    
-    outputGates.forEach(gate => {
-        longestPath = Math.max(longestPath, gate.path.gates - 1);
-    });
-
-    console.log(longestPath);
-}

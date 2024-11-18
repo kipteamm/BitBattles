@@ -12,6 +12,12 @@
     <link rel="stylesheet" type="text/css" href="/static/css/basics.css">
 </head>
 <body>
+    <nav>
+        <a href="/app/battles">Battles</a>
+        <a href="/app/user/{{ current_user.username }}">Profile</a>
+        <a href="/app/editor">Editor</a>
+    </nav>
+
     {% block content %}{% endblock %}
 </body>
 </html>

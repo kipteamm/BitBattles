@@ -219,3 +219,16 @@ class BattleStatistic(db.Model):
             "duration": self.duration,
             "score": self.score
         }
+    
+    def leaderboard_serialize(self) -> dict:
+        user = User.query.with_entities(User.username).filter_by(id=self.user_id).first()
+        if not user:
+            return {}
+
+        relative_time = round(time.time() - self.creation_timestamp)
+
+        return {
+            "username": user.username,
+            "score": self.score,
+            "relative_timestamp": f"{relative_time // 60}m {relative_time % 60}s ago"
+        }
