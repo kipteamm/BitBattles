@@ -49,7 +49,7 @@ def battles():
     battle: t.Optional[Battle] = Battle.query.filter_by(id=battle_id, stage="queue").first()
 
     if not battle:
-        return render_template("app/battles.html", battles=Battle.query.filter_by(stage="queue", private=False).count())
+        return redirect("/app/battles")
     
     battle.players.append(current_user)
     db.session.commit()

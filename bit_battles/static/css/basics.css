@@ -20,6 +20,9 @@ button, input {
     font-family: var(--font-family);
     padding: 5px 10px;
     cursor: pointer;
+    border-radius: 5px;
+    border: none;
+    background-color: #fff;
 }
 
 nav {
