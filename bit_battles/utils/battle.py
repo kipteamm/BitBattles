@@ -222,7 +222,7 @@ class Simulate:
 
             for output in self._outputs:
                 longest_path = max(longest_path, output["path"]["gates"] - 1)
-                if output["value"] != outputs[output["id"]]:
+                if output.get("value", 0) != outputs[output["id"]]:
                     return False, 0
 
         return True, longest_path

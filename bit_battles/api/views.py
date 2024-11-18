@@ -20,11 +20,11 @@ def leave_battle(id):
     user: User = g.user
     player: t.Optional[Player] = Player.query.filter_by(battle_id=id, user_id=user.id).first()
     if not player:
-        return {"error": "Nothing found."}, 400
+        return {"error": "You are not in this battle."}, 400
     
     battle: t.Optional[Battle] = Battle.query.get(id)
     if not battle:
-        return {"error": "Nothing found."}, 400
+        return {"error": "This battle does not exist."}, 400
     
     if battle.owner_id == user.id:
         db.session.delete(battle)
@@ -42,7 +42,7 @@ def leave_battle(id):
 def start_battle(id):
     battle: t.Optional[Battle] = Battle.query.get(id)
     if not battle:
-        return {"error": "Nothing found."}, 400
+        return {"error": "Battle not found."}, 400
     
     user: User = g.user
     if battle.owner_id != user.id:
@@ -66,7 +66,7 @@ def start_battle(id):
 def restart_battle(id):
     battle: t.Optional[Battle] = Battle.query.get(id)
     if not battle:
-        return {"error": "Nothing found."}, 400
+        return {"error": "Battle not found."}, 400
     
     user: User = g.user
     if battle.owner_id != user.id:
@@ -95,7 +95,7 @@ def submit(id):
     user: User = g.user
     player: t.Optional[Player] = Player.query.filter_by(battle_id=id, user_id=user.id).first()
     if not player:
-        return {"error": "Nothing found."}, 400
+        return {"error": "You are not in this battle."}, 400
 
     if not request.json:
         return {"error": "Invalid body."}, 400
