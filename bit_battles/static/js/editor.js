@@ -90,9 +90,21 @@ function editMode() {
     showGhostGate = false;
     wireStart = false;
     editing = true;
+    debug = false;
 
     drawCanvas();
     canvas.style.cursor = "default";
+}
+
+function debugMode() {
+    selectedGate = null;
+    showGhostGate = false;
+    wireStart = false;
+    editing = false;
+    debug = true;
+
+    drawCanvas();
+    canvas.style.cursor = "pointer";
 }
 
 function toggleSelectGate(type) {
@@ -101,6 +113,7 @@ function toggleSelectGate(type) {
     showGhostGate = selectedGate === type? true: false;
     wireStart = null;
     editing = false;
+    debug = false;
 
     drawCanvas();
     canvas.style.cursor = selectedGate? "pointer": "default";
@@ -203,13 +216,13 @@ function drawIntersection(x, y, ctx = context) {
 function findGate(snappedX, snappedY) {
     return placedGates.find(_gate => {
         const gateSize = gridSize * objects[_gate.type].size;
-        const overlapSize = gridSize * (selectedGate? objects[selectedGate].size: 1);
-    
+        const overlapSize = gridSize * (selectedGate? objects[selectedGate].size: 0);
+
         return (
-            snappedX < _gate.x + gateSize &&
             snappedX + overlapSize > _gate.x &&
-            snappedY < _gate.y + gateSize &&
+            snappedX < _gate.x + gateSize &&
             snappedY + overlapSize > _gate.y &&
+            snappedY < _gate.y + gateSize &&
             _gate !== movingGate
         );
     });
@@ -277,6 +290,7 @@ function removeConnectors(gate) {
 }
 
 function placeGate(snappedX, snappedY) {
+    if (debug) return;
     const _gate = objects[selectedGate];
 
     if (movingGate) {
@@ -338,11 +352,13 @@ function splitWire(wire, snappedX, snappedY, startFrom) {
 }
 
 function placeWire(snappedX, snappedY, startWire) {
+    if (debug) return;
     if (!wireStart) {
-        wireStart = {x: snappedX, y: snappedY, direction: null, state: "off"};
+        wireStart = {x: snappedX, y: snappedY, direction: null, state: "off", valid: true};
         return;
     }
 
+    if (!wireStart.valid) return;
     if (snappedX !== wireStart.x && snappedY !== wireStart.y) return;
     if (snappedX === wireStart.x && snappedY === wireStart.y) return;
     const endWire = findWire(snappedX - 10, snappedY - 10);
@@ -393,8 +409,8 @@ canvas.addEventListener("click", (event) => {
     
     if (selectedGate && !gate) return placeGate(snappedX, snappedY);
     const connector = findConnector(x, y);
-
-    if (connector && !findWire(connector.x - 10, connector.y - 10)) return placeWire(connector.x, connector.y, null);
+    
+    if (connector) return placeWire(connector.x, connector.y, null);
     if (gate && movingGate === null) {
         if (!editing && gate.type === "INPUT") {
             gate.value = gate.value? 0: 1;
@@ -498,15 +514,35 @@ function drawGhostGate(snappedX, snappedY) {
     return;
 }
 
+function hasInput(gate, connector) {
+    if (!gate || !connector) return false;
+
+    for (const input of gate.inputs) {
+        if (input.x === connector.x && input.y === connector.y) return true;
+    }
+    return false;
+}
+
 function drawGhostWire(snappedX, snappedY, connector) {
     let offsetComponent = wireStart.y % gridSize;
     if (offsetComponent < 0) offsetComponent = (offsetComponent + gridSize) % gridSize;
     const direction = wireStart.y - (offsetComponent) === snappedY? "HORIZONTAL": "VERTICAL";
     const wireX = direction === "VERTICAL"? wireStart.x - 10: wireStart.x;
     const wireY = direction === "HORIZONTAL"? wireStart.y - 10: wireStart.y;
+    wireStart.valid = true;
 
-    if (snappedX !== wireX && snappedY !== wireY ||
-        snappedX === wireX && snappedX === wireY) {
+    if (wireStart.direction === "HORIZONTAL") {
+        for (let startX = wireStart.x; startX <= snappedX; startX += 20) {
+            const gate = findGate(startX, wireStart.y);
+
+            if (gate && !hasInput(gate, connector)) {
+                wireStart.valid = false;
+                break;
+            };
+        }
+    }
+
+    if (!wireStart.valid || snappedX !== wireX && snappedY !== wireY || snappedX === wireX && snappedX === wireY) {
         context.globalAlpha = 0.125;
         drawWire(
             wireStart.x, 
@@ -553,6 +589,8 @@ function drawGateOutline(gate) {
 function drawCanvas() {
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.drawImage(bufferCanvas, 0, 0);
+
+    if (debug) return;
     const snappedX = Math.floor(mouseX / gridSize) * gridSize;
     const snappedY = Math.floor(mouseY / gridSize) * gridSize;
     
