@@ -216,7 +216,7 @@ function drawIntersection(x, y, ctx = context) {
 function findGate(snappedX, snappedY) {
     return placedGates.find(_gate => {
         const gateSize = gridSize * objects[_gate.type].size;
-        const overlapSize = gridSize * (selectedGate? objects[selectedGate].size: 0);
+        const overlapSize = selectedGate? gridSize * objects[selectedGate].size: 1;
 
         return (
             snappedX + overlapSize > _gate.x &&
@@ -514,13 +514,13 @@ function drawGhostGate(snappedX, snappedY) {
     return;
 }
 
-function hasInput(gate, connector) {
+function hasConnector(gate, connector) {
     if (!gate || !connector) return false;
 
     for (const input of gate.inputs) {
         if (input.x === connector.x && input.y === connector.y) return true;
     }
-    return false;
+    return (gate.output.x === connector.x && gate.output.y === connector.y);
 }
 
 function drawGhostWire(snappedX, snappedY, connector) {
@@ -535,7 +535,7 @@ function drawGhostWire(snappedX, snappedY, connector) {
         for (let startX = wireStart.x; startX <= snappedX; startX += 20) {
             const gate = findGate(startX, wireStart.y);
 
-            if (gate && !hasInput(gate, connector)) {
+            if (gate && !hasConnector(gate, connector)) {
                 wireStart.valid = false;
                 break;
             };
