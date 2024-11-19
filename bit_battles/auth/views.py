@@ -42,11 +42,15 @@ def login():
 
     username = request.form['user']
     password = request.form['password']
-    
-    user = User.authenticate(username, password)
+
+    user = User.query.filter_by(username=username).first()
     if not user:
-        flash(f"Invalid username or password", 'error')
+        flash(f"Invalid username.", 'error')
         return render_template('auth/login.html')
     
+    if not user.check_password(password):
+        flash(f"Invalid password.", 'error')
+        return render_template('auth/login.html')
+
     login_user(user)
     return redirect(request.args.get("next", "/app/battles"))

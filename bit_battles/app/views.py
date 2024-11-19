@@ -7,7 +7,6 @@ from collections import defaultdict
 from flask_login import login_required, current_user
 from flask import Blueprint, render_template, redirect, request, make_response, flash
 
-
 import typing as t
 
 
@@ -115,14 +114,18 @@ def random_battle():
 @app_blueprint.get("/battle/<string:id>")
 @login_required
 def battle(id):
-    player = Player.query.filter_by(battle_id=id, user_id=current_user.id).first()
-    if not player:
-        return redirect("/app/battles")
-
     battle: t.Optional[Battle] = Battle.query.get(id)
     if not battle:
         return redirect("/app/battles")
+    
+    if battle.stage != "queue":
+        return redirect("/app/battles")
 
+    player = Player.query.filter_by(battle_id=id, user_id=current_user.id).first()
+    if not player:
+        db.session.commit()
+        battle.players.append(current_user)
+    
     response = make_response(render_template(f"app/battle.html", battle=battle.serialize(), player=current_user.serialize()))
     response.set_cookie("bt", current_user.set_battle_token())
     return response
@@ -134,7 +137,7 @@ def profile(username: str):
     if username == current_user.username:
         user = current_user
     else:
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter(db.func.lower(User.username) == username.lower()).first()
 
     if not user:
         return redirect(f"/app/user/{current_user.username}")

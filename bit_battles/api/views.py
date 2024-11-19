@@ -117,8 +117,15 @@ def submit(id):
             wires
             ).test(json.loads(battle.truthtable))
 
-        player.gates = len(gates) - battle.inputs - battle.outputs
+        gates_used = len(gates) - battle.inputs - battle.outputs
+
+        if player.passed:
+            if player.gates == gates_used and player.longest_path == longest_path:
+                return {"error", "Already submitted."}, 400
+
+        player.gates = gates_used
         player.longest_path = longest_path
+
         player.submission_on = time.time()
         player.passed = passed
 

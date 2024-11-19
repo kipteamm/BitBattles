@@ -225,7 +225,7 @@ function addResultPlayer(_player, gatesAverage, pathAverage, timeAverage) {
         <h4>[${_player.score}] ${_player.username}${_player.id === player.id? " (you)": ""}</h4>
     `
 
-    if (player.pasesd) {
+    if (_player.passed) {
         element.innerHTML += `
             <p>
                 Time: ${formatSeconds(_player.time)} (${timePerformance <= 0? 
@@ -251,7 +251,7 @@ async function loadResults() {
     let players = 0;
 
     for (const _player of battle.players) {
-        if (!player.passed) continue;
+        if (!_player.passed) continue;
         
         gatesAverage += _player.gates;
         pathAverage += _player.longest_path;
@@ -259,7 +259,7 @@ async function loadResults() {
         players += 1;
     }
 
-    gatesAverage /= playesr;
+    gatesAverage /= players;
     pathAverage /= players;
     timeAverage /= players;
     

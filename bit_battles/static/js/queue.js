@@ -28,7 +28,6 @@ async function leaveBattle() {
         headers: {"Authorization": `Bearer ${getCookie("bt")}`}
     });
 
-    if (!response.ok) return;
     return window.location.href="/app/battles"
 }
 

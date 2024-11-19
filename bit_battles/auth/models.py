@@ -32,19 +32,6 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password, password)
     
-    @staticmethod
-    def authenticate(value: str, password: str) -> t.Optional['User']:
-        if "@" in value:
-            user = User.query.filter_by(email=value).first()
-
-        else:
-            user = User.query.filter_by(username=value).first()
-        
-        if user and user.check_password(password):
-            return user
-        
-        return None
-    
     def set_battle_token(self) -> str:
         self.battle_token = secrets.token_urlsafe(64)
         db.session.commit()
