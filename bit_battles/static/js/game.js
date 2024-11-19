@@ -223,19 +223,24 @@ function addResultPlayer(_player, gatesAverage, pathAverage, timeAverage) {
     const pathPerformance = (_player.longest_path - pathAverage).toFixed(2);
     element.innerHTML = `
         <h4>[${_player.score}] ${_player.username}${_player.id === player.id? " (you)": ""}</h4>
-        <p>
-            Time: ${formatSeconds(_player.time)} (${timePerformance <= 0? 
-                `<span class="good">${timePerformance}s</span>`: 
-                `<span class="bad">+${timePerformance}s</span>`
-            }) Gates: ${_player.gates} (${gatePerformance <= 0? 
-                `<span class="good">${gatePerformance}</span>`: 
-                `<span class="bad">+${gatePerformance}</span>`
-            }) Longest path: ${_player.longest_path} (${pathPerformance <= 0? 
-                `<span class="good">${pathPerformance}</span>`: 
-                `<span class="bad">+${pathPerformance}</span>`
-            })
-        </p>
     `
+
+    if (player.pasesd) {
+        element.innerHTML += `
+            <p>
+                Time: ${formatSeconds(_player.time)} (${timePerformance <= 0? 
+                    `<span class="good">${timePerformance}s</span>`: 
+                    `<span class="bad">+${timePerformance}s</span>`
+                }) Gates: ${_player.gates} (${gatePerformance <= 0? 
+                    `<span class="good">${gatePerformance}</span>`: 
+                    `<span class="bad">+${gatePerformance}</span>`
+                }) Longest path: ${_player.longest_path} (${pathPerformance <= 0? 
+                    `<span class="good">${pathPerformance}</span>`: 
+                    `<span class="bad">+${pathPerformance}</span>`
+                })
+            </p>
+        `
+    }
     return element;
 }
 
@@ -243,16 +248,20 @@ async function loadResults() {
     let gatesAverage = 0;
     let pathAverage = 0;
     let timeAverage = 0;
+    let players = 0;
 
-    battle.players.forEach(_player => {
+    for (const _player of battle.players) {
+        if (!player.passed) continue;
+        
         gatesAverage += _player.gates;
         pathAverage += _player.longest_path;
         timeAverage += _player.time;
-    });
+        players += 1;
+    }
 
-    gatesAverage /= battle.players.length;
-    pathAverage /= battle.players.length;
-    timeAverage /= battle.players.length;
+    gatesAverage /= playesr;
+    pathAverage /= players;
+    timeAverage /= players;
     
     resultsPlayerList.innerHTML += `
         <h2>Battle ${gamesCounter + 1}</h2>

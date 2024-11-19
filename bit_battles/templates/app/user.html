@@ -1,18 +1,22 @@
 {% extends "app/app_base.html" %}
 
 {% block content %}
+    <style>summary h2 {display:inline-block;}</style>
+
     <div class="user">
         <img src="https://api.dicebear.com/9.x/shapes/svg?seed={{ user.username }}&backgroundColor=b6e3f4&size=32" alt="{{ user.username }}'s avatar">
         <h1>{{ user.username }}</h1>
     </div>
 
     {% for statistic, values in statistics.items() %}
-        <h2>{{ statistic}}</h2>
-        {% for battle in values %}  
-            <div>
-                {% if battle.winner %}You won this battle.{% elif not battle.passed %}You did not finish this battle.{% endif %}
-                Your score: {{ battle.score }}
-            </div>
-        {% endfor %}
+        <details>
+            <summary><h2>{{ statistic }}</h2></summary>
+            {% for battle in values %}  
+                <div>
+                    {% if battle.winner %}You won this battle.{% elif not battle.passed %}You did not finish this battle.{% endif %}
+                    Your score: {{ battle.score }}
+                </div>
+            {% endfor %}
+        </details>
     {% endfor %}
 {% endblock %}
