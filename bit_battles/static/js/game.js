@@ -175,7 +175,7 @@ async function submit() {
     });
 
     try {
-        const json = await response.json()
+        const json = await response.json();
         if (!response.ok) return sendAlert(json.error);
         if (!json.passed) return sendAlert("You did not pass the test.");
     } catch {

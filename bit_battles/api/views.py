@@ -121,7 +121,7 @@ def submit(id):
 
         if player.passed:
             if player.gates == gates_used and player.longest_path == longest_path:
-                return {"error", "Already submitted."}, 400
+                return {"error": "Already submitted."}, 400
 
         player.gates = gates_used
         player.longest_path = longest_path
