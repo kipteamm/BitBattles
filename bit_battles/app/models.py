@@ -274,6 +274,7 @@ class ChallengeStatistic(db.Model):
     id = db.Column(db.String(128), primary_key=True, default=SnowflakeGenerator.generate_id)
     user_id = db.Column(db.String(128), db.ForeignKey("users.id", ondelete="CASCADE"))
     date = db.Column(db.Date, nullable=False)
+    score = db.Column(db.Float(), default=0)
 
     passed = db.Column(db.Boolean(), default=False)
     gates = db.Column(db.Integer(), default=0)
@@ -281,7 +282,7 @@ class ChallengeStatistic(db.Model):
     attempts = db.Column(db.Integer(), default=0)
 
     started_on = db.Column(db.Float(), default=0)
-    finished_on = db.Column(db.Float(), default=0)
+    duration = db.Column(db.Float(), default=0)
 
     def __init__(self, user_id: str, date):
         self.user_id = user_id
@@ -300,6 +301,13 @@ class ChallengeStatistic(db.Model):
         db.session.commit()
 
         return challenge_statistic
+    
+    def set_score(self) -> None:
+        self.score = round(
+            (GATE_WEIGHT / max(self.gates, 1)) 
+            + (PATH_WEIGHT / max(self.longest_path, 1)) 
+            + (DURATION_WEIGHT / max(self.duration, 1))
+        )
 
     def serialize(self) -> dict:
         return {
@@ -309,5 +317,5 @@ class ChallengeStatistic(db.Model):
             "gates": self.gates,
             "longest_path": self.longest_path,
             "attempts": self.attempts,
-            "duration": (self.finished_on - self.started_on),
+            "duration": self.duration,
         }

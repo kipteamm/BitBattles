@@ -1,14 +1,14 @@
 let timerElement;
 let truthtable;
 let alertsElement;
-let resultsPlayerList;
+let playerResults;
 let currentStage = null;
 
 window.addEventListener("DOMContentLoaded", (event) => {
     timerElement = document.getElementById("timer");
     truthtable = document.getElementById("truthtable");
     alertsElement = document.getElementById("alerts");
-    resultsPlayerList = document.getElementById("player-results");
+    playerResults = document.getElementById("player-results");
     loadStage("challenge");
 });
 
@@ -189,37 +189,41 @@ function updateAlertPositions() {
     });
 }
 
+async function loadResults() {
+    const response = await fetch(`/api/challenge/${challenge.date}/results`, {
+        method: "GET",
+        headers: {"Authorization": `Bearer ${getCookie("ut")}`}
+    });
 
-function addResultPlayer(_player, gatesAverage, pathAverage, timeAverage) {
-    const element = document.createElement("div");
-    const timePerformance = (_player.time - timeAverage).toFixed(2);
-    const gatePerformance = (_player.gates - gatesAverage).toFixed(2);
-    const pathPerformance = (_player.longest_path - pathAverage).toFixed(2);
-    element.innerHTML = `
-        <h4>[${_player.score}] ${_player.username}${_player.id === player.id? " (you)": ""}</h4>
-    `
+    if (!response.ok) return
+    const json = await response.json();
 
-    if (_player.passed) {
-        element.innerHTML += `
+    const timePerformance = (json.user.duration - json.average_duration).toFixed(2);
+    const gatePerformance = (json.user.gates - json.average_gates).toFixed(2);
+    const pathPerformance = (json.user.longest_path - json.average_longest_path).toFixed(2);
+
+    playerResults.innerHTML += `
+        <ul>
+            <li>Average gates: ${json.average_gates}</li>
+            <li>Average longest path: ${json.average_longest_path}</li>
+            <li>Average time: ${formatSeconds(json.average_duration)}</li>
+        </ul>
+        <div>
+            <h4>${player.username} (You)</h4>
             <p>
-                Time: ${formatSeconds(_player.time)} (${timePerformance <= 0? 
+                Time: ${formatSeconds(json.user.duration)} (${timePerformance <= 0? 
                     `<span class="good">${timePerformance}s</span>`: 
                     `<span class="bad">+${timePerformance}s</span>`
-                }) Gates: ${_player.gates} (${gatePerformance <= 0? 
+                }) Gates: ${json.user.gates} (${gatePerformance <= 0? 
                     `<span class="good">${gatePerformance}</span>`: 
                     `<span class="bad">+${gatePerformance}</span>`
-                }) Longest path: ${_player.longest_path} (${pathPerformance <= 0? 
+                }) Longest path: ${json.user.longest_path} (${pathPerformance <= 0? 
                     `<span class="good">${pathPerformance}</span>`: 
                     `<span class="bad">+${pathPerformance}</span>`
                 })
             </p>
-        `
-    }
-    return element;
-}
-
-async function loadResults() {
-    
+        </div>
+    `
 }
 
 function formatSeconds(seconds) {

@@ -12,7 +12,8 @@
     <script src="/static/js/challenge.js"></script>
     <script src="/static/js/basics.js"></script>
     <script>
-        const challenge = {{ challenge|tojson }}
+        const challenge = {{ challenge|tojson }};
+        const player = {{ current_user.serialize()|tojson }}
     </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -48,6 +49,7 @@
     </div>
 
     <div class="stage results" id="results">
+        <h2>Your results</h2>
         <div id="player-results">
     </div>
 </body>
