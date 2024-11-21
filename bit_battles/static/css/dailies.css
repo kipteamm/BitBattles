@@ -1,0 +1,32 @@
+.dailies {
+    max-width: 1000px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.leaderboard .entry .position-1 {
+    color: #ceb04e;
+}
+.leaderboard .entry .position-2 {
+    color: #c0c0c0;
+}
+.leaderboard .entry .position-3 {
+    color: #aa8e5e;
+}
+
+.leaderboard .entry {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+    gap: 10px;
+    text-align: left;
+}
+
+.leaderboard .entry h4 {
+    margin: 0px;
+    flex: 1;
+}
+
+.dailies button {
+    margin-top: 25px;
+}

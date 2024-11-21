@@ -19,26 +19,35 @@ def editor():
     return render_template("app/editor.html")
 
 
+@app_blueprint.get("/daily")
+@login_required
+def daily():
+    dailies = ChallengeStatistic.query.filter(
+        ChallengeStatistic.passed == True # type: ignore
+    ).order_by(
+        ChallengeStatistic.started_on.desc(), # type: ignore
+        ChallengeStatistic.score.desc() # type: ignore
+    ).limit(3).all()
+
+    dailies = [daily.leaderboard_serialize() for daily in dailies]
+    #dailies = sorted([daily.leaderboard_serialize() for daily in dailies], key=lambda x: x["score"], reverse=True)
+    return render_template("app/daily.html", dailies=dailies)
+
+
 @app_blueprint.route("/battles", methods=["GET", "POST"])
 @login_required
 def battles():
     if request.method == "GET":
-        winners = (
-            BattleStatistic.query
-            .filter(
-                BattleStatistic.winner == True,
-                BattleStatistic.score <= 300
-            )
-            .order_by(
-                BattleStatistic.creation_timestamp.desc(),
-                BattleStatistic.score.desc()
-            )
-            .limit(3)
-            .all()
-        )
+        winners = BattleStatistic.query.filter(
+                BattleStatistic.winner == True, # type: ignore
+                BattleStatistic.score <= 300 # type: ignore
+            ).order_by(
+                BattleStatistic.creation_timestamp.desc(), # type: ignore
+                BattleStatistic.score.desc() # type: ignore
+            ).limit(3).all()
 
         winners = sorted([winner.leaderboard_serialize() for winner in winners], key=lambda x: x["score"], reverse=True)
-        
+
         return render_template("app/battles.html", winners=winners)
     
     player = Player.query.filter_by(user_id=current_user.id).first()
@@ -138,7 +147,9 @@ def profile(username: str):
     if username == current_user.username:
         user = current_user
     else:
-        user = User.query.filter(db.func.lower(User.username) == username.lower()).first()
+        user = User.query.filter(
+            db.func.lower(User.username) == username.lower() # type: ignore
+        ).first()
 
     if not user:
         return redirect(f"/app/user/{current_user.username}")
@@ -161,15 +172,15 @@ def daily_challenge():
         try:
             date = datetime.strptime(date, '%Y-%m-%d').date()
         except ValueError:
-            return redirect("/app/battles?here")
+            return redirect("/app/daily")
     else:
         date = today
 
     if date > today:
-        return redirect("/app/battles?here2")
-
+        return redirect("/app/daily")
+    
     if ChallengeStatistic.query.filter_by(date=date, user_id=current_user.id, passed=True).first():
-        return redirect("/app/battles")
+        return redirect("/app/daily")
 
     challenge = Challenge.get_or_create(date)
     challenge_statistic = ChallengeStatistic.get_or_create(current_user.id, date)

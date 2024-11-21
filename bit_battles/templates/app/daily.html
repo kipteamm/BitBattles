@@ -1,0 +1,22 @@
+{% extends "app/app_base.html" %}
+
+{% block content %}
+    <link rel="stylesheet" type="text/css" href="/static/css/dailies.css">
+
+    <div class="dailies">
+        <div class="leaderboard">
+            {% for daily in dailies %}
+                <div class="entry user">
+                    <span class="position-{{ loop.index }}">[{{ loop.index }}]</span>
+                    <img src="https://api.dicebear.com/9.x/shapes/svg?seed={{ daily.username }}&backgroundColor=b6e3f4&size=32" alt="{{ daily.username }}'s avatar">
+                    <h4>{{ daily.username }}</h4>
+                    <span><b>Gates:</b> {{ daily.gates }}</span>                        
+                    <span><b>Longest path:</b> {{ daily.longest_path }}</span>                        
+                    <span><b>Duration:</b> {{ daily.duration }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    
+        <button class="action" onclick="window.location.href='/app/challenge/daily'">Daily challenge</button>
+    </div>
+{% endblock %}
