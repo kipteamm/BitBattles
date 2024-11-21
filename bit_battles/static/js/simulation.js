@@ -120,13 +120,13 @@ function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function test() {
+async function test(truthtable) {
     let longestPath = 0;
-    for (let i = 0; i < battle.truthtable["A"].length; i++) {
+    for (let i = 0; i < truthtable["A"].length; i++) {
         let inputs = {};
         let outputs = {};
 
-        for (const [key, value] of Object.entries(battle.truthtable)) {
+        for (const [key, value] of Object.entries(truthtable)) {
             if (key.charCodeAt(0) > 77) {
                 outputs[key] = value[i];
             } else {

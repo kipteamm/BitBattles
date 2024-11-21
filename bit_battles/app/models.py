@@ -1,8 +1,10 @@
 from bit_battles.utils.snowflakes import SnowflakeGenerator
+from bit_battles.utils.battle import TableGenerator
 from bit_battles.auth.models import User
 from bit_battles.extensions import db
 
 from sqlalchemy import func
+from datetime import datetime, timezone
 
 import typing as t
 
@@ -221,7 +223,9 @@ class BattleStatistic(db.Model):
         }
     
     def leaderboard_serialize(self) -> dict:
-        user = User.query.with_entities(User.username).filter_by(id=self.user_id).first()
+        user = User.query.with_entities(
+            User.username # type: ignore
+        ).filter_by(id=self.user_id).first()
         if not user:
             return {}
 
@@ -231,4 +235,79 @@ class BattleStatistic(db.Model):
             "username": user.username,
             "score": self.score,
             "relative_timestamp": f"{relative_time // 60}m {relative_time % 60}s ago"
+        }
+
+
+class Challenge(db.Model):
+    __tablename__ = "challenges"
+
+    date = db.Column(db.Date, primary_key=True, unique=True, nullable=False)
+    truthtable = db.Column(db.Text(5000))
+
+    def __init__(self, date) -> None:
+        self.date = date
+        self.truthtable = json.dumps(TableGenerator(3, 2).table)
+
+    @classmethod
+    def get_or_create(cls, date) -> 'Challenge':
+        challenge = Challenge.query.filter_by(date=date).first()
+
+        if challenge:
+           return challenge
+
+        challenge = Challenge(date)
+        db.session.add(challenge)
+        db.session.commit()
+
+        return challenge
+
+    def serialize(self) -> dict:
+        return {
+            "date": self.date.strftime("%Y-%m-%d"),
+            "truthtable": json.loads(self.truthtable),
+        }
+    
+
+class ChallengeStatistic(db.Model):
+    __tablename__ = "challenge_statistics"
+
+    id = db.Column(db.String(128), primary_key=True, default=SnowflakeGenerator.generate_id)
+    user_id = db.Column(db.String(128), db.ForeignKey("users.id", ondelete="CASCADE"))
+    date = db.Column(db.Date, nullable=False)
+
+    passed = db.Column(db.Boolean(), default=False)
+    gates = db.Column(db.Integer(), default=0)
+    longest_path = db.Column(db.Integer(), default=0)
+    attempts = db.Column(db.Integer(), default=0)
+
+    started_on = db.Column(db.Float(), default=0)
+    finished_on = db.Column(db.Float(), default=0)
+
+    def __init__(self, user_id: str, date):
+        self.user_id = user_id
+        self.date = date
+        self.started_on = time.time()
+
+    @classmethod
+    def get_or_create(cls, user_id: str, date) -> 'ChallengeStatistic':
+        challenge_statistic = ChallengeStatistic.query.filter_by(user_id=user_id, date=date).first()
+
+        if challenge_statistic:
+           return challenge_statistic
+
+        challenge_statistic = ChallengeStatistic(user_id, date)
+        db.session.add(challenge_statistic)
+        db.session.commit()
+
+        return challenge_statistic
+
+    def serialize(self) -> dict:
+        return {
+            "user_id": self.user_id,
+            "date": self.date,
+            "passed": self.passed,
+            "gates": self.gates,
+            "longest_path": self.longest_path,
+            "attempts": self.attempts,
+            "duration": (self.finished_on - self.started_on),
         }

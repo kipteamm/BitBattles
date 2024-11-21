@@ -2,8 +2,8 @@ from bit_battles.utils.forms import validate_string
 from bit_battles.auth.models import User
 from bit_battles.extensions import db
 
-from flask_login import login_user
-from flask import Blueprint, render_template, request, flash, redirect
+from flask_login import login_user, logout_user, current_user, AnonymousUserMixin
+from flask import Blueprint, render_template, request, flash, redirect, make_response
 
 
 auth_blueprint = Blueprint("auth", __name__, url_prefix="/auth")
@@ -53,4 +53,16 @@ def login():
         return render_template('auth/login.html')
 
     login_user(user)
-    return redirect(request.args.get("next", "/app/battles"))
+    
+    response = make_response(redirect(request.args.get("next", "/app/battles")))
+    response.set_cookie("ut", user.set_token())
+    return response
+
+
+@auth_blueprint.get("/logout")
+def logout():
+    if isinstance(current_user, AnonymousUserMixin):
+        return redirect("/auth/login")    
+    
+    logout_user()
+    return redirect("/auth/login")

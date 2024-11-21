@@ -36,14 +36,21 @@
         </div>
         <div class="overlay"></div>
         
-        <div class="actions">
-            <button class="action" onclick="window.location.href='/app/battle/new/'">New battle</button>
-            <form class="action" method="POST">
-                <input type="text" name="battle_id" maxlength="5" placeholder="battle">
-                <button type="submit">Join</button>
-            </form>
-            <button class="action" onclick="window.location.href='/app/battle/random/'">Join random battle</button>
+        <div class="page-content">
+            <div class="actions">
+                <button class="action" onclick="window.location.href='/app/battle/new/'">New battle</button>
+                <form class="action" method="POST">
+                    <input type="text" name="battle_id" maxlength="5" placeholder="battle">
+                    <button type="submit">Join</button>
+                </form>
+                <button class="action" onclick="window.location.href='/app/battle/random/'">Join random battle</button>
+            </div>
+            
+            <div class="actions">
+                <button class="action" onclick="window.location.href='/app/challenge/daily'">Daily challenge</button>
+            </div>
         </div>
+
     </div>
     
 {% endblock %}

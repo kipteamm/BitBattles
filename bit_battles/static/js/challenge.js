@@ -8,50 +8,23 @@ window.addEventListener("DOMContentLoaded", (event) => {
     timerElement = document.getElementById("timer");
     truthtable = document.getElementById("truthtable");
     alertsElement = document.getElementById("alerts");
-    resultsPlayerList = document.getElementById("results-player-list");
-    loadStage(battle.stage);
+    resultsPlayerList = document.getElementById("player-results");
+    loadStage("challenge");
 });
-
-function resetGame() {
-    secondsElapsed = 0;
-    placedGates = [];
-    placedWires = [];
-    placedConnectors = [];
-    rotation = 0;
-    
-    bufferContext.clearRect(0, 0, canvas.width, canvas.height);
-    drawGrid();
-    drawCanvas();
-
-    const children = [...truthtable.children];
-    for (const child of children) {
-        if (child.id === "test-column") {
-            child.innerHTML = '<div class="title">Pass</div>';
-            continue;
-        }
-        child.remove();
-    }
-}
-
-let gamesCounter = 0;
 
 function loadStage(stage) {
     if (currentStage) currentStage.classList.remove("active");
     currentStage = document.getElementById(stage);
     currentStage.classList.add("active");
 
-    if (stage === "queue" && gamesCounter) {
-        resetGame();
-    }
-    if (stage === "battle") {
+    if (stage === "challenge") {
         requestAnimationFrame(updateTimer);
-        loadGateButtons(battle.gates);
-        loadTruthtable(battle.truthtable);
-        loadGates(battle.truthtable);
+        loadGateButtons(["AND", "NOT", "OR", "XOR"]);
+        loadTruthtable(challenge.truthtable);
+        loadGates(challenge.truthtable);
     }
     if (stage === "results") {
         loadResults();
-        gamesCounter++;
     }
 }
 
@@ -60,7 +33,6 @@ function loadGateButtons(gates) {
         document.getElementById(`${gate}-btn`).classList.add("active");
     });
 } 
-
 
 function loadTruthtable(data) {
     const testColumn = document.getElementById("test-column");
@@ -168,10 +140,10 @@ function updateTimer(timestamp) {
 }
 
 async function submit() {
-    const response = await fetch(`/api/battle/${battle.id}/submit`, {
+    const response = await fetch(`/api/challenge/${challenge.date}/submit`, {
         method: "POST",
         body: JSON.stringify({"gates": placedGates, "wires": placedWires}),
-        headers: {"Authorization": `Bearer ${getCookie("bt")}`, "Content-Type": "application/json"}
+        headers: {"Authorization": `Bearer ${getCookie("ut")}`, "Content-Type": "application/json"}
     });
 
     try {
@@ -181,6 +153,8 @@ async function submit() {
     } catch {
         sendAlert("Unexpected error.");
     }
+
+    loadStage("results");
 }
 
 let alerts = [];
@@ -245,44 +219,7 @@ function addResultPlayer(_player, gatesAverage, pathAverage, timeAverage) {
 }
 
 async function loadResults() {
-    let gatesAverage = 0;
-    let pathAverage = 0;
-    let timeAverage = 0;
-    let players = 0;
-
-    for (const _player of battle.players) {
-        if (!_player.passed) continue;
-        
-        gatesAverage += _player.gates;
-        pathAverage += _player.longest_path;
-        timeAverage += _player.time;
-        players += 1;
-    }
-
-    gatesAverage /= players;
-    pathAverage /= players;
-    timeAverage /= players;
     
-    resultsPlayerList.innerHTML += `
-        <h2>Battle ${gamesCounter + 1}</h2>
-        <ul>
-            <li>Average gates: ${gatesAverage}</li>
-            <li>Average longest path: ${pathAverage}</li>
-            <li>Average time: ${formatSeconds(timeAverage)}</li>
-        </ul>    
-    `
-    battle.players.forEach(_player => {
-        resultsPlayerList.appendChild(addResultPlayer(_player, gatesAverage, pathAverage, timeAverage));
-    });
-}
-
-async function restartGame() {
-    const response = await fetch(`/api/battle/${battle.id}/restart`, {
-        method: "POST",
-        headers: {"Authorization": `Bearer ${getCookie("bt")}`}
-    });
-
-    if (!response.ok) return;
 }
 
 function formatSeconds(seconds) {

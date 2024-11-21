@@ -1,3 +1,4 @@
+from bit_battles.api.challenge.views import challenge_api_blueprint
 from bit_battles.utils.functions import get_back_url
 from bit_battles.auth.models import User
 from bit_battles.main.views import main_blueprint
@@ -21,6 +22,7 @@ import typing as t
 def create_app() -> Flask:
     app = Flask(__name__, static_folder="static", static_url_path="/static")
 
+    app.register_blueprint(challenge_api_blueprint)
     app.register_blueprint(main_blueprint)
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(app_blueprint)

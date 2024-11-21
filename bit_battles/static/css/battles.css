@@ -96,12 +96,17 @@
     background-image: linear-gradient(rgb(185, 185, 185, 0%), #b9b9b9);
 }
 
-.battles .actions {
-    margin: -86px 0px;
-    display: flex;
+.battles .page-content {
     padding: 50px;
+    margin: -86px 0px;
     background-color: var(--bg-sec);
+    text-align: center;
+}
+
+.battles .actions {
+    display: flex;
     gap: 25px;
+    margin-bottom: 25px;
 }
 
 .battles .actions .action {

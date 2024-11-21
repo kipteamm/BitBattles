@@ -9,13 +9,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
     <script src="/static/js/editor.js" defer></script>
     <script src="/static/js/simulation.js"></script>
-    <script src="/static/js/gameSocket.js"></script>
+    <script src="/static/js/challenge.js"></script>
     <script src="/static/js/basics.js"></script>
-    <script src="/static/js/queue.js"></script>
-    <script src="/static/js/game.js"></script>
     <script>
-        battle = {{ battle|tojson }};
-        const player = {{ player|tojson }};
+        const challenge = {{ challenge|tojson }}
     </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,23 +23,7 @@
     <link rel="stylesheet" type="text/css" href="/static/css/basics.css">
 </head>
 <body>
-    <div class="stage" id="queue">
-        <h1>Awaiting start</h1>
-
-        <p>
-            Share this battle code with your players: <code>{{ battle.id }}</code>
-        </p>
-
-        <div id="queue-player-list"></div>
-
-        {% if player.id == battle.owner_id %}
-            <button onclick="startBattle()">Start battle</button>
-        {% endif %}
-
-        <button onclick="leaveBattle()">Leave</button>
-    </div>
-
-    <div class="stage" id="battle">
+    <div class="stage" id="challenge">
         <div class="toolbar">
             <button onclick="debugMode()">🖐</button>
             <button onclick="editMode()">🔧</button>
@@ -51,7 +32,7 @@
             <button class="gate" onclick="toggleSelectGate('NOT')" id="NOT-btn">NOT</button>
             <button class="gate" onclick="toggleSelectGate('XOR')" id="XOR-btn">XOR</button>
             <button onclick="simulate()">Simulate</button>
-            <button onclick="test(battle.truthtable)">Test</button>
+            <button onclick="test(challenge.truthtable)">Test</button>
             <button onclick="submit()">Submit</button>
             <span id="timer">00:00</span>
         </div>
@@ -67,10 +48,7 @@
     </div>
 
     <div class="stage results" id="results">
-        <div id="results-player-list"></div>
-        {% if player.id == battle.owner_id %}
-            <button onclick="restartGame()">New round</div>
-        {% endif %}
+        <div id="player-results">
     </div>
 </body>
 </html>

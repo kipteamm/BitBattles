@@ -92,13 +92,16 @@ def restart_battle(id):
 @api_blueprint.post("/battle/<string:id>/submit")
 @battle_authorized
 def submit(id):
+    if not request.json:
+        return {"error": "Invalid body."}, 400
+
     user: User = g.user
     player: t.Optional[Player] = Player.query.filter_by(battle_id=id, user_id=user.id).first()
     if not player:
         return {"error": "You are not in this battle."}, 400
-
-    if not request.json:
-        return {"error": "Invalid body."}, 400
+    
+    if player.passed:
+        return {"error": "You already submitted successfully."}, 400
 
     battle: t.Optional[Battle] = Battle.query.get(id)
     if not battle:
@@ -118,10 +121,6 @@ def submit(id):
             ).test(json.loads(battle.truthtable))
 
         gates_used = len(gates) - battle.inputs - battle.outputs
-
-        if player.passed:
-            if player.gates == gates_used and player.longest_path == longest_path:
-                return {"error": "Already submitted."}, 400
 
         player.gates = gates_used
         player.longest_path = longest_path

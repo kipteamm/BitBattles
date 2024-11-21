@@ -16,6 +16,7 @@ class User(UserMixin, db.Model):
     # Authentication
     id = db.Column(db.String(128), primary_key=True, default=SnowflakeGenerator.generate_id)
     password = db.Column(db.String(128), nullable=False)
+    token = db.Column(db.String(128), nullable=True)
     battle_token = db.Column(db.String(128), nullable=True)
     
     username = db.Column(db.String(30), nullable=False, unique=True)
@@ -37,6 +38,12 @@ class User(UserMixin, db.Model):
         db.session.commit()
         
         return self.battle_token
+    
+    def set_token(self) -> str:
+        self.token = secrets.token_urlsafe(64)
+        db.session.commit()
+
+        return self.token
 
     def serialize(self) -> dict:
         return {

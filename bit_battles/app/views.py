@@ -1,10 +1,11 @@
 from bit_battles.utils.forms import validate_int
 from bit_battles.auth.models import User
-from bit_battles.app.models import Battle, Player, BattleStatistic
+from bit_battles.app.models import Battle, Player, BattleStatistic, Challenge, ChallengeStatistic
 from bit_battles.extensions import db
 
 from collections import defaultdict
 from flask_login import login_required, current_user
+from datetime import datetime, timezone
 from flask import Blueprint, render_template, redirect, request, make_response, flash
 
 import typing as t
@@ -148,3 +149,29 @@ def profile(username: str):
         battle_statistics[battle.battle_type].append(battle.serialize())
 
     return render_template("app/user.html", user=user, statistics=battle_statistics)
+
+
+@app_blueprint.get("/challenge/daily")
+@login_required
+def daily_challenge():
+    today = datetime.now(timezone.utc).date()
+    date = request.args.get("date")
+
+    if date:
+        try:
+            date = datetime.strptime(date, '%Y-%m-%d').date()
+        except ValueError:
+            return redirect("/app/battles?here")
+    else:
+        date = today
+
+    if date > today:
+        return redirect("/app/battles?here2")
+
+    if ChallengeStatistic.query.filter_by(date=date, user_id=current_user.id, passed=True).first():
+        return redirect("/app/battles")
+
+    challenge = Challenge.get_or_create(date)
+    challenge_statistic = ChallengeStatistic.get_or_create(current_user.id, date)
+
+    return render_template("app/challenge.html", challenge=challenge.serialize(), challenge_statistic=challenge_statistic)
