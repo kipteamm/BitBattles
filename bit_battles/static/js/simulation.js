@@ -152,7 +152,7 @@ async function test(truthtable) {
         test.classList.add(failed? "failed": "passed");
         test.innerHTML = failed? "x": "v";
 
-        await delay(2000);
+        await delay(500);
     }
 
     sendAlert("Your tests finished.");

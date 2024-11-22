@@ -23,7 +23,8 @@ def editor():
 @login_required
 def daily():
     dailies = ChallengeStatistic.query.filter(
-        ChallengeStatistic.passed == True # type: ignore
+        ChallengeStatistic.passed == True, # type: ignore
+        ChallengeStatistic.date == datetime.now(timezone.utc).date()
     ).order_by(
         ChallengeStatistic.started_on.desc(), # type: ignore
         ChallengeStatistic.score.desc() # type: ignore

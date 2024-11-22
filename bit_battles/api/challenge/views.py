@@ -90,7 +90,7 @@ def results(date):
         func.avg(ChallengeStatistic.gates).label("gates"),
         func.avg(ChallengeStatistic.longest_path).label("longest_path"),
         func.avg(ChallengeStatistic.duration).label("duration")
-    ).filter_by(passed=True).first()
+    ).filter_by(date=_date, passed=True).first()
 
     if not average:
         return {

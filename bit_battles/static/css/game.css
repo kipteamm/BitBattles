@@ -72,7 +72,7 @@ div.test .cell.passed {
 div.output {
     margin-left: 5px;
 }
-div.title {
+.truthtable div.title {
     text-align: center;
     border-bottom: 3px solid black;
 }
@@ -110,4 +110,44 @@ div.alert {
     bottom: -100%;
     transition: 1s;
     border-radius: 5px;
+}
+
+.instructions {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    background-color: var(--bg-pri);
+    border-top: 2px solid var(--bg-sec);
+    border-left: 2px solid var(--bg-sec);
+    border-radius: 5px 0px 0px 0px;
+    max-width: 30vw;
+    width: 400px;
+}
+
+.instructions .title {
+    display: flex;
+    padding: 1em 1em 2px 1em;
+}
+
+.instructions .title h3 {
+    margin: 0px;
+    flex: 1;
+}
+.instructions .title span {
+    cursor: pointer;
+    transform: rotate(0deg);
+    transition: .3s;
+}
+.instructions.active .title span {
+    transform: rotate(180deg);
+}
+
+.instructions ul {
+    height: 0;
+    transition: .3s;
+    margin: 3px 0;
+}
+.instructions.active ul {
+    height: auto;
+    margin: 1em 0;
 }
