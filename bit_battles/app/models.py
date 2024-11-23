@@ -4,7 +4,7 @@ from bit_battles.auth.models import User
 from bit_battles.extensions import db
 
 from sqlalchemy import func
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 import typing as t
 
@@ -302,6 +302,29 @@ class ChallengeStatistic(db.Model):
 
         return challenge_statistic
     
+    @classmethod
+    def get_streak(cls, user_id: str) -> int:
+        today = datetime.now(timezone.utc).date()
+        
+        challenges = (
+            ChallengeStatistic.query
+            .filter(
+                ChallengeStatistic.user_id == user_id, # type: ignore
+                ChallengeStatistic.passed == True,
+                ChallengeStatistic.date <= today
+            )
+            .order_by(ChallengeStatistic.date.desc())
+            .all()
+        )
+
+        streak = 0
+        for challenge in challenges:
+            if challenge.date != today - timedelta(days=(streak + 1)) and challenge.date != today - timedelta(days=streak):
+                break
+            streak += 1
+
+        return streak
+    
     def set_score(self) -> None:
         self.score = round(
             (GATE_WEIGHT / max(self.gates, 1)) 
@@ -319,6 +342,7 @@ class ChallengeStatistic(db.Model):
         return {
             "user_id": self.user_id,
             "username": user.username,
+            "streak": self.get_streak(self.user_id),
             "gates": self.gates,
             "longest_path": self.longest_path,
             "duration": f"{round(self.duration // 60)}m {round(self.duration % 60)}s",

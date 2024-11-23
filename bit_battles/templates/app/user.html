@@ -7,6 +7,7 @@
         <img src="https://api.dicebear.com/9.x/shapes/svg?seed={{ user.username }}&backgroundColor=b6e3f4&size=32" alt="{{ user.username }}'s avatar">
         <h1>{{ user.username }}</h1>
     </div>
+    <h4>Daily streak: {{ streak }}</h4>
 
     {% for statistic, values in statistics.items() %}
         <details>

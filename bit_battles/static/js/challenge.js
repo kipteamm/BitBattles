@@ -209,7 +209,7 @@ async function loadResults() {
             <li>Average time: ${formatSeconds(json.average_duration)}</li>
         </ul>
         <div>
-            <h4>${player.username} (You)</h4>
+            <h2>${player.username} (You)</h2>
             <p>
                 Time: ${formatSeconds(json.user.duration)} (${timePerformance <= 0? 
                     `<span class="good">${timePerformance}s</span>`: 

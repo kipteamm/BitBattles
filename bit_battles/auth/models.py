@@ -5,7 +5,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
 import typing as t
-
 import secrets
 import time
 
@@ -48,5 +47,5 @@ class User(UserMixin, db.Model):
     def serialize(self) -> dict:
         return {
             "id": self.id,
-            "username": self.username
+            "username": self.username,
         }

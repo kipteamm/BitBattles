@@ -160,7 +160,7 @@ def profile(username: str):
     for battle in BattleStatistic.query.filter_by(user_id=user.id).all():
         battle_statistics[battle.battle_type].append(battle.serialize())
 
-    return render_template("app/user.html", user=user, statistics=battle_statistics)
+    return render_template("app/user.html", user=user, streak=ChallengeStatistic.get_streak(user.id), statistics=battle_statistics)
 
 
 @app_blueprint.get("/challenge/daily")
