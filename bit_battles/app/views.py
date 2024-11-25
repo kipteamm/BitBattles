@@ -26,8 +26,8 @@ def daily():
         ChallengeStatistic.passed == True, # type: ignore
         ChallengeStatistic.date == datetime.now(timezone.utc).date()
     ).order_by(
-        ChallengeStatistic.started_on.desc(), # type: ignore
-        ChallengeStatistic.score.desc() # type: ignore
+        ChallengeStatistic.score.desc(), # type: ignore
+        ChallengeStatistic.started_on.desc() # type: ignore
     ).limit(3).all()
 
     dailies = [daily.leaderboard_serialize() for daily in dailies]
