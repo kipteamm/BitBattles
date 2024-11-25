@@ -32,10 +32,9 @@
             <button class="gate" onclick="toggleSelectGate('OR')" id="OR-btn">OR</button>
             <button class="gate" onclick="toggleSelectGate('NOT')" id="NOT-btn">NOT</button>
             <button class="gate" onclick="toggleSelectGate('XOR')" id="XOR-btn">XOR</button>
-            <button onclick="simulate()">Simulate</button>
             <button onclick="test(challenge.truthtable)">Test</button>
             <button onclick="submit()">Submit</button>
-            <span id="timer">00:00</span>
+            <button id="timer">00:00</button>
         </div>
 
         <div class="truthtable" id="truthtable">
@@ -47,21 +46,7 @@
 
         <canvas id="game"></canvas>
 
-        <div class="instructions">
-            <div class="title">
-                <h3>Help</h3>
-                <span onclick="this.parentNode.parentNode.classList.toggle('active');">↑</span>
-            </div>
-            <ul>
-                <li>🖐 To toggle inputs</li>
-                <li>🔧 To move gates</li>
-                <li>Select a gate by clicking on one of the buttons, deselect by clicking on it again.</li>
-                <li>Place a gate by left clicking, remove a gate by right clicking.</li>
-                <li>Start drawing a wire by left clicking a gate connector. Stop drawing by right clicking</li>
-                <li>Place a wire (once you started drawing one) by left clicking on a connector, a wire or a free spot on the canvas. Remove a wire by right clicking it</li>
-                <li>Right click the canvas and drag to move.</li>
-            </ul>
-        </div>
+        {% include "components/instructions.html" %}
     </div>
 
     <div class="stage results" id="results">

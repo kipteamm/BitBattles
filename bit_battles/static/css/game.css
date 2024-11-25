@@ -28,10 +28,13 @@ body {
 
 div.toolbar {
     position: fixed;
-    width: 100vw;
-    height: 40px;
+    top: 25px;
+    left: 50%;
+    transform: translate(-50%);
+    height: 50px;
     background-color: var(--bg-pri);
-    border-bottom: solid 2px var(--bg-sec);
+    border: 1px solid var(--bg-sec);
+    border-radius: 10px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -47,13 +50,13 @@ button.gate.active {
 
 div.truthtable {
     position: fixed;
-    right: 0;
+    right: 25px;
+    top: 25px;
     display: flex;
     padding: 10px;
-    border-left: 2px solid var(--bg-sec);
-    border-bottom: 2px solid var(--bg-sec);
+    border: 1px solid var(--bg-sec);
     background-color: var(--bg-pri);
-    border-radius: 0px 0px 0px 5px;
+    border-radius: 10px;
 }
 
 div.test {
@@ -96,10 +99,6 @@ canvas {
     background-image: radial-gradient(circle, var(--bg-sec) 1px, rgba(0, 0, 0, 0) 1px);
 }
 
-.canvasContainer {
-    padding-top: 40px;
-}
-
 div.alert {
     position: fixed;
     z-index: 1000;
@@ -118,16 +117,17 @@ div.alert {
     right: 0;
     bottom: 0;
     background-color: var(--bg-pri);
-    border-top: 2px solid var(--bg-sec);
-    border-left: 2px solid var(--bg-sec);
+    border-top: 1px solid var(--bg-sec);
+    border-left: 1px solid var(--bg-sec);
     border-radius: 5px 0px 0px 0px;
     max-width: 30vw;
-    width: 400px;
+    width: 450px;
 }
 
 .instructions .title {
     display: flex;
     padding: 1em 1em 2px 1em;
+    cursor: pointer;
 }
 
 .instructions .title h3 {
@@ -135,7 +135,6 @@ div.alert {
     flex: 1;
 }
 .instructions .title span {
-    cursor: pointer;
     transform: rotate(0deg);
     transition: .3s;
 }
