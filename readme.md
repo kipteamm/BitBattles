@@ -34,12 +34,3 @@ After that any change to the database can be migrated using
 flask db migrate -m "migration name"
 flask db upgraed
 ```
-
-## Hosting on pythonanywhere
-```bash
-pa website create --domain LogisimBattles.pythonanywhere.com --command '/home/LogisimBattles/.virtualenvs/venv/bin/gunicorn --worker-class eventlet -w 1 --chdir /home/LogisimBattles/BitBattles --bind unix:${DOMAIN_SOCKET} app:app'
-```
-
-```bash
-pa website reload --domain LogisimBattles.pythonanywhere.com
-```

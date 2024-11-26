@@ -14,6 +14,7 @@ body {
     background-color: var(--bg-pri);
     overflow-x: hidden;
     font-family: var(--font-family);
+    font-size: 16px;
 }
 
 button, input {
@@ -21,13 +22,21 @@ button, input {
     padding: 5px 10px;
     cursor: pointer;
     border-radius: 5px;
-    border: none;
+    border: 1px solid transparent;
     background-color: #fff;
     transition: .3s;
+    transition: .3s;
+    font-size: 16px;
+    outline: none;
 }
 
+input:hover,
 button:hover {
     background-color: var(--bg-sec);
+}
+
+input:focus {
+    border: 1px solid var(--bg-sec);
 }
 
 nav {

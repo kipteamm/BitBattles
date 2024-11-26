@@ -10,18 +10,19 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="/static/css/basics.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/auth.css">
 </head>
 <body>
     {% with messages = get_flashed_messages() %}
         {% if messages %}
-            <ul class=flashes>
-                {% for message in messages %}
-                    <li>{{ message }}</li>
-                {% endfor %}
-            </ul>
+            {% for message in messages %}
+                <div class="flash">{{ message }}</div>
+            {% endfor %}
         {% endif %}
     {% endwith %}
     
-    {% block content %}{% endblock %}
+    <div class="auth-container">
+        {% block content %}{% endblock %}
+    </div>
 </body>
 </html>
