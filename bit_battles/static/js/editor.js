@@ -351,9 +351,17 @@ function splitWire(wire, snappedX, snappedY, startFrom) {
     placedWires.splice(placedWires.indexOf(wire), 1);
 }
 
-function placeWire(snappedX, snappedY, startWire) {
+function placeWire(snappedX, snappedY, startWire, connector) {
     if (debug) return;
     if (!wireStart) {
+        const wire = findWire(snappedX - 10, snappedY - 10);
+        if (wire && connector) {
+            placedWires.splice(placedWires.indexOf(wire), 1);
+            bufferContext.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrid();
+            drawCanvas();
+        }
+
         wireStart = {x: snappedX, y: snappedY, direction: null, state: "off", valid: true};
         return;
     }
@@ -410,7 +418,7 @@ canvas.addEventListener("click", (event) => {
     if (selectedGate && !gate) return placeGate(snappedX, snappedY);
     const connector = findConnector(x, y);
     
-    if (connector) return placeWire(connector.x, connector.y, null);
+    if (connector) return placeWire(connector.x, connector.y, null, connector);
     if (gate && movingGate === null) {
         if (!editing && gate.type === "INPUT") {
             gate.value = gate.value? 0: 1;
@@ -420,10 +428,10 @@ canvas.addEventListener("click", (event) => {
         return moveGate(gate);
     }
 
-    if (wireStart) return placeWire(snappedX + 10, snappedY + 10, null);
+    if (wireStart) return placeWire(snappedX + 10, snappedY + 10, null, null);
     const wire = findWire(snappedX, snappedY);
     
-    if (wire) return placeWire(snappedX + 10, snappedY + 10, wire);
+    if (wire) return placeWire(snappedX + 10, snappedY + 10, wire, null);
 });
 
 function removeGate(gate) {
@@ -596,14 +604,13 @@ function drawCanvas() {
     
     if (showGhostGate) return drawGhostGate(snappedX, snappedY);
     const connector = findConnector(mouseX, mouseY);
-
+    
     if (wireStart) drawGhostWire(snappedX, snappedY, connector);
-    const wire = findWire(snappedX, snappedY);
-
-    if (wire) return drawConnectorOutline(snappedX + 10, snappedY + 10);
     if (connector) return drawConnectorOutline(connector.x, connector.y);
+    const wire = findWire(snappedX, snappedY);
     const gate = findGate(snappedX, snappedY);
 
+    if (wire && !gate) return drawConnectorOutline(snappedX + 10, snappedY + 10);
     if (gate && editing) return drawGateOutline(gate);
 }
 
