@@ -81,10 +81,10 @@ function loadGates(data) {
     for (const key of Object.keys(data)) {
         if (key.charCodeAt(0) > 77) {
             const gate = objects["OUTPUT"];
-            const [inputCoordinates, outputCoordinates] = setConnectors(gate, 500, outputY);
+            const [inputCoordinates, outputCoordinates] = setConnectors(gate, 1000, outputY);
 
             placedGates.push({
-                x: 500, 
+                x: 1000, 
                 y: outputY, 
                 type: "OUTPUT", 
                 rotation: 0, 
@@ -97,10 +97,10 @@ function loadGates(data) {
         }
 
         const gate = objects["INPUT"];
-        const [inputCoordinates, outputCoordinates] = setConnectors(gate, 20, inputY);
+        const [inputCoordinates, outputCoordinates] = setConnectors(gate, 520, inputY);
 
         placedGates.push({
-            x: 20, 
+            x: 520, 
             y: inputY, 
             type: "INPUT",
             rotation: 0, 
