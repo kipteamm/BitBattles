@@ -116,7 +116,7 @@ function toggleSelectGate(type) {
     debug = false;
 
     drawCanvas();
-    canvas.style.cursor = selectedGate? "pointer": "default";
+    canvas.style.cursor = selectedGate? "move": "default";
 }
 
 function prepareTransform(ctx = context) {
