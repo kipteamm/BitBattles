@@ -75,8 +75,8 @@ function loadTruthtable(data) {
 }
 
 function loadGates(data) {
-    let inputY = 60;
-    let outputY = 60;
+    let inputY = 120;
+    let outputY = 120;
 
     for (const key of Object.keys(data)) {
         if (key.charCodeAt(0) > 77) {

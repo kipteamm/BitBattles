@@ -86,12 +86,14 @@ let editing = false;
 let debug = false;
 
 function editMode() {
+    movingGate = null;
     selectedGate = null;
     showGhostGate = false;
     wireStart = false;
     editing = true;
     debug = false;
 
+    drawGrid();
     drawCanvas();
     canvas.style.cursor = "default";
 }
@@ -99,10 +101,12 @@ function editMode() {
 function debugMode() {
     selectedGate = null;
     showGhostGate = false;
+    movingGate = null;
     wireStart = false;
     editing = false;
     debug = true;
 
+    drawGrid();
     drawCanvas();
     canvas.style.cursor = "pointer";
 }
@@ -111,10 +115,12 @@ function toggleSelectGate(type) {
     if (!type) return;
     selectedGate = selectedGate === type? null: type;
     showGhostGate = selectedGate === type? true: false;
+    movingGate = null;
     wireStart = null;
     editing = false;
     debug = false;
 
+    drawGrid();
     drawCanvas();
     canvas.style.cursor = selectedGate? "move": "default";
 }
