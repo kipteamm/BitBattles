@@ -27,6 +27,7 @@ def daily():
         ChallengeStatistic.date == datetime.now(timezone.utc).date()
     ).order_by(
         ChallengeStatistic.score.desc(), # type: ignore
+        ChallengeStatistic.duration,
         ChallengeStatistic.started_on.desc() # type: ignore
     ).limit(3).all()
 
