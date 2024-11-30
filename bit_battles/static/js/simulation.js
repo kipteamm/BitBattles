@@ -166,6 +166,7 @@ function inputClicked() {
         if (gate.type !== "INPUT") continue;
         gate.id = gate.id? gate.id: i;
         states[gate.id] = gate.value;
+        gate.state = gate.value === 1? "on": "off";
     }
     
     simulate(states);

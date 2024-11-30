@@ -52,7 +52,6 @@ const objects = {
     },
     INPUT: {
         label: "IN",
-        color: "#acbaba",
         type: "GATE",
         size: 1,
         inputs: [],
@@ -62,12 +61,11 @@ const objects = {
     },
     OUTPUT: {
         label: "OUT",
-        color: "#acbaba",
         type: "GATE",
         size: 1,
         inputs: [{ x: 0, y: 10 }],
         output: {},
-        evaluate: (states) => states[0] ?? 0,
+        evaluate: (states, output) => { output.state = states[0] === 1? "on": "off"; return states[0] ?? 0; },
     }
 };
 
@@ -138,7 +136,7 @@ function undoTransform(ctx = context) {
 function drawGrid() {
     placedGates.forEach(gate => {
         bufferContext.globalAlpha = gate === movingGate? 0.5: 1.0;
-        drawGate(gate.x, gate.y, gate.type, gate.rotation, gate.id, bufferContext);
+        drawGate(gate.x, gate.y, gate.type, gate.rotation, gate.id, gate.state, bufferContext);
         bufferContext.globalAlpha = 1.0;
     });
 
@@ -161,7 +159,7 @@ function drawGrid() {
     }
 }
 
-function drawGate(x, y, gateType, rotation, id, ctx = context) {
+function drawGate(x, y, gateType, rotation, id, state, ctx = context) {
     const gate = objects[gateType];
     if (!gate) return;
 
@@ -173,8 +171,15 @@ function drawGate(x, y, gateType, rotation, id, ctx = context) {
     ctx.rotate((rotation * Math.PI) / 180);
 
     // Draw the gate at the transformed origin
-    ctx.fillStyle = gate.color;
-    ctx.fillRect(-gateSizePx / 2, -gateSizePx / 2, gateSizePx, gateSizePx);
+    ctx.fillStyle = stateColors[state];
+    if (gateType === "OUTPUT") {
+        ctx.beginPath();
+        ctx.arc(0, 0, gateSizePx / 2, 0, Math.PI * 2);
+        ctx.fill();
+    } else {
+        if (gate.color) ctx.fillStyle = gate.color;
+        ctx.fillRect(-gateSizePx / 2, -gateSizePx / 2, gateSizePx, gateSizePx);
+    }
 
     // Draw the label
     ctx.fillStyle = "white";
@@ -198,10 +203,10 @@ function drawGate(x, y, gateType, rotation, id, ctx = context) {
     undoTransform(ctx);
 }
 
-const wireColors = {"off": "#1d5723", "on": "#1cba2e", "invalid": "#A60000"};
+const stateColors = {"off": "#1d5723", "on": "#1cba2e", "invalid": "#A60000"};
 function drawWire(startX, startY, endX, endY, state, ctx = context) {
     prepareTransform(ctx);
-    ctx.strokeStyle = wireColors[state];
+    ctx.strokeStyle = stateColors[state];
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(startX, startY);
@@ -324,6 +329,7 @@ function placeGate(snappedX, snappedY) {
         x: snappedX, 
         y: snappedY, 
         type: selectedGate, 
+        state: "off",
         rotation: rotation, 
         inputs: inputCoordinates, 
         output: outputCoordinates,
@@ -522,7 +528,7 @@ function drawGhostGate(snappedX, snappedY) {
     if (findGate(snappedX, snappedY)) return;
         
     context.globalAlpha = editing? 1.0: 0.5;
-    drawGate(snappedX, snappedY, selectedGate, rotation, movingGate?.id, context);
+    drawGate(snappedX, snappedY, selectedGate, rotation, movingGate?.id, "off", context);
     context.globalAlpha = 1.0;
 
     return;
