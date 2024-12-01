@@ -22,3 +22,7 @@ secrets.py
 
 # Battle data
 battle_data/*
+
+# Circuits
+circuits.sqlite3
+circuits.sqlite3-journal

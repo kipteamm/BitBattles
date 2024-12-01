@@ -274,6 +274,7 @@ class ChallengeStatistic(db.Model):
     id = db.Column(db.String(128), primary_key=True, default=SnowflakeGenerator.generate_id)
     user_id = db.Column(db.String(128), db.ForeignKey("users.id", ondelete="CASCADE"))
     date = db.Column(db.Date, nullable=False)
+    circuit = db.Column(db.String(128), nullable=True, default=None)
     score = db.Column(db.Float(), default=0)
 
     passed = db.Column(db.Boolean(), default=False)

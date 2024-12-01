@@ -136,7 +136,7 @@ setInterval(() => {
 }, 1000);
 
 async function submit() {
-    const response = await fetch(`/api/challenge/${challenge.date}/submit`, {
+    const response = await fetch(`/api/daily/${challenge.date}/submit`, {
         method: "POST",
         body: JSON.stringify({"gates": placedGates, "wires": placedWires}),
         headers: {"Authorization": `Bearer ${getCookie("ut")}`, "Content-Type": "application/json"}
@@ -186,7 +186,7 @@ function updateAlertPositions() {
 }
 
 async function loadResults() {
-    const response = await fetch(`/api/challenge/${challenge.date}/results`, {
+    const response = await fetch(`/api/daily/${challenge.date}/results`, {
         method: "GET",
         headers: {"Authorization": `Bearer ${getCookie("ut")}`}
     });

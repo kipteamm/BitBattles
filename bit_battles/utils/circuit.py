@@ -1,3 +1,5 @@
+from bit_battles.utils.snowflakes import SnowflakeGenerator
+
 from contextlib import contextmanager
 
 import typing as t
@@ -6,6 +8,7 @@ import string
 import orjson
 import zlib
 import time
+import os
 
 
 @contextmanager
@@ -18,7 +21,7 @@ def get_db_connection(db_path="circuits.sqlite3"):
         conn.close()
 
 
-GATE_FIELDS = {"inputStates", "inputs", "outputs", "path", "state", "value"}
+GATE_FIELDS = {"inputStates", "inputs", "output", "path", "state", "value", "completed"}
 WIRE_FIELDS = {"path", "state", "visited"}
 GATES = {"AND", "OR", "NOT", "XOR", "INPUT", "OUTPUT"}
 
@@ -29,29 +32,60 @@ class Circuit:
         self._wires: list[dict] = wires
         self._circuit: dict[str, list] = {"g": self._gates, "w": self._wires}
 
-    def _valid(self, value: t.Any, key: str) -> bool:
-        # Value is an ID
-        if key == "d":
-            if isinstance(value, int):
-                return abs(value) < 100000
-            
-            return key in string.ascii_uppercase
+    def _create_db(self) -> None:
+        query = """
+            CREATE TABLE IF NOT EXISTS battle_circuits(
+                id TEXT PRIMARY KEY,
+                battle_id TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                circuit TEXT NOT NULL,
+                creation_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
 
-        # Value is a coordinate
-        if "x" in key or "y" in key:
+            CREATE TABLE IF NOT EXISTS daily_circuits(
+                id TEXT PRIMARY KEY,
+                daily_id TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                circuit TEXT NOT NULL,
+                creation_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            
+            CREATE TABLE IF NOT EXISTS challenge_circuits(
+                id TEXT PRIMARY KEY,
+                challenge_id TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                circuit TEXT NOT NULL,
+                creation_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        """
+        
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.executescript(query)
+            conn.commit()
+
+    def _valid(self, value: t.Any, key: str) -> bool:
+        if key == "id":
+            if isinstance(value, int):
+                return value < 100000
+            
+            if not value:
+                return True
+
+            return value in string.ascii_uppercase
+        
+        if key == "type":
+            return value in GATES
+
+        if key == "rotation":
+            return 0 <= value <= 360
+        
+        if "x" in key.lower() or "y" in key.lower():
             if not isinstance(value, int):
                 return False
             
             return abs(value) < 100000
-        
-        # Value is a gate type
-        if key == "e":
-            return value in GATES
 
-        # Value is a rotation
-        if key == "n":
-            return 0 <= value <= 360
-        
         return False
 
     def _sanitize_element(self, element: dict, redundant_keys: set, key_truncation: int) -> dict:
@@ -61,7 +95,7 @@ class Circuit:
                 continue
 
             if not self._valid(value, key):
-                raise ValueError("Invalid circuit data.")
+                raise ValueError(f"Invalid circuit data. '{value}' is not of type '{key}'.")
             
             sanitized[key[::-1][:key_truncation]] = value
 
@@ -75,12 +109,15 @@ class Circuit:
         return zlib.compress(orjson.dumps(self._circuit))
     
     def save(self, table: str, table_id: str, user_id: str) -> tuple[bool, int]:
+        if not os.path.exists("circuits.sqlite3"):
+            self._create_db()
+
         self._sanitize()
 
         query = f"""
             INSERT INTO {table}_circuits (
-                {table}_id, user_id, circuit, creation_timestamp
-            ) VALUES (?, ?, ?, ?)
+                id, {table}_id, user_id, circuit, creation_timestamp
+            ) VALUES (?, ?, ?, ?, ?)
         """
         
         try:
@@ -88,7 +125,7 @@ class Circuit:
                 cursor = conn.cursor()
                 cursor.execute(
                     query,
-                    (table_id, user_id, self._get_compressed(), time.time())
+                    (SnowflakeGenerator().generate_id(), table_id, user_id, self._get_compressed(), time.time())
                 )
                 conn.commit()
                 id = cursor.lastrowid
@@ -131,5 +168,3 @@ class Circuit:
         except Exception as e:
             print(f"Unexpected error: {e}")
             return False, {}
-
-

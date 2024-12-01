@@ -1,4 +1,5 @@
 from bit_battles.utils.decorators import user_authorized
+from bit_battles.utils.circuit import Circuit
 from bit_battles.utils.battle import Simulate
 from bit_battles.auth.models import User
 from bit_battles.app.models import ChallengeStatistic, Challenge
@@ -16,7 +17,7 @@ import time
 challenge_api_blueprint = Blueprint("challenge_api", __name__, url_prefix="/api")
 
 
-@challenge_api_blueprint.post("/challenge/<string:date>/submit")
+@challenge_api_blueprint.post("/daily/<string:date>/submit")
 @user_authorized
 def submit(date):
     if not request.json:
@@ -57,6 +58,10 @@ def submit(date):
         challenge_statistic.passed = passed
 
         if passed:
+            success, id = Circuit(gates, wires).save("daily", challenge.date, user.id)
+            if success:
+                challenge_statistic.circuit = id
+
             challenge_statistic.duration = time.time() - challenge_statistic.started_on
             challenge_statistic.set_score()
 
@@ -68,7 +73,7 @@ def submit(date):
         return {"error": str(e)}, 400
     
 
-@challenge_api_blueprint.get("/challenge/<string:date>/results")
+@challenge_api_blueprint.get("/daily/<string:date>/results")
 @user_authorized
 def results(date):
     try:

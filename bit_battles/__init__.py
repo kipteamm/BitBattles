@@ -1,6 +1,5 @@
-from bit_battles.api.challenge.views import challenge_api_blueprint
 from bit_battles.api.battle.views import api_blueprint
-from bit_battles.utils.functions import get_back_url
+from bit_battles.api.daily.views import challenge_api_blueprint
 from bit_battles.auth.models import User
 from bit_battles.main.views import main_blueprint
 from bit_battles.auth.views import auth_blueprint
