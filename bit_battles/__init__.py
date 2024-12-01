@@ -1,4 +1,5 @@
 from bit_battles.api.challenge.views import challenge_api_blueprint
+from bit_battles.api.battle.views import api_blueprint
 from bit_battles.utils.functions import get_back_url
 from bit_battles.auth.models import User
 from bit_battles.main.views import main_blueprint
@@ -6,7 +7,6 @@ from bit_battles.auth.views import auth_blueprint
 from bit_battles.app.events import register_events
 from bit_battles.app.models import Battle, Player
 from bit_battles.app.views import app_blueprint
-from bit_battles.api.views import api_blueprint
 
 from .extensions import db, socketio
 from .secrets import SECRET_KEY
@@ -48,9 +48,9 @@ def create_app() -> Flask:
     @login_manager.unauthorized_handler
     def unauthorized():
         next = request.args.get('next')
-
+        
         if not next:
-            next = get_back_url(request=request)
+            next = request.path
             
         return redirect(f'/auth/login?next={next}')
 
