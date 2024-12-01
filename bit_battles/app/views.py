@@ -29,10 +29,9 @@ def daily():
         ChallengeStatistic.score.desc(), # type: ignore
         ChallengeStatistic.duration,
         ChallengeStatistic.started_on.desc() # type: ignore
-    ).limit(3).all()
+    ).limit(10).all()
 
     dailies = [daily.leaderboard_serialize() for daily in dailies]
-    #dailies = sorted([daily.leaderboard_serialize() for daily in dailies], key=lambda x: x["score"], reverse=True)
     return render_template("app/daily.html", dailies=dailies)
 
 
@@ -184,7 +183,8 @@ def daily_challenge():
     if ChallengeStatistic.query.filter_by(date=date, user_id=current_user.id, passed=True).first():
         return redirect("/app/daily")
 
-    challenge = Challenge.get_or_create(date)
+    challenge = Challenge.get_or_create(date).serialize()
     challenge_statistic = ChallengeStatistic.get_or_create(current_user.id, date)
+    challenge["started_on"] = challenge_statistic.started_on
 
-    return render_template("app/challenge.html", challenge=challenge.serialize(), challenge_statistic=challenge_statistic)
+    return render_template("app/challenge.html", challenge=challenge, challenge_statistic=challenge_statistic)

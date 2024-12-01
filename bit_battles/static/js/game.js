@@ -44,7 +44,8 @@ function loadStage(stage) {
         resetGame();
     }
     if (stage === "battle") {
-        requestAnimationFrame(updateTimer);
+        secondsElapsed = Math.round((new Date().getTime() / 1000) - battle.started_on)
+        timerElement.textContent = formatTime(secondsElapsed);
         loadGateButtons(battle.gates);
         loadTruthtable(battle.truthtable);
         loadGates(battle.truthtable);
@@ -60,7 +61,6 @@ function loadGateButtons(gates) {
         document.getElementById(`${gate}-btn`).classList.add("active");
     });
 } 
-
 
 function loadTruthtable(data) {
     const testColumn = document.getElementById("test-column");
@@ -118,6 +118,7 @@ function loadGates(data) {
                 rotation: 0, 
                 inputs: inputCoordinates, 
                 output: outputCoordinates,
+                state: "off",
                 id: key,
             });
             outputY += 2 * gridSize;
@@ -134,6 +135,7 @@ function loadGates(data) {
             rotation: 0, 
             inputs: inputCoordinates, 
             output: outputCoordinates,
+            state: "off",
             id: key,
         });
         inputY += 2 * gridSize;
@@ -155,17 +157,10 @@ function formatTime(seconds) {
     );
 }
 
-function updateTimer(timestamp) {
-    const elapsed = timestamp - lastTime;
-
-    if (elapsed >= 1000) {
-        secondsElapsed++;
-        timerElement.textContent = formatTime(secondsElapsed);
-               
-        lastTime = timestamp;
-    }
-    requestAnimationFrame(updateTimer);
-}
+setInterval(() => {
+    secondsElapsed++;
+    timerElement.textContent = formatTime(secondsElapsed);
+}, 1000);
 
 async function submit() {
     const response = await fetch(`/api/battle/${battle.id}/submit`, {

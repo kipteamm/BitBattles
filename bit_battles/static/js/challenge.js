@@ -18,7 +18,8 @@ function loadStage(stage) {
     currentStage.classList.add("active");
 
     if (stage === "challenge") {
-        requestAnimationFrame(updateTimer);
+        secondsElapsed = Math.round((new Date().getTime() / 1000) - challenge.started_on)
+        timerElement.textContent = formatTime(secondsElapsed);
         loadGateButtons(["AND", "NOT", "OR", "XOR"]);
         loadTruthtable(challenge.truthtable);
         loadGates(challenge.truthtable);
@@ -90,6 +91,7 @@ function loadGates(data) {
                 rotation: 0, 
                 inputs: inputCoordinates, 
                 output: outputCoordinates,
+                state: "off",
                 id: key,
             });
             outputY += 2 * gridSize;
@@ -106,6 +108,7 @@ function loadGates(data) {
             rotation: 0, 
             inputs: inputCoordinates, 
             output: outputCoordinates,
+            state: "off",
             id: key,
         });
         inputY += 2 * gridSize;
@@ -116,7 +119,7 @@ function loadGates(data) {
 }
 
 let secondsElapsed = 0;
-let lastTime = performance.now();
+let lastTime = 0;
 
 function formatTime(seconds) {
     const minutes = Math.floor(seconds / 60);
@@ -127,17 +130,10 @@ function formatTime(seconds) {
     );
 }
 
-function updateTimer(timestamp) {
-    const elapsed = timestamp - lastTime;
-
-    if (elapsed >= 1000) {
-        secondsElapsed++;
-        timerElement.textContent = formatTime(secondsElapsed);
-               
-        lastTime = timestamp;
-    }
-    requestAnimationFrame(updateTimer);
-}
+setInterval(() => {
+    secondsElapsed++;
+    timerElement.textContent = formatTime(secondsElapsed);
+}, 1000);
 
 async function submit() {
     const response = await fetch(`/api/challenge/${challenge.date}/submit`, {
