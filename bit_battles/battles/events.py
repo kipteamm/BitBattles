@@ -1,5 +1,5 @@
+from bit_battles.battles.models import Player
 from bit_battles.auth.models import User
-from bit_battles.app.models import Player
 
 from flask_socketio import SocketIO, join_room
 

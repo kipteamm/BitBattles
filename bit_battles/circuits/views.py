@@ -1,13 +1,9 @@
 from bit_battles.utils.functions import get_back_url
+from bit_battles.battles.models import ChallengeStatistic
 from bit_battles.utils.circuit import Circuit
-from bit_battles.auth.models import User
-from bit_battles.app.models import Battle, Player, BattleStatistic, Challenge, ChallengeStatistic
-from bit_battles.extensions import db
 
-from collections import defaultdict
 from flask_login import login_required, current_user
-from datetime import datetime, timezone
-from flask import Blueprint, render_template, redirect, request, make_response, flash
+from flask import Blueprint, render_template, redirect, request
 
 import typing as t
 

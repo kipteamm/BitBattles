@@ -1,7 +1,7 @@
 from bit_battles.utils.decorators import battle_authorized
+from bit_battles.battles.models import Battle, Player
 from bit_battles.utils.battle import TableGenerator, Simulate
 from bit_battles.auth.models import User
-from bit_battles.app.models import Battle, Player
 from bit_battles.extensions import db, socketio
 
 from flask import Blueprint, g, request
@@ -11,10 +11,10 @@ import time
 import json
 
 
-api_blueprint = Blueprint("api", __name__, url_prefix="/api")
+battle_api_blueprint = Blueprint("api", __name__, url_prefix="/api")
 
 
-@api_blueprint.delete("/battle/<string:id>/leave")
+@battle_api_blueprint.delete("/battle/<string:id>/leave")
 @battle_authorized
 def leave_battle(id):
     user: User = g.user
@@ -37,7 +37,7 @@ def leave_battle(id):
     return {"success": True}, 204
 
 
-@api_blueprint.post("/battle/<string:id>/start")
+@battle_api_blueprint.post("/battle/<string:id>/start")
 @battle_authorized
 def start_battle(id):
     battle: t.Optional[Battle] = Battle.query.get(id)
@@ -61,7 +61,7 @@ def start_battle(id):
     return {"success": True}, 204
 
 
-@api_blueprint.post("/battle/<string:id>/restart")
+@battle_api_blueprint.post("/battle/<string:id>/restart")
 @battle_authorized
 def restart_battle(id):
     battle: t.Optional[Battle] = Battle.query.get(id)
@@ -89,7 +89,7 @@ def restart_battle(id):
     return {"success": True}, 204
 
 
-@api_blueprint.post("/battle/<string:id>/submit")
+@battle_api_blueprint.post("/battle/<string:id>/submit")
 @battle_authorized
 def submit(id):
     if not request.json:

@@ -1,8 +1,8 @@
 from bit_battles.utils.decorators import user_authorized
+from bit_battles.battles.models import ChallengeStatistic, Challenge
 from bit_battles.utils.circuit import Circuit
 from bit_battles.utils.battle import Simulate
 from bit_battles.auth.models import User
-from bit_battles.app.models import ChallengeStatistic, Challenge
 from bit_battles.extensions import db
 
 from sqlalchemy import func
