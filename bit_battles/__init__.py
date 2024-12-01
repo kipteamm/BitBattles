@@ -1,5 +1,6 @@
 from bit_battles.api.battle.views import api_blueprint
 from bit_battles.api.daily.views import challenge_api_blueprint
+from bit_battles.circuits.views import circuits_blueprint 
 from bit_battles.auth.models import User
 from bit_battles.main.views import main_blueprint
 from bit_battles.auth.views import auth_blueprint
@@ -22,6 +23,7 @@ def create_app() -> Flask:
     app = Flask(__name__, static_folder="static", static_url_path="/static")
 
     app.register_blueprint(challenge_api_blueprint)
+    app.register_blueprint(circuits_blueprint)
     app.register_blueprint(main_blueprint)
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(app_blueprint)

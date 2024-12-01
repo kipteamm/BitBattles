@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Bit Battles - Free editor</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" type="text/css" href="/static/css/basics.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/game.css">
+
+    <script src="/static/js/editor.js" defer></script>
+    <script src="/static/js/simulation.js"></script>
+    <script src="/static/js/circuit.js"></script>
+
+    <script>
+        const circuit = {{ circuit|tojson }}; 
+    </script>
+</head>
+<body>
+    <div class="toolbar">
+        <button onclick="debugMode()">🖐</button>
+        <button onclick="editMode()">🔧</button>
+        <button onclick="toggleSelectGate('INPUT')">INPUT</button>
+        <button onclick="toggleSelectGate('OUTPUT')">OUTPUT</button>
+        <button onclick="toggleSelectGate('AND')">AND</button>
+        <button onclick="toggleSelectGate('OR')">OR</button>
+        <button onclick="toggleSelectGate('NOT')">NOT</button>
+        <button onclick="toggleSelectGate('XOR')">XOR</button>
+    </div>
+
+    <div class="canvasContainer">
+        <canvas id="game"></canvas>
+    </div>
+
+    {% include "components/instructions.html" %}
+</body>
+</html>

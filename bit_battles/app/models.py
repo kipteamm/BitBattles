@@ -347,6 +347,7 @@ class ChallengeStatistic(db.Model):
             "gates": self.gates,
             "longest_path": self.longest_path,
             "duration": f"{round(self.duration // 60)}m {round(self.duration % 60)}s",
+            "circuit": self.circuit,
             "score": self.score
         }
 

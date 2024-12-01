@@ -20,11 +20,22 @@
     margin-bottom: 5px;
     gap: 10px;
     text-align: left;
+    cursor: pointer;
 }
 
 .leaderboard .entry h4 {
     margin: 0px;
+}
+
+.leaderboard .entry i {
     flex: 1;
+    font-size: 14px;
+    text-align: center;
+    color: var(--bg-pri);
+    transition: .1s;
+}
+.leaderboard .entry:hover i {
+    color: black;
 }
 
 .dailies button {

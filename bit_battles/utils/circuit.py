@@ -30,7 +30,6 @@ class Circuit:
     def __init__(self, gates: list, wires: list) -> None:
         self._gates: list[dict] = gates
         self._wires: list[dict] = wires
-        self._circuit: dict[str, list] = {"g": self._gates, "w": self._wires}
 
     def _create_db(self) -> None:
         query = """
@@ -106,7 +105,7 @@ class Circuit:
         self._wires = [self._sanitize_element(wire, WIRE_FIELDS, 2) for wire in self._wires]
 
     def _get_compressed(self) -> bytes:
-        return zlib.compress(orjson.dumps(self._circuit))
+        return zlib.compress(orjson.dumps({"g": self._gates, "w": self._wires}))
     
     def save(self, table: str, table_id: str, user_id: str) -> tuple[bool, int]:
         if not os.path.exists("circuits.sqlite3"):
@@ -122,16 +121,14 @@ class Circuit:
         
         try:
             with get_db_connection() as conn:
+                id = SnowflakeGenerator().generate_id()
+
                 cursor = conn.cursor()
                 cursor.execute(
                     query,
-                    (SnowflakeGenerator().generate_id(), table_id, user_id, self._get_compressed(), time.time())
+                    (id, table_id, user_id, self._get_compressed(), time.time())
                 )
                 conn.commit()
-                id = cursor.lastrowid
-
-                if not id:
-                    return False, 0
                 
                 return True, id
         except sqlite3.Error as e:
@@ -141,10 +138,11 @@ class Circuit:
         except Exception as e:
             print(f"Unexpected error: {e}")
             return False, 0
-        
-    def load(self, table: str, circuit_id: int) -> tuple[bool, dict]:
+    
+    @classmethod
+    def load(cls, table: str, circuit_id: int) -> tuple[bool, dict]:
         query = f"""
-            SELECT circuit FROM {table}_circuits WHERE id = ?
+            SELECT {table}_id, circuit FROM {table}_circuits WHERE id = ?
         """
 
         try:
@@ -154,12 +152,12 @@ class Circuit:
                     query,
                     (circuit_id,)
                 )
-                circuit = cursor.fetchone()[0]
+                circuit = cursor.fetchone()
 
                 if not circuit:
                     return False, {}
                 
-                return True, circuit
+                return True, {f"{table}_id": circuit[0], "circuit": orjson.loads(zlib.decompress(circuit[1]))}
             
         except sqlite3.Error as e:
             print(f"Database error: {e}")

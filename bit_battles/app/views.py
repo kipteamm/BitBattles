@@ -22,9 +22,10 @@ def editor():
 @app_blueprint.get("/daily")
 @login_required
 def daily():
+    today = datetime.now(timezone.utc).date()
     dailies = ChallengeStatistic.query.filter(
         ChallengeStatistic.passed == True, # type: ignore
-        ChallengeStatistic.date == datetime.now(timezone.utc).date()
+        ChallengeStatistic.date == today
     ).order_by(
         ChallengeStatistic.score.desc(), # type: ignore
         ChallengeStatistic.duration,
@@ -32,7 +33,7 @@ def daily():
     ).limit(10).all()
 
     dailies = [daily.leaderboard_serialize() for daily in dailies]
-    return render_template("app/daily.html", dailies=dailies)
+    return render_template("app/daily.html", dailies=dailies, passed=ChallengeStatistic.query.filter_by(date=today, user_id=current_user.id, passed=True).first() is not None)
 
 
 @app_blueprint.route("/battles", methods=["GET", "POST"])
