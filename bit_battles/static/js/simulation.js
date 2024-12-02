@@ -120,7 +120,7 @@ function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function test(truthtable) {
+async function test(truthtable, silent=false) {
     let longestPath = 0;
     for (let i = 0; i < truthtable["A"].length; i++) {
         let inputs = {};
@@ -154,9 +154,11 @@ async function test(truthtable) {
 
         await delay(500);
     }
+    
+    console.log(`Longest path: ${longestPath}`);
+    if (silent) return;
 
     sendAlert("Your tests finished.");
-    console.log(`Longest path: ${longestPath}`);
 }
 
 function inputClicked() {

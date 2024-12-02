@@ -26,6 +26,53 @@ body {
     color: var(--error);
 }
 
+.result-contents {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+.result-contents h2 {
+    text-align: center;
+}
+
+.result-contents .player {
+    margin: 15px 0px;
+}
+.result-contents .player.you {
+    margin: 0px -15px;
+    padding: 15px;
+    border-radius: 10px;
+    background-color: var(--bg-sec);
+}
+
+.result-contents .player h4 {
+    margin: 0px 0px 4px 0px;
+}
+.result-contents .player p {
+    margin: 4px 0px 0px 0px;
+}
+
+.result-contents .battle-results {
+    margin-bottom: 100px;
+}
+
+.result-contents .new-game {
+    text-align: center;
+    margin: 25px 0px;
+}
+
+.result-contents .battle-results ul {
+    width: 400px;
+    display: block;
+    margin: 25px auto;
+    padding-inline-start: 0;
+}
+.result-contents .battle-results li {
+    display: flex;
+}
+.result-contents .battle-results li b {
+    flex: 1;
+}
+
 div.toolbar {
     position: fixed;
     top: 25px;

@@ -163,6 +163,7 @@ setInterval(() => {
 }, 1000);
 
 async function submit() {
+    test(battle.truthtable, true);
     const response = await fetch(`/api/battle/${battle.id}/submit`, {
         method: "POST",
         body: JSON.stringify({"gates": placedGates, "wires": placedWires}),
@@ -213,6 +214,8 @@ function updateAlertPositions() {
 
 function addResultPlayer(_player, gatesAverage, pathAverage, timeAverage) {
     const element = document.createElement("div");
+    element.classList.add("player");
+    if (_player.id === player.id) element.classList.add("you");
     const timePerformance = (_player.time - timeAverage).toFixed(2);
     const gatePerformance = (_player.gates - gatesAverage).toFixed(2);
     const pathPerformance = (_player.longest_path - pathAverage).toFixed(2);
@@ -223,13 +226,13 @@ function addResultPlayer(_player, gatesAverage, pathAverage, timeAverage) {
     if (_player.passed) {
         element.innerHTML += `
             <p>
-                Time: ${formatSeconds(_player.time)} (${timePerformance <= 0? 
+                <b>Time:</b> ${formatSeconds(_player.time)} (${timePerformance <= 0? 
                     `<span class="good">${timePerformance}s</span>`: 
                     `<span class="bad">+${timePerformance}s</span>`
-                }) Gates: ${_player.gates} (${gatePerformance <= 0? 
+                }) <b>Gates:</b> ${_player.gates} (${gatePerformance <= 0? 
                     `<span class="good">${gatePerformance}</span>`: 
                     `<span class="bad">+${gatePerformance}</span>`
-                }) Longest path: ${_player.longest_path} (${pathPerformance <= 0? 
+                }) <b>Longest path:</b> ${_player.longest_path} (${pathPerformance <= 0? 
                     `<span class="good">${pathPerformance}</span>`: 
                     `<span class="bad">+${pathPerformance}</span>`
                 })
@@ -240,6 +243,10 @@ function addResultPlayer(_player, gatesAverage, pathAverage, timeAverage) {
 }
 
 async function loadResults() {
+    const battleElement = document.createElement("div");
+    battleElement.classList.add("battle-results");
+    battleElement.id = `battle-${gamesCounter + 1}`;
+
     let gatesAverage = 0;
     let pathAverage = 0;
     let timeAverage = 0;
@@ -258,17 +265,20 @@ async function loadResults() {
     pathAverage /= players;
     timeAverage /= players;
     
-    resultsPlayerList.innerHTML += `
+    battleElement.innerHTML += `
         <h2>Battle ${gamesCounter + 1}</h2>
         <ul>
-            <li>Average gates: ${gatesAverage}</li>
-            <li>Average longest path: ${pathAverage}</li>
-            <li>Average time: ${formatSeconds(timeAverage)}</li>
+            <li><b>Average gates:</b> ${gatesAverage.toFixed(2)}</li>
+            <li><b>Average longest path:</b> ${pathAverage.toFixed(2)}</li>
+            <li><b>Average time:</b> ${formatSeconds(timeAverage.toFixed(2))}</li>
         </ul>    
     `
+    document.querySelector(".player.you")?.classList.remove("you");
     battle.players.forEach(_player => {
-        resultsPlayerList.appendChild(addResultPlayer(_player, gatesAverage, pathAverage, timeAverage));
+        battleElement.appendChild(addResultPlayer(_player, gatesAverage, pathAverage, timeAverage));
     });
+
+    resultsPlayerList.insertBefore(battleElement, document.getElementById(`battle-${gamesCounter}`));
 }
 
 async function restartGame() {

@@ -50,7 +50,7 @@
             <button class="gate" onclick="toggleSelectGate('OR')" id="OR-btn">OR</button>
             <button class="gate" onclick="toggleSelectGate('NOT')" id="NOT-btn">NOT</button>
             <button class="gate" onclick="toggleSelectGate('XOR')" id="XOR-btn">XOR</button>
-            <button onclick="test(battle.truthtable)">Test</button>
+            <button onclick="test(battle.truthtable, false)">Test</button>
             <button onclick="submit()">Submit</button>
             <button id="timer">00:00</button>
         </div>
@@ -68,10 +68,14 @@
     </div>
 
     <div class="stage results" id="results">
-        <div id="results-player-list"></div>
-        {% if player.id == battle.owner_id %}
-            <button onclick="restartGame()">New round</div>
-        {% endif %}
+        <div class="result-contents" id="results-player-list">
+            {% if player.id == battle.owner_id %}
+                <div class="new-game">
+                    <button onclick="restartGame()">New round</button>
+                </div>
+            {% endif %}
+            <div id="battle-0"></div>
+        </div>
     </div>
 </body>
 </html>
