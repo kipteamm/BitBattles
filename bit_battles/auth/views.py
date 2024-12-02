@@ -30,9 +30,11 @@ def register():
     db.session.commit()
         
     login_user(user)
-        
     flash('Registration successful. Welcome!', 'success')
-    return redirect("/app/battles")
+    
+    response = make_response(redirect(request.args.get("next", "/app/battles")))
+    response.set_cookie("ut", user.set_token())
+    return response
 
 
 @auth_blueprint.route("/login", methods=["GET", "POST"])

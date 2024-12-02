@@ -12,12 +12,7 @@
     <link rel="stylesheet" type="text/css" href="/static/css/basics.css">
 </head>
 <body>
-    <nav>
-        <a{% if request.path == "/app/editor" %} class="active"{% endif %} href="/app/editor">[ Editor ]</a>
-        <a{% if request.path == "/app/daily" %} class="active"{% endif %} href="/app/daily">[ Daily ]</a>
-        <a{% if request.path == "/app/battles" %} class="active"{% endif %} href="/app/battles">[ Battles ]</a>
-        <a{% if "/app/user/" in request.path %} class="active"{% endif %} href="/app/user/{{ current_user.username }}">[ Profile ]</a>
-    </nav>
+    {% include "components/navbar.html" %}
 
     {% block content %}{% endblock %}
 </body>

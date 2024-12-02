@@ -50,15 +50,11 @@
     </div>
 
     <div class="stage results" id="results">
-        <nav>
-            <a href="/app/editor">Editor</a>
-            <a href="/app/daily">Daily</a>
-            <a href="/app/battles">Battles</a>
-            <a href="/app/user/{{ current_user.username }}">Profile</a>
-        </nav>
+        {% include "components/navbar.html" %}
 
-        <h2>Global averages</h2>
-        <div id="player-results"></div>
+        <div class="result-contents">
+            <div id="player-results"></div>
+        </div>
     </div>
 </body>
 </html>

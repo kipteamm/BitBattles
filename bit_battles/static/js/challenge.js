@@ -199,21 +199,24 @@ async function loadResults() {
     const pathPerformance = (json.user.longest_path - json.average_longest_path).toFixed(2);
 
     playerResults.innerHTML += `
-        <ul>
-            <li>Average gates: ${json.average_gates}</li>
-            <li>Average longest path: ${json.average_longest_path}</li>
-            <li>Average time: ${formatSeconds(json.average_duration)}</li>
-        </ul>
-        <div>
-            <h2>${player.username} (You)</h2>
+        <div class="battle-results">
+            <h2>Todays averages</h2>
+            <ul>
+                <li><b>Average gates:</b> ${json.average_gates}</li>
+                <li><b>Average longest path:</b> ${json.average_longest_path}</li>
+                <li><b>Average time:</b> ${formatSeconds(json.average_duration)}</li>
+            </ul>
+        </div>
+        <div class="player">
+            <h4>${player.username} (You)</h4>
             <p>
-                Time: ${formatSeconds(json.user.duration)} (${timePerformance <= 0? 
+                <b>Time:</b> ${formatSeconds(json.user.duration)} (${timePerformance <= 0? 
                     `<span class="good">${timePerformance}s</span>`: 
                     `<span class="bad">+${timePerformance}s</span>`
-                }) Gates: ${json.user.gates} (${gatePerformance <= 0? 
+                }) <b>Gates:</b> ${json.user.gates} (${gatePerformance <= 0? 
                     `<span class="good">${gatePerformance}</span>`: 
                     `<span class="bad">+${gatePerformance}</span>`
-                }) Longest path: ${json.user.longest_path} (${pathPerformance <= 0? 
+                }) <b>Longest path:</b> ${json.user.longest_path} (${pathPerformance <= 0? 
                     `<span class="good">${pathPerformance}</span>`: 
                     `<span class="bad">+${pathPerformance}</span>`
                 })
