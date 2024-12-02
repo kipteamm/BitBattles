@@ -11,7 +11,7 @@ window.addEventListener("DOMContentLoaded", (event) => {
 })
 
 function addPlayer(player) {
-    const element = document.createElement("div");
+    const element = document.createElement("li");
     element.id = player.id;
     element.innerText = player.username;
 

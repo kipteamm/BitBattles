@@ -26,10 +26,27 @@ body {
     color: var(--error);
 }
 
+.queue,
 .result-contents {
-    max-width: 1000px;
+    max-width: 600px;
     margin: 0 auto;
 }
+
+.queue h2 {
+    margin: 70px 0px 5px 0px;
+    text-align: center;
+}
+.queue p {
+    margin: 5px 0px 30px 0px;
+    text-align: center;
+}
+.queue li {
+    font-weight: bold;
+}
+.queue .button {
+    text-align: center;
+}
+
 .result-contents h2 {
     text-align: center;
 }

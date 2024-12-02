@@ -27,19 +27,23 @@
 </head>
 <body>
     <div class="stage" id="queue">
-        <h1>Awaiting start</h1>
+        <div class="queue">
+            <h2>Awaiting start</h2>
 
-        <p>
-            Share this battle code with your players: <code>{{ battle.id }}</code>
-        </p>
+            <p>
+                Share this battle code with your players: <code>{{ battle.id }}</code>
+            </p>
 
-        <div id="queue-player-list"></div>
+            <ul id="queue-player-list"></ul>
 
-        {% if player.id == battle.owner_id %}
-            <button onclick="startBattle()">Start battle</button>
-        {% endif %}
+            <div class="button">
+                {% if player.id == battle.owner_id %}
+                    <button onclick="startBattle()">Start battle</button>
+                {% endif %}
 
-        <button onclick="leaveBattle()">Leave</button>
+                <button onclick="leaveBattle()">Leave</button>
+            </div>
+        </div>
     </div>
 
     <div class="stage" id="battle">
