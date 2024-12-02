@@ -1,43 +1,49 @@
 {% extends "bases/app_base.html" %}
 
 {% block content %}
-    <h1>New battle</h1>
+    <link rel="stylesheet" type="text/css" href="/static/css/new_battle.css">
 
-    <form method="POST">
-        <div>
-            <select name="inputs">
-                <option value="1">1</option>
-                <option value="2" selected>2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-            </select>
-            Amount of inputs
-        </div>
-        
-        <div>
-            <select name="outputs">
-                <option value="1">1</option>
-                <option value="2" selected>2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-            </select>
-            Amount of outputs
-        </div>
-        <div>
-            <input type="checkbox" checked disabled>
-            OR, AND, NOT
-        </div>
-        <div>
-            <input type="checkbox" name="XOR">
-            XOR
-        </div>
-        <div>
-            <input type="checkbox" name="private">
-            Invite only
-        </div>
-        
-        <button type="submit">Create</button>
-    </form>
+    <div class="new-battle">
+        <h1>New battle</h1>
+
+        <form method="POST">
+            <div class="setting">
+                <b>Amount of inputs</b>
+                <select name="inputs">
+                    <option value="1">1</option>
+                    <option value="2" selected>2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                </select>
+            </div>
+            
+            <div class="setting">
+                <b>Amount of outputs</b>
+                <select name="outputs">
+                    <option value="1">1</option>
+                    <option value="2" selected>2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                </select>
+            </div>
+            <div class="setting">
+                <b>OR, AND, NOT</b>
+                <input type="checkbox" checked disabled>
+            </div>
+            <div class="setting">
+                <b>XOR</b>
+                <input type="checkbox" name="XOR">
+            </div>
+            <div class="setting">
+                <b>Invite only</b>
+                <input type="checkbox" name="private">
+            </div>
+            
+            <div class="button">
+                <button type="submit">Create</button>
+            </div>
+        </form>
+    </div>
 {% endblock %}

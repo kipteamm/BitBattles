@@ -1,0 +1,26 @@
+.new-battle h1,
+.new-battle .button {
+    text-align: center;
+}
+
+.new-battle h1 {
+    margin: 50px 0px 0px 0px;
+}
+
+.new-battle .button {
+    margin-top: 25px;
+}
+
+form {
+    width: 400px;
+    margin: 25px auto;
+    text-align: left;
+}
+
+.setting {
+    display: flex;
+    margin-bottom: 5px;
+}
+.setting b {
+    flex: 1;
+}
