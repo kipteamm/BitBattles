@@ -1,0 +1,47 @@
+.user-contents {
+    max-width: 1000px;
+    margin: 100px auto;
+}
+
+.user-contents .user {
+    justify-content: center;
+}
+
+.user h1 {
+    margin: 0px;
+}
+
+.battle-history {
+    margin-top: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+details,
+summary h4 {
+    display: inline-block;
+}
+
+details {
+    width: 450px;
+}
+
+.battle {
+    display: flex;
+}
+.battle span {
+    font-weight: bold;
+}
+.battle .won {
+    color: var(--success);
+}
+.battle .passed {
+    color: var(--passed);
+}
+.battle .failed {
+    color: var(--failed);
+}
+.battle div {
+    flex: 1;    
+}

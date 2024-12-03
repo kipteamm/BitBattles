@@ -1,4 +1,5 @@
 from bit_battles.utils.snowflakes import SnowflakeGenerator
+from bit_battles.utils.functions import relative_timestamp
 from bit_battles.utils.battle import TableGenerator
 from bit_battles.auth.models import User
 from bit_battles.extensions import db
@@ -195,7 +196,7 @@ class BattleStatistic(db.Model):
 
     def __init__(self, battle: Battle, user_id: str, winner: bool, passed: bool, gates: int, longest_path: int, attempts: int, duration: float, score: int) -> None:
         self.user_id = user_id
-        self.battle_type = f"{battle.inputs}-{battle.outputs}-{battle.gates}"
+        self.battle_type = f"{battle.inputs}-{battle.outputs}-{','.join(json.loads(battle.gates))}"
         self.winner = winner
         self.passed = passed
         self.gates = gates
@@ -219,7 +220,8 @@ class BattleStatistic(db.Model):
             "longest_path": self.longest_path,
             "attempts": self.attempts,
             "duration": self.duration,
-            "score": self.score
+            "score": self.score,
+            "relative_timestamp": relative_timestamp(self.creation_timestamp),
         }
     
     def leaderboard_serialize(self) -> dict:

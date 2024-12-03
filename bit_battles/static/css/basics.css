@@ -2,6 +2,10 @@
     --bg-pri: #f1f1f1;
     --bg-sec: #b9b9b9;
 
+    --success: #1cba2e;
+    --passed: #f1b324;
+    --failed: #f94747;
+
     --font-family: "Geist Mono"
 }
 
@@ -41,15 +45,6 @@ button:disabled {
 
 input:focus {
     border: 1px solid var(--bg-sec);
-}
-
-.name {
-    position: absolute;
-    top: 25px;
-    left: 25px;
-}
-.name h4 {
-    margin: 0px;
 }
 
 nav {

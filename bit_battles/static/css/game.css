@@ -1,8 +1,3 @@
-:root {
-    --success: #1cba2e;
-    --error: #f94747;
-}
-
 body {
     overflow: hidden;
     user-select: none;
@@ -23,13 +18,17 @@ body {
     color: var(--success);
 }
 .stage.results span.bad {
-    color: var(--error);
+    color: var(--failed);
 }
 
 .queue,
 .result-contents {
     max-width: 750px;
     margin: 0 auto;
+}
+
+.result-contents.challenge {
+    margin-top: 75px;
 }
 
 .queue h2 {
@@ -130,7 +129,7 @@ div.test .cell {
     color: var(--bg-sec);
 }
 div.test .cell.failed {
-    color: var(--error);
+    color: var(--failed);
 }
 div.test .cell.passed {
     color: var(--success);
