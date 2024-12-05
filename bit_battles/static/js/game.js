@@ -4,13 +4,21 @@ let alertsElement;
 let resultsPlayerList;
 let currentStage = null;
 
-window.addEventListener("DOMContentLoaded", (event) => {
+if (document.readyState !== 'loading') {
+    pageInit();
+} else {
+    document.addEventListener('DOMContentLoaded', function () {
+        pageInit();
+    });
+}
+
+function pageInit() {
     timerElement = document.getElementById("timer");
     truthtable = document.getElementById("truthtable");
     alertsElement = document.getElementById("alerts");
     resultsPlayerList = document.getElementById("results-player-list");
     loadStage(battle.stage);
-});
+}
 
 function resetGame() {
     secondsElapsed = 0;

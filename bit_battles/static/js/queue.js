@@ -1,6 +1,14 @@
 let playerListElement;
 
-window.addEventListener("DOMContentLoaded", (event) => {
+if (document.readyState !== 'loading') {
+    pageInit();
+} else {
+    document.addEventListener('DOMContentLoaded', function () {
+        pageInit();
+    });
+}
+
+function pageInit() {
     playerListElement = document.getElementById("queue-player-list");
     
     for (const player of battle.players) {
@@ -8,7 +16,7 @@ window.addEventListener("DOMContentLoaded", (event) => {
 
         addPlayer(player);
     }
-})
+}
 
 function addPlayer(player) {
     const element = document.createElement("li");

@@ -5,14 +5,14 @@ let playerResults;
 let currentStage = null;
 
 if (document.readyState !== 'loading') {
-    myInitCode();
+    pageInit();
 } else {
     document.addEventListener('DOMContentLoaded', function () {
-        myInitCode();
+        pageInit();
     });
 }
 
-function myInitCode() {
+function pageInit() {
     timerElement = document.getElementById("timer");
     truthtable = document.getElementById("truthtable");
     alertsElement = document.getElementById("alerts");

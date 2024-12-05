@@ -1,4 +1,13 @@
-window.addEventListener("DOMContentLoaded", (event) => {
+if (document.readyState !== 'loading') {
+    pageInit();
+} else {
+    document.addEventListener('DOMContentLoaded', function () {
+        pageInit();
+    });
+}
+
+
+function pageInit() {
     debugMode();
 
     loadGates(circuit.g);
@@ -6,7 +15,7 @@ window.addEventListener("DOMContentLoaded", (event) => {
 
     drawGrid();
     drawCanvas();
-});
+}
 
 function loadGates(gates) {
     gates.forEach(gate => {
