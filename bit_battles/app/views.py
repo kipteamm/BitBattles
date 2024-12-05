@@ -30,8 +30,15 @@ def profile(username: str):
 
     battle_statistics = defaultdict(list)
         
-    for battle in BattleStatistic.query.filter_by(user_id=user.id).order_by(BattleStatistic.creation_timestamp.desc()).all():
+    for battle in BattleStatistic.query.filter_by(user_id=user.id).order_by(
+        BattleStatistic.creation_timestamp.desc() # type: ignore
+        ).all():
         name = battle.battle_type.split("-")
         battle_statistics[f"Inputs: {name[0]} Outputs: {name[1]} Gates: {name[2].replace(',', ', ')}"].append(battle.serialize())
 
-    return render_template("app/user.html", user=user, streak=ChallengeStatistic.get_streak(user.id), statistics=battle_statistics)
+    return render_template(
+        "app/user.html", 
+        user=user, 
+        streak=ChallengeStatistic.get_streak(user.id), 
+        statistics=battle_statistics
+    )

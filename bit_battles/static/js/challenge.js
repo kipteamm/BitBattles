@@ -4,13 +4,21 @@ let alertsElement;
 let playerResults;
 let currentStage = null;
 
-window.addEventListener("DOMContentLoaded", (event) => {
+if (document.readyState !== 'loading') {
+    myInitCode();
+} else {
+    document.addEventListener('DOMContentLoaded', function () {
+        myInitCode();
+    });
+}
+
+function myInitCode() {
     timerElement = document.getElementById("timer");
     truthtable = document.getElementById("truthtable");
     alertsElement = document.getElementById("alerts");
     playerResults = document.getElementById("player-results");
     loadStage("challenge");
-});
+}
 
 function loadStage(stage) {
     if (currentStage) currentStage.classList.remove("active");
