@@ -5,14 +5,14 @@ let playerResults;
 let currentStage = null;
 
 if (document.readyState !== 'loading') {
-    pageInit();
+    challengeInit();
 } else {
     document.addEventListener('DOMContentLoaded', function () {
-        pageInit();
+        challengeInit();
     });
 }
 
-function pageInit() {
+function challengeInit() {
     timerElement = document.getElementById("timer");
     truthtable = document.getElementById("truthtable");
     alertsElement = document.getElementById("alerts");
@@ -210,8 +210,8 @@ async function loadResults() {
         <div class="battle-results">
             <h2>Todays averages</h2>
             <ul>
-                <li><b>Average gates:</b> ${json.average_gates}</li>
-                <li><b>Average longest path:</b> ${json.average_longest_path}</li>
+                <li><b>Average gates:</b> ${json.average_gates.toFixed(2)}</li>
+                <li><b>Average longest path:</b> ${json.average_longest_path.toFixed(2)}</li>
                 <li><b>Average time:</b> ${formatSeconds(json.average_duration)}</li>
             </ul>
         </div>

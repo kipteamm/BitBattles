@@ -1,14 +1,14 @@
 let playerListElement;
 
 if (document.readyState !== 'loading') {
-    pageInit();
+    queueInit();
 } else {
     document.addEventListener('DOMContentLoaded', function () {
-        pageInit();
+        queueInit();
     });
 }
 
-function pageInit() {
+function queueInit() {
     playerListElement = document.getElementById("queue-player-list");
     
     for (const player of battle.players) {

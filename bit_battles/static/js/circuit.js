@@ -1,13 +1,13 @@
 if (document.readyState !== 'loading') {
-    pageInit();
+    circuitInit();
 } else {
     document.addEventListener('DOMContentLoaded', function () {
-        pageInit();
+        circuitInit();
     });
 }
 
 
-function pageInit() {
+function circuitInit() {
     debugMode();
 
     loadGates(circuit.g);

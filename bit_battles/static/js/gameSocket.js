@@ -11,7 +11,10 @@ socket.on("disconnect", function() {
 
 socket.on("player_join", function(data) {
     if (document.getElementById(data.id)) return;
-    addPlayer(data);
+    if (document.readyState !== 'loading') return addPlayer(data);
+    document.addEventListener('DOMContentLoaded', function () {
+        addPlayer(data);
+    });
 });
 
 socket.on("player_leave", function(data) {
