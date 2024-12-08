@@ -39,6 +39,11 @@ function resetGame() {
         }
         child.remove();
     }
+
+    alerts.forEach(alert => {
+        alert.remove();
+    })
+    alerts = [];
 }
 
 let gamesCounter = 0;
