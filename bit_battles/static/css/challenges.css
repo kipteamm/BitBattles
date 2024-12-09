@@ -1,0 +1,53 @@
+div.truthtable {
+    right: 25px;
+    top: 25px;
+    display: inline-flex;
+    padding: 10px;
+    border: 1px solid var(--bg-sec);
+    background-color: var(--bg-pri);
+    border-radius: 10px;
+}
+
+div.inputs {
+    display: flex;
+}
+
+div.test {
+    margin-right: 5px;
+}
+div.test .cell {
+    color: var(--bg-sec);
+}
+div.test .cell.failed {
+    color: var(--failed);
+}
+div.test .cell.passed {
+    color: var(--success);
+}
+
+div.outputs {
+    display: flex;
+    margin-left: 5px;
+}
+.truthtable div.title {
+    text-align: center;
+    border-bottom: 3px solid black;
+}
+div.cell {
+    padding: 2.5px 10px;
+    color: white;
+}
+div.cell.off {
+    background-color: #1d5723;
+}
+div.cell.on {
+    background-color: var(--success);
+}
+
+div.outputs .cell {
+    cursor: pointer;
+}
+
+div.add-column {
+    margin: 0px 5px;
+}

@@ -1,0 +1,54 @@
+{% extends "bases/app_base.html" %}
+
+{% block content %}
+    <link rel="stylesheet" type="text/css" href="/static/css/challenges.css">
+    <script src="/static/js/createChallenge.js"></script>
+
+    <form method="POST">
+        <input type="hidden" id="inputData" value="1">
+        <input type="hidden" id="outputData" value="{'Z':[0,0]}">
+
+        <div class="truthtable" id="truthtable">
+            <div class="add-column">
+                <button type="button" onclick="increaseInputs()">+</button>
+            </div>
+            <div class="inputs" id="inputs">
+                <div id="column-A">
+                    <div class="title">A</div>
+                    <div class="cell off">0</div>
+                    <div class="cell on">1</div>
+                </div>
+            </div>
+            <div class="outputs" id="outputs">
+                <div id="column-Z">
+                    <div class="title">Z</div>
+                    <div class="cell off" onclick="toggleValue(this)">0</div>
+                    <div class="cell off" onclick="toggleValue(this)">0</div>
+                </div>
+            </div>
+            <div class="add-column">
+                <button type="button" onclick="increaseOutputs()">+</button>
+            </div>
+        </div>
+        
+        <div class="setting">
+            <b>AND</b>
+            <input type="number">
+        </div>
+        <div class="setting">
+            <b>NOT</b>
+            <input type="number">
+        </div>
+        <div class="setting">
+            <b>OR</b>
+            <input type="number">
+        </div>
+        <div class="setting">
+            <b>XOR</b>
+            <input type="number">
+        </div>
+
+        <textarea placeholder="Text after completion">Use simple html tags</textarea>
+        <button type="submit">Create</button>
+    </form>
+{% endblock %}

@@ -50,3 +50,15 @@ def daily_challenge():
     challenge["started_on"] = challenge_statistic.started_on
 
     return render_template("challenges/challenge.html", challenge=challenge, challenge_statistic=challenge_statistic)
+
+
+@challenges_blueprint.get("/challenges")
+@login_required
+def challenges():
+    return render_template("challenges/challenges.html")
+
+
+@challenges_blueprint.get("/challenge/create")
+@login_required
+def create_challenge():
+    return render_template("challenges/create_challenge.html")
