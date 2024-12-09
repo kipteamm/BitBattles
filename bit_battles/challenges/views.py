@@ -1,8 +1,13 @@
 from bit_battles.battles.models import Challenge, ChallengeStatistic
+from bit_battles.utils.forms import validate_int
 
 from flask_login import login_required, current_user
 from datetime import datetime, timezone
-from flask import Blueprint, render_template, redirect, request
+from flask import Blueprint, render_template, redirect, request, flash
+
+import string
+import bleach
+import json
 
 
 challenges_blueprint = Blueprint("challenges", __name__, url_prefix="/app")
@@ -58,7 +63,62 @@ def challenges():
     return render_template("challenges/challenges.html")
 
 
-@challenges_blueprint.get("/challenge/create")
+@challenges_blueprint.route("/challenge/create", methods=["GET", "POST"])
 @login_required
 def create_challenge():
+    if request.method == "GET":
+        return render_template("challenges/create_challenge.html")
+    
+    print(request.form)
+    and_ = request.form.get("and", None, int)
+    if and_:
+        value, error = validate_int(and_, 0, 100)
+        if error:
+            flash(error, "error")
+            return render_template("challenges/create_challenge.html")
+    
+    or_ = request.form.get("or", None, int)
+    if or_:
+        value, error = validate_int(or_, 0, 100)
+        if error:
+            flash(error, "error")
+            return render_template("challenges/create_challenge.html")
+    
+    not_ = request.form.get("not", None, int)
+    if not_:
+        value, error = validate_int(not_, 0, 100)
+        if error:
+            flash(error, "error")
+            return render_template("challenges/create_challenge.html")
+    
+    xor_ = request.form.get("xor", None, int)
+    if xor_:
+        value, error = validate_int(xor_, 0, 100)
+        if error:
+            flash(error, "error")
+            return render_template("challenges/create_challenge.html")
+
+    inputs = request.form.get("input-data", 1, int)
+    if inputs:
+        value, error = validate_int(inputs, 1, 4)
+
+    try:
+        outputs: dict = json.loads(request.form.get("output-data", "{}", str))
+
+        for i in range(len(outputs.keys())):
+            output_column = outputs.get(string.ascii_uppercase[25 - i])
+            if not output_column or len(output_column) < 2 ** inputs:
+                raise
+
+            if not all(x in (0, 1) for x in output_column):
+                raise                
+
+    except:
+        flash("Invalid output data", "error")
+        return render_template("challenges/create_challenge.html")
+        
+    description = request.form.get("description", None, str)
+    if description:
+        description = bleach.clean(description, tags=["h2", "h3", "b", "i", "u", "s"])
+
     return render_template("challenges/create_challenge.html")

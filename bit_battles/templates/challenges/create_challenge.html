@@ -5,8 +5,8 @@
     <script src="/static/js/createChallenge.js"></script>
 
     <form method="POST">
-        <input type="hidden" id="inputData" value="1">
-        <input type="hidden" id="outputData" value="{'Z':[0,0]}">
+        <input type="hidden" name="input-data" id="inputData" value="1">
+        <input type="hidden" name="output-data" id="outputData" value="{'Z':[0,0]}">
 
         <div class="truthtable" id="truthtable">
             <div class="add-column">
@@ -33,22 +33,22 @@
         
         <div class="setting">
             <b>AND</b>
-            <input type="number">
+            <input type="number" name="and">
         </div>
         <div class="setting">
             <b>NOT</b>
-            <input type="number">
+            <input type="number" name="not">
         </div>
         <div class="setting">
             <b>OR</b>
-            <input type="number">
+            <input type="number" name="or">
         </div>
         <div class="setting">
             <b>XOR</b>
-            <input type="number">
+            <input type="number" name="xor">
         </div>
 
-        <textarea placeholder="Text after completion">Use simple html tags</textarea>
+        <textarea name="description" placeholder="Text after completion"></textarea>
         <button type="submit">Create</button>
     </form>
 {% endblock %}
