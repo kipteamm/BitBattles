@@ -1,4 +1,5 @@
-from bit_battles.battles.models import BattleStatistic, ChallengeStatistic
+from bit_battles.challenges.models import DailyChallengeStatistic
+from bit_battles.battles.models import BattleStatistic
 from bit_battles.auth.models import User
 from bit_battles.extensions import db
 
@@ -39,6 +40,6 @@ def profile(username: str):
     return render_template(
         "app/user.html", 
         user=user, 
-        streak=ChallengeStatistic.get_streak(user.id), 
+        streak=DailyChallengeStatistic.get_streak(user.id), 
         statistics=battle_statistics
     )

@@ -1,9 +1,7 @@
-from bit_battles.battles.models import Battle, Player, BattleStatistic, ChallengeStatistic
+from bit_battles.battles.models import Battle, Player, BattleStatistic
 from bit_battles.utils.forms import validate_int
-from bit_battles.auth.models import User
 from bit_battles.extensions import db
 
-from collections import defaultdict
 from flask_login import login_required, current_user
 from flask import Blueprint, render_template, redirect, request, make_response, flash
 

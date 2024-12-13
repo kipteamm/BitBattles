@@ -63,7 +63,7 @@ function increaseInputs() {
 }
 
 function increaseOutputs() {
-    if (outputs >= 8) return;
+    if (outputs >= 12) return;
     outputs++;
 
     for (let i = 0; i < Math.pow(2, inputs); i++) {

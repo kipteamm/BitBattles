@@ -1,5 +1,5 @@
+from bit_battles.challenges.models import DailyChallengeStatistic, DailyChallenge
 from bit_battles.utils.decorators import user_authorized
-from bit_battles.battles.models import ChallengeStatistic, Challenge
 from bit_battles.utils.circuit import Circuit
 from bit_battles.utils.battle import Simulate
 from bit_battles.auth.models import User
@@ -30,11 +30,11 @@ def submit(date):
         return {"error": "Battle not found."}, 400
 
     user: User = g.user
-    challenge_statistic: t.Optional[ChallengeStatistic] = ChallengeStatistic.query.filter_by(user_id=user.id, date=_date, passed=False).first()
+    challenge_statistic: t.Optional[DailyChallengeStatistic] = DailyChallengeStatistic.query.filter_by(user_id=user.id, date=_date, passed=False).first()
     if not challenge_statistic:
         return {"error": "You cannot submit an answer to this challenge."}, 400
 
-    challenge: t.Optional[Challenge] = Challenge.query.get(_date)
+    challenge: t.Optional[DailyChallenge] = DailyChallenge.query.get(_date)
     if not challenge:
         return {"error": "Challenge not found."}, 400
     
@@ -83,18 +83,18 @@ def results(date):
         return {"error": "Battle not found."}, 400
     
     user: User = g.user
-    challenge_statistic: t.Optional[ChallengeStatistic] = ChallengeStatistic.query.filter_by(user_id=user.id, date=_date, passed=True).first()
+    challenge_statistic: t.Optional[DailyChallengeStatistic] = DailyChallengeStatistic.query.filter_by(user_id=user.id, date=_date, passed=True).first()
     if not challenge_statistic:
         return {"error": "You don't have any results for this challenge."}, 400
 
-    challenge: t.Optional[Challenge] = Challenge.query.get(_date)
+    challenge: t.Optional[DailyChallenge] = DailyChallenge.query.get(_date)
     if not challenge:
         return {"error": "Challenge not found."}, 400
     
     average = db.session.query(
-        func.avg(ChallengeStatistic.gates).label("gates"),
-        func.avg(ChallengeStatistic.longest_path).label("longest_path"),
-        func.avg(ChallengeStatistic.duration).label("duration")
+        func.avg(DailyChallengeStatistic.gates).label("gates"),
+        func.avg(DailyChallengeStatistic.longest_path).label("longest_path"),
+        func.avg(DailyChallengeStatistic.duration).label("duration")
     ).filter_by(date=_date, passed=True).first()
 
     if not average:

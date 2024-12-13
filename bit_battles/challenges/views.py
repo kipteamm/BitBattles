@@ -1,4 +1,4 @@
-from bit_battles.battles.models import Challenge, ChallengeStatistic
+from bit_battles.challenges.models import DailyChallenge, DailyChallengeStatistic
 from bit_battles.utils.forms import validate_int
 
 from flask_login import login_required, current_user
@@ -17,17 +17,17 @@ challenges_blueprint = Blueprint("challenges", __name__, url_prefix="/app")
 @login_required
 def daily():
     today = datetime.now(timezone.utc).date()
-    dailies = ChallengeStatistic.query.filter(
-        ChallengeStatistic.passed == True, # type: ignore
-        ChallengeStatistic.date == today
+    dailies = DailyChallengeStatistic.query.filter(
+        DailyChallengeStatistic.passed == True, # type: ignore
+        DailyChallengeStatistic.date == today
     ).order_by(
-        ChallengeStatistic.score.desc(), # type: ignore
-        ChallengeStatistic.duration,
-        ChallengeStatistic.started_on.desc() # type: ignore
+        DailyChallengeStatistic.score.desc(), # type: ignore
+        DailyChallengeStatistic.duration,
+        DailyChallengeStatistic.started_on.desc() # type: ignore
     ).limit(10).all()
 
     dailies = [daily.leaderboard_serialize() for daily in dailies]
-    return render_template("challenges/daily.html", dailies=dailies, passed=ChallengeStatistic.query.filter_by(date=today, user_id=current_user.id, passed=True).first() is not None)
+    return render_template("challenges/daily.html", dailies=dailies, passed=DailyChallengeStatistic.query.filter_by(date=today, user_id=current_user.id, passed=True).first() is not None)
 
 
 @challenges_blueprint.get("/challenge/daily")
@@ -47,11 +47,11 @@ def daily_challenge():
     if date > today:
         return redirect("/app/daily")
     
-    if ChallengeStatistic.query.filter_by(date=date, user_id=current_user.id, passed=True).first():
+    if DailyChallengeStatistic.query.filter_by(date=date, user_id=current_user.id, passed=True).first():
         return redirect("/app/daily")
 
-    challenge = Challenge.get_or_create(date).serialize()
-    challenge_statistic = ChallengeStatistic.get_or_create(current_user.id, date)
+    challenge = DailyChallenge.get_or_create(date).serialize()
+    challenge_statistic = DailyChallengeStatistic.get_or_create(current_user.id, date)
     challenge["started_on"] = challenge_statistic.started_on
 
     return render_template("challenges/challenge.html", challenge=challenge, challenge_statistic=challenge_statistic)
@@ -69,7 +69,6 @@ def create_challenge():
     if request.method == "GET":
         return render_template("challenges/create_challenge.html")
     
-    print(request.form)
     and_ = request.form.get("and", None, int)
     if and_:
         value, error = validate_int(and_, 0, 100)
@@ -101,9 +100,17 @@ def create_challenge():
     inputs = request.form.get("input-data", 1, int)
     if inputs:
         value, error = validate_int(inputs, 1, 4)
+        if error:
+            flash(error, "error")
+            return render_template("challenges/create_challenge.html")
 
     try:
         outputs: dict = json.loads(request.form.get("output-data", "{}", str))
+
+        if len(outputs.keys()) > 12:
+            flash("Maximum amount of outputs exceeded.", "error")
+            return render_template("challenges/create_challenge.html")
+
 
         for i in range(len(outputs.keys())):
             output_column = outputs.get(string.ascii_uppercase[25 - i])

@@ -144,6 +144,7 @@ setInterval(() => {
 }, 1000);
 
 async function submit() {
+    test(challenge.truthtable, true);
     const response = await fetch(`/api/daily/${challenge.date}/submit`, {
         method: "POST",
         body: JSON.stringify({"gates": placedGates, "wires": placedWires}),
