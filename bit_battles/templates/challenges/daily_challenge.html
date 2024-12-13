@@ -9,9 +9,9 @@
     <title>Bit Battles</title>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+    <script src="/static/js/dailyChallenge.js"></script>
     <script src="/static/js/editor.js" defer></script>
     <script src="/static/js/simulation.js"></script>
-    <script src="/static/js/challenge.js"></script>
     <script src="/static/js/basics.js"></script>
     <script>
         const challenge = {{ challenge|tojson }};
@@ -52,7 +52,6 @@
 
         <div class="result-contents challenge">
             <div id="player-results"></div>
-            {{ challenge.description|safe }}
         </div>
     </div>
 </body>

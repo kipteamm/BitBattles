@@ -7,8 +7,9 @@ import random
 
 
 class TableGenerator:
-    def __init__(self, inputs: int, outputs: int) -> None:
+    def __init__(self, inputs: int, outputs: int, output: t.Optional[dict]=None) -> None:
         self._table = defaultdict(list)
+        self._output = output
         self._generate_inputs(inputs)
         self._generate_outputs(inputs, outputs)
     
@@ -20,7 +21,11 @@ class TableGenerator:
     def _generate_outputs(self, inputs: int, outputs: int) -> None:
         for i in range(outputs):
             for j in range(2**inputs):
-                self.table[string.ascii_uppercase[25 - i]].append(round(random.random()))
+                if not self._output:
+                    self.table[string.ascii_uppercase[25 - i]].append(round(random.random()))
+                    continue
+
+                self.table[string.ascii_uppercase[25 - i]].append(self._output[string.ascii_uppercase[25 - i]][j])
 
     @property
     def table(self) -> dict:

@@ -5,14 +5,14 @@ let playerResults;
 let currentStage = null;
 
 if (document.readyState !== 'loading') {
-    challengeInit();
+    dailyChallengeInit();
 } else {
     document.addEventListener('DOMContentLoaded', function () {
-        challengeInit();
+        dailyChallengeInit();
     });
 }
 
-function challengeInit() {
+function dailyChallengeInit() {
     timerElement = document.getElementById("timer");
     truthtable = document.getElementById("truthtable");
     alertsElement = document.getElementById("alerts");
@@ -33,7 +33,6 @@ function loadStage(stage) {
         loadGates(challenge.truthtable);
     }
     if (stage === "results") {
-        parseCircuits();
         loadResults();
     }
 }

@@ -157,7 +157,6 @@ canvas {
     display: block;
     padding: 0;
     margin: 0;
-    background-position: 10px 10px;
     background-size: 20px 20px;
     background-image: radial-gradient(circle, var(--bg-sec) 1px, rgba(0, 0, 0, 0) 1px);
 }

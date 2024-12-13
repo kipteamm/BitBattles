@@ -114,6 +114,7 @@ function loadOutputs(outputs) {
     for (const [key, values] of Object.entries(outputs)) {
         values.forEach(value => {
             addInput(key, value, true);
-        })
+        });
     }
+    outputData.value = JSON.stringify(outputs);
 }

@@ -19,7 +19,7 @@ class DailyChallenge(db.Model):
 
     def __init__(self, date) -> None:
         self.date = date
-        self.truthtable = json.dumps(TableGenerator(3, 2).table)
+        self.truthtable = json.dumps(TableGenerator(3, 2, None).table)
 
     @classmethod
     def get_or_create(cls, date) -> 'DailyChallenge':
@@ -163,6 +163,21 @@ class Challenge(db.Model):
         self.creation_timestamp = time.time()
 
     def serialize(self) -> dict:
+        outputs = json.loads(self.outputs)
+        truthtable = TableGenerator(self.inputs, len(outputs.keys()), outputs).table
+
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "and_gates": self.and_gates,
+            "or_gates": self.or_gates,
+            "not_gates": self.not_gates,
+            "xor_gates": self.xor_gates,
+            "truthtable": truthtable,
+            "description": self.description
+        }
+
+    def edit_serialize(self) -> dict:
         return {
             "id": self.id,
             "user_id": self.user_id,

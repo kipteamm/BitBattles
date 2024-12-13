@@ -51,7 +51,7 @@ def start_battle(id):
     if battle.players.count() < 2: # type: ignore
         return {"error": "Not enough players."}, 400
     
-    table = TableGenerator(battle.inputs, battle.outputs).table
+    table = TableGenerator(battle.inputs, battle.outputs, None).table
     battle.truthtable = json.dumps(table)
     battle.stage = "battle"
     battle.started_on = time.time()

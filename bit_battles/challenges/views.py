@@ -56,13 +56,23 @@ def daily_challenge():
     challenge_statistic = DailyChallengeStatistic.get_or_create(current_user.id, date)
     challenge["started_on"] = challenge_statistic.started_on
 
-    return render_template("challenges/challenge.html", challenge=challenge, challenge_statistic=challenge_statistic)
+    return render_template("challenges/daily_challenge.html", challenge=challenge, challenge_statistic=challenge_statistic)
 
 
 @challenges_blueprint.get("/challenges")
 @login_required
 def challenges():
     return render_template("challenges/challenges.html")
+
+
+@challenges_blueprint.route("/challenge/<string:id>", methods=["GET"])
+@login_required
+def challenge(id: str):
+    challenge: t.Optional[Challenge] = Challenge.query.get(id)
+    if not challenge:
+        return redirect("/app/challenges")
+
+    return render_template("challenges/challenge.html", challenge=challenge.serialize())
 
 
 @challenges_blueprint.route("/challenge/create", methods=["GET", "POST"])
@@ -83,14 +93,14 @@ def edit_challenge(id: str):
         return redirect("/app/challenges")
 
     if request.method == "GET":
-        return render_template("challenges/edit_challenge.html", challenge=challenge.serialize())
+        return render_template("challenges/edit_challenge.html", challenge=challenge.edit_serialize())
     
     and_ = request.form.get("and", None, int)
     if and_:
         value, error = validate_int(and_, 0, 100)
         if not value:
             flash(error, "error")
-            return render_template("challenges/edit_challenge.html", challenge=challenge.serialize())
+            return render_template("challenges/edit_challenge.html", challenge=challenge.edit_serialize())
     challenge.and_gates = and_
     
     or_ = request.form.get("or", None, int)
@@ -98,7 +108,7 @@ def edit_challenge(id: str):
         value, error = validate_int(or_, 0, 100)
         if not value:
             flash(error, "error")
-            return render_template("challenges/edit_challenge.html", challenge=challenge.serialize())
+            return render_template("challenges/edit_challenge.html", challenge=challenge.edit_serialize())
     challenge.or_gates = or_
     
     not_ = request.form.get("not", None, int)
@@ -106,7 +116,7 @@ def edit_challenge(id: str):
         value, error = validate_int(not_, 0, 100)
         if not value:
             flash(error, "error")
-            return render_template("challenges/edit_challenge.html", challenge=challenge.serialize())
+            return render_template("challenges/edit_challenge.html", challenge=challenge.edit_serialize())
     challenge.not_gates = not_
     
     xor = request.form.get("xor", None, int)
@@ -114,7 +124,7 @@ def edit_challenge(id: str):
         value, error = validate_int(xor, 0, 100)
         if not value:
             flash(error, "error")
-            return render_template("challenges/edit_challenge.html", challenge=challenge.serialize())
+            return render_template("challenges/edit_challenge.html", challenge=challenge.edit_serialize())
     challenge.xor_gates = xor
 
     inputs = request.form.get("input-data", 1, int)
@@ -122,7 +132,7 @@ def edit_challenge(id: str):
         value, error = validate_int(inputs, 1, 4)
         if not value:
             flash(error, "error")
-            return render_template("challenges/edit_challenge.html", challenge=challenge.serialize())
+            return render_template("challenges/edit_challenge.html", challenge=challenge.edit_serialize())
     challenge.inputs = inputs
 
     try:
@@ -130,7 +140,7 @@ def edit_challenge(id: str):
 
         if len(outputs.keys()) > 12:
             flash("Maximum amount of outputs exceeded.", "error")
-            return render_template("challenges/edit_challenge.html", challenge=challenge.serialize())
+            return render_template("challenges/edit_challenge.html", challenge=challenge.edit_serialize())
 
 
         for i in range(len(outputs.keys())):
@@ -144,7 +154,7 @@ def edit_challenge(id: str):
 
     except:
         flash("Invalid output data", "error")
-        return render_template("challenges/edit_challenge.html", challenge=challenge.serialize())
+        return render_template("challenges/edit_challenge.html", challenge=challenge.edit_serialize())
         
     description = request.form.get("description", None, str)
     if description:
@@ -153,4 +163,4 @@ def edit_challenge(id: str):
 
     db.session.commit()
 
-    return render_template("challenges/edit_challenge.html", challenge=challenge.serialize())
+    return render_template("challenges/edit_challenge.html", challenge=challenge.edit_serialize())
