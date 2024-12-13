@@ -6,6 +6,7 @@ from bit_battles.config import PATH_WEIGHT, GATE_WEIGHT, DURATION_WEIGHT
 
 from datetime import datetime, timezone, timedelta
 
+import typing as t
 import json
 import time
 
@@ -132,4 +133,44 @@ class DailyChallengeStatistic(db.Model):
             "longest_path": self.longest_path,
             "attempts": self.attempts,
             "duration": self.duration,
+        }
+
+
+class Challenge(db.Model):
+    __tablename__ = "challenges"
+
+    id = db.Column(db.String(128), primary_key=True, default=SnowflakeGenerator.generate_id)
+    user_id = db.Column(db.String(128), db.ForeignKey("users.id", ondelete="CASCADE"))
+
+    official = db.Column(db.Boolean(), default=False)
+    difficulty = db.Column(db.Integer(), default=0)
+
+    and_gates = db.Column(db.Integer(), default=None, nullable=True)
+    or_gates = db.Column(db.Integer(), default=None, nullable=True)
+    not_gates = db.Column(db.Integer(), default=None, nullable=True)
+    xor_gates = db.Column(db.Integer(), default=None, nullable=True)
+
+    inputs = db.Column(db.Integer(), default=1)
+    outputs = db.Column(db.Text(5000))
+
+    description = db.Column(db.Text(5000), default=None, nullable=True)
+
+    creation_timestamp = db.Column(db.Float(), nullable=False)
+
+    def __init__(self, user_id: str) -> None:
+        self.user_id = user_id
+        self.outputs = "{'Z':[0,0]}"
+        self.creation_timestamp = time.time()
+
+    def serialize(self) -> dict:
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "and_gates": self.and_gates,
+            "or_gates": self.or_gates,
+            "not_gates": self.not_gates,
+            "xor_gates": self.xor_gates,
+            "inputs": self.inputs,
+            "outputs": json.loads(self.outputs),
+            "description": self.description
         }

@@ -3,10 +3,13 @@
 {% block content %}
     <link rel="stylesheet" type="text/css" href="/static/css/challenges.css">
     <script src="/static/js/createChallenge.js"></script>
+    <script>
+        const challengeData = {{ challenge|tojson }};
+    </script>
 
     <form method="POST">
-        <input type="hidden" name="input-data" id="inputData" value="1">
-        <input type="hidden" name="output-data" id="outputData" value="{'Z':[0,0]}">
+        <input type="hidden" name="input-data" id="inputData" value="{{ challenge.inputs }}">
+        <input type="hidden" name="output-data" id="outputData" value="">
 
         <div class="truthtable" id="truthtable">
             <div class="add-column">
@@ -33,22 +36,22 @@
         
         <div class="setting">
             <b>AND</b>
-            <input type="number" name="and">
+            <input type="number" name="and"{% if challenge.and_gates %} value="{{ challenge.and_gates }}"{% endif %}>
         </div>
         <div class="setting">
             <b>NOT</b>
-            <input type="number" name="not">
+            <input type="number" name="not"{% if challenge.not_gates %} value="{{ challenge.not_gates }}"{% endif %}>
         </div>
         <div class="setting">
             <b>OR</b>
-            <input type="number" name="or">
+            <input type="number" name="or"{% if challenge.or_gates %} value="{{ challenge.or_gates }}"{% endif %}>
         </div>
         <div class="setting">
             <b>XOR</b>
-            <input type="number" name="xor">
+            <input type="number" name="xor"{% if challenge.xor_gates %} value="{{ challenge.xor_gates }}"{% endif %}>
         </div>
 
-        <textarea name="description" placeholder="Text after completion"></textarea>
-        <button type="submit">Create</button>
+        <textarea name="description" placeholder="Text after completion">{% if challenge.description %}{{ challenge.description }}{% endif %}</textarea>
+        <button type="submit">Save</button>
     </form>
 {% endblock %}

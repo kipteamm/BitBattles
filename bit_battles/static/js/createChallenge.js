@@ -18,6 +18,11 @@ function createChallengeInit() {
     outputData = document.getElementById("outputData");
     inputElement = document.getElementById("inputs");
     inputData = document.getElementById("inputData");
+
+    inputs = challengeData.inputs;
+    outputs = Object.keys(challengeData.outputs).length;
+    renderInputs();
+    loadOutputs(challengeData.outputs);
 }
 
 UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -39,13 +44,8 @@ function addInput(key, value, isOutput) {
     column.innerHTML += `<div class="cell ${value? 'on': 'off'}"${isOutput? 'onclick="toggleValue(this)"': ''}>${value}</div>`;
 }
 
-function increaseInputs() {
-    if (inputs >= 6) return;
-
+function renderInputs() {
     inputElement.innerHTML = "";
-    inputs++;
-    inputData.value = inputs;
-
     for (let row = 0; row < Math.pow(2, inputs); row++) {
         for (let column = 0; column < inputs; column++) {
             addInput(UPPERCASE_LETTERS[column], Math.floor(row / (2 ** (inputs - column - 1)) % 2), false)
@@ -62,6 +62,16 @@ function increaseInputs() {
     updateOutputForm();
 }
 
+function increaseInputs() {
+    if (inputs >= 4) return;
+
+    inputs++;
+    inputData.value = inputs;
+
+    renderInputs();
+    updateOutputForm();
+}
+
 function increaseOutputs() {
     if (outputs >= 12) return;
     outputs++;
@@ -69,8 +79,6 @@ function increaseOutputs() {
     for (let i = 0; i < Math.pow(2, inputs); i++) {
         addInput(UPPERCASE_LETTERS[26 - outputs], 0, true);
     }
-
-    updateOutputForm();
 }
 
 function toggleValue(div) {
@@ -99,4 +107,13 @@ function updateOutputForm() {
     }
 
     outputData.value = JSON.stringify(data);
+}
+
+function loadOutputs(outputs) {    
+    outputElement.innerHTML = "";
+    for (const [key, values] of Object.entries(outputs)) {
+        values.forEach(value => {
+            addInput(key, value, true);
+        })
+    }
 }

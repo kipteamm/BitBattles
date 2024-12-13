@@ -1,10 +1,12 @@
-from bit_battles.challenges.models import DailyChallenge, DailyChallengeStatistic
+from bit_battles.challenges.models import DailyChallenge, DailyChallengeStatistic, Challenge
 from bit_battles.utils.forms import validate_int
+from bit_battles.extensions import db
 
 from flask_login import login_required, current_user
 from datetime import datetime, timezone
 from flask import Blueprint, render_template, redirect, request, flash
 
+import typing as t
 import string
 import bleach
 import json
@@ -66,50 +68,69 @@ def challenges():
 @challenges_blueprint.route("/challenge/create", methods=["GET", "POST"])
 @login_required
 def create_challenge():
+    challenge = Challenge(current_user.id)
+    db.session.add(challenge)
+    db.session.commit()
+
+    return redirect(f"/app/challenge/{challenge.id}/edit")
+
+
+@challenges_blueprint.route("/challenge/<string:id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_challenge(id: str):
+    challenge: t.Optional[Challenge] = Challenge.query.get(id)
+    if not challenge:
+        return redirect("/app/challenges")
+
     if request.method == "GET":
-        return render_template("challenges/create_challenge.html")
+        return render_template("challenges/edit_challenge.html", challenge=challenge.serialize())
     
     and_ = request.form.get("and", None, int)
     if and_:
         value, error = validate_int(and_, 0, 100)
-        if error:
+        if not value:
             flash(error, "error")
-            return render_template("challenges/create_challenge.html")
+            return render_template("challenges/edit_challenge.html", challenge=challenge.serialize())
+    challenge.and_gates = and_
     
     or_ = request.form.get("or", None, int)
     if or_:
         value, error = validate_int(or_, 0, 100)
-        if error:
+        if not value:
             flash(error, "error")
-            return render_template("challenges/create_challenge.html")
+            return render_template("challenges/edit_challenge.html", challenge=challenge.serialize())
+    challenge.or_gates = or_
     
     not_ = request.form.get("not", None, int)
     if not_:
         value, error = validate_int(not_, 0, 100)
-        if error:
+        if not value:
             flash(error, "error")
-            return render_template("challenges/create_challenge.html")
+            return render_template("challenges/edit_challenge.html", challenge=challenge.serialize())
+    challenge.not_gates = not_
     
-    xor_ = request.form.get("xor", None, int)
-    if xor_:
-        value, error = validate_int(xor_, 0, 100)
-        if error:
+    xor = request.form.get("xor", None, int)
+    if xor:
+        value, error = validate_int(xor, 0, 100)
+        if not value:
             flash(error, "error")
-            return render_template("challenges/create_challenge.html")
+            return render_template("challenges/edit_challenge.html", challenge=challenge.serialize())
+    challenge.xor_gates = xor
 
     inputs = request.form.get("input-data", 1, int)
     if inputs:
         value, error = validate_int(inputs, 1, 4)
-        if error:
+        if not value:
             flash(error, "error")
-            return render_template("challenges/create_challenge.html")
+            return render_template("challenges/edit_challenge.html", challenge=challenge.serialize())
+    challenge.inputs = inputs
 
     try:
         outputs: dict = json.loads(request.form.get("output-data", "{}", str))
 
         if len(outputs.keys()) > 12:
             flash("Maximum amount of outputs exceeded.", "error")
-            return render_template("challenges/create_challenge.html")
+            return render_template("challenges/edit_challenge.html", challenge=challenge.serialize())
 
 
         for i in range(len(outputs.keys())):
@@ -118,14 +139,18 @@ def create_challenge():
                 raise
 
             if not all(x in (0, 1) for x in output_column):
-                raise                
+                raise       
+        challenge.outputs = json.dumps(outputs)
 
     except:
         flash("Invalid output data", "error")
-        return render_template("challenges/create_challenge.html")
+        return render_template("challenges/edit_challenge.html", challenge=challenge.serialize())
         
     description = request.form.get("description", None, str)
     if description:
-        description = bleach.clean(description, tags=["h2", "h3", "b", "i", "u", "s"])
+        description = bleach.clean(description, tags=["h2", "h3", "b", "i", "u", "s", "p", "circuit"])
+    challenge.description = description
 
-    return render_template("challenges/create_challenge.html")
+    db.session.commit()
+
+    return render_template("challenges/edit_challenge.html", challenge=challenge.serialize())
