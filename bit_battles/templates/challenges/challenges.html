@@ -3,5 +3,39 @@
 {% block content %}
     <link rel="stylesheet" type="text/css" href="/static/css/challenges.css">
 
-    challenges
+    <div class="challenges-container">
+        <div class="challenges-selector">
+            <button onclick="selectChallenges('official-challenges')" id="official-challenges-btn" disabled>Official challenges</button>
+            <button onclick="selectChallenges('community-challenges')" id="community-challenges-btn">Community challenges</button>
+        </div>
+
+        <div class="challenges active" id="official-challenges">
+            {% for challenge in challenges %}
+                {% if challenge.official %}
+                    {% include "components/challenge.html" %}
+                {% endif %}
+            {% endfor %}
+        </div>
+        <div class="challenges" id="community-challenges">
+            <button onclick="window.location.href='/app/user/{{ current_user.username }}/challenges'">Manage challenges</button>
+            {% for challenge in challenges %}
+                {% if not challenge.official %}
+                    {% include "components/challenge.html" %}
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        let activeChallenge = "official-challenges";
+
+        function selectChallenges(challengesId) {
+            document.getElementById(activeChallenge).classList.remove("active");
+            document.getElementById(`${activeChallenge}-btn`).disabled = false;
+            activeChallenge = challengesId;
+
+            document.getElementById(activeChallenge).classList.add("active");
+            document.getElementById(`${activeChallenge}-btn`).disabled = true;
+        }
+    </script>
 {% endblock %}

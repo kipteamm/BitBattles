@@ -1,3 +1,23 @@
+.challenges-container {
+    max-width: 1000px;
+    margin: 100px auto;
+}
+
+.challenges-selector {
+    display: flex;
+    gap: 25px;
+}
+.challenges-selector button {
+    flex: 1;
+}
+
+.challenges {
+    display: none;
+}
+.challenges.active {
+    display: block;
+}
+
 div.truthtable {
     right: 25px;
     top: 25px;

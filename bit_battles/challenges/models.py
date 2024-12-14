@@ -156,6 +156,7 @@ class Challenge(db.Model):
     outputs = db.Column(db.Integer(), default=1)
     truthtable = db.Column(db.Text(5000))
 
+    name = db.Column(db.String(50), default="Unnamed")
     description = db.Column(db.Text(5000), default=None, nullable=True)
 
     creation_timestamp = db.Column(db.Float(), nullable=False)

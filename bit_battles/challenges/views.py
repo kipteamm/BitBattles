@@ -62,7 +62,8 @@ def daily_challenge():
 @challenges_blueprint.get("/challenges")
 @login_required
 def challenges():
-    return render_template("challenges/challenges.html")
+    challenges = Challenge.query.all()
+    return render_template("challenges/challenges.html", challenges=challenges)
 
 
 @challenges_blueprint.route("/challenge/<string:id>", methods=["GET"])
@@ -101,6 +102,10 @@ def edit_challenge(id: str):
     if request.method == "GET":
         return render_template("challenges/edit_challenge.html", challenge=challenge.edit_serialize())
     
+    name = request.form.get("name", None, str)
+    if name:
+        challenge.name = name
+
     and_ = request.form.get("and", None, int)
     if and_:
         value, error = validate_int(and_, 0, 100)
