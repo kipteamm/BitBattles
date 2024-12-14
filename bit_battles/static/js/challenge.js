@@ -17,6 +17,8 @@ function challengeInit() {
     truthtable = document.getElementById("truthtable");
     alertsElement = document.getElementById("alerts");
     playerResults = document.getElementById("player-results");
+    
+    if (challenge.passed) return loadStage("results");
     loadStage("challenge");
 }
 
@@ -33,7 +35,6 @@ function loadStage(stage) {
         loadGates(challenge.truthtable);
     }
     if (stage === "results") {
-        parseCircuits();
         loadResults();
     }
 }
@@ -146,7 +147,7 @@ setInterval(() => {
 
 async function submit() {
     test(challenge.truthtable, true);
-    const response = await fetch(`/api/daily/${challenge.date}/submit`, {
+    const response = await fetch(`/api/challenge/${challenge.id}/submit`, {
         method: "POST",
         body: JSON.stringify({"gates": placedGates, "wires": placedWires}),
         headers: {"Authorization": `Bearer ${getCookie("ut")}`, "Content-Type": "application/json"}
@@ -156,11 +157,10 @@ async function submit() {
         const json = await response.json();
         if (!response.ok) return sendAlert(json.error);
         if (!json.passed) return sendAlert("You did not pass the test.");
+        loadStage("results");
     } catch {
         sendAlert("Unexpected error.");
     }
-
-    loadStage("results");
 }
 
 let alerts = [];
@@ -196,7 +196,7 @@ function updateAlertPositions() {
 }
 
 async function loadResults() {
-    const response = await fetch(`/api/daily/${challenge.date}/results`, {
+    const response = await fetch(`/api/challenge/${challenge.id}/results`, {
         method: "GET",
         headers: {"Authorization": `Bearer ${getCookie("ut")}`}
     });
@@ -210,7 +210,7 @@ async function loadResults() {
 
     playerResults.innerHTML += `
         <div class="battle-results">
-            <h2>Todays averages</h2>
+            <h2>Global averages</h2>
             <ul>
                 <li><b>Average gates:</b> ${json.average_gates.toFixed(2)}</li>
                 <li><b>Average longest path:</b> ${json.average_longest_path.toFixed(2)}</li>
@@ -240,4 +240,14 @@ function formatSeconds(seconds) {
     const remainingSeconds = (seconds % 60).toFixed(3);
 
     return `${minutes}m ${remainingSeconds}s`;
+}
+
+async function rate(difficulty) {
+    await fetch(`/api/challenge/${challenge.id}/rate`, {
+        method: "POST",
+        body: JSON.stringify({"difficulty": difficulty}),
+        headers: {"Authorization": `Bearer ${getCookie("ut")}`, "Content-Type": "application/json"}
+    });
+
+    return window.location.href="/app/challenges"
 }

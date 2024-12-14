@@ -1,6 +1,6 @@
+from bit_battles.api.challenge.views import challenge_api_blueprint
 from bit_battles.challenges.views import challenges_blueprint 
 from bit_battles.api.battle.views import battle_api_blueprint
-from bit_battles.api.daily.views import challenge_api_blueprint
 from bit_battles.circuits.views import circuits_blueprint 
 from bit_battles.battles.events import register_events
 from bit_battles.battles.models import Battle, Player

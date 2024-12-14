@@ -6,7 +6,7 @@ from bit_battles.config import PATH_WEIGHT, GATE_WEIGHT, DURATION_WEIGHT
 
 from datetime import datetime, timezone, timedelta
 
-import typing as t
+import string
 import json
 import time
 
@@ -143,7 +143,9 @@ class Challenge(db.Model):
     user_id = db.Column(db.String(128), db.ForeignKey("users.id", ondelete="CASCADE"))
 
     official = db.Column(db.Boolean(), default=False)
+    rating = db.Column(db.Integer(), default=0)
     difficulty = db.Column(db.Integer(), default=0)
+    ratings = db.Column(db.Integer(), default=0)
 
     and_gates = db.Column(db.Integer(), default=None, nullable=True)
     or_gates = db.Column(db.Integer(), default=None, nullable=True)
@@ -151,7 +153,8 @@ class Challenge(db.Model):
     xor_gates = db.Column(db.Integer(), default=None, nullable=True)
 
     inputs = db.Column(db.Integer(), default=1)
-    outputs = db.Column(db.Text(5000))
+    outputs = db.Column(db.Integer(), default=1)
+    truthtable = db.Column(db.Text(5000))
 
     description = db.Column(db.Text(5000), default=None, nullable=True)
 
@@ -159,13 +162,15 @@ class Challenge(db.Model):
 
     def __init__(self, user_id: str) -> None:
         self.user_id = user_id
-        self.outputs = "{'Z':[0,0]}"
+        self.truthtable = '{"A":[0,0],"Z":[0,0]}'
         self.creation_timestamp = time.time()
 
-    def serialize(self) -> dict:
-        outputs = json.loads(self.outputs)
-        truthtable = TableGenerator(self.inputs, len(outputs.keys()), outputs).table
+    def set_truthtable(self, inputs: int, outputs: dict) -> None:
+        self.inputs = inputs
+        self.outputs = len(outputs.keys())
+        self.truthtable = json.dumps(TableGenerator(self.inputs, self.outputs, outputs).table)
 
+    def serialize(self) -> dict:
         return {
             "id": self.id,
             "user_id": self.user_id,
@@ -173,11 +178,17 @@ class Challenge(db.Model):
             "or_gates": self.or_gates,
             "not_gates": self.not_gates,
             "xor_gates": self.xor_gates,
-            "truthtable": truthtable,
+            "truthtable": json.loads(self.truthtable),
             "description": self.description
         }
 
     def edit_serialize(self) -> dict:
+        print(self.truthtable)
+        truthtable = json.loads(self.truthtable)
+        outputs = {}
+        for i in range(self.outputs):
+            outputs[string.ascii_uppercase[25 - i]] = truthtable[string.ascii_uppercase[25 - i]]
+        
         return {
             "id": self.id,
             "user_id": self.user_id,
@@ -186,6 +197,63 @@ class Challenge(db.Model):
             "not_gates": self.not_gates,
             "xor_gates": self.xor_gates,
             "inputs": self.inputs,
-            "outputs": json.loads(self.outputs),
+            "outputs": outputs,
             "description": self.description
+        }
+
+
+class ChallengeStatistic(db.Model):
+    __tablename__ = "challenge_statistics"
+
+    id = db.Column(db.String(128), primary_key=True, default=SnowflakeGenerator.generate_id)
+    user_id = db.Column(db.String(128), db.ForeignKey("users.id", ondelete="CASCADE"))
+    challenge_id = db.Column(db.String(128), db.ForeignKey("challenges.id", ondelete="CASCADE"))
+
+    circuit = db.Column(db.String(128), nullable=True, default=None)
+    score = db.Column(db.Float(), default=0)
+
+    passed = db.Column(db.Boolean(), default=False)
+    rated = db.Column(db.Boolean(), default=False)
+
+    gates = db.Column(db.Integer(), default=0)
+    longest_path = db.Column(db.Integer(), default=0)
+    attempts = db.Column(db.Integer(), default=0)
+
+    started_on = db.Column(db.Float(), default=0)
+    duration = db.Column(db.Float(), default=0)
+
+    def __init__(self, user_id: str, challenge_id):
+        self.user_id = user_id
+        self.challenge_id = challenge_id
+        self.started_on = time.time()
+
+    @classmethod
+    def get_or_create(cls, user_id: str, challenge_id: str) -> 'ChallengeStatistic':
+        challenge_statistic = ChallengeStatistic.query.filter_by(user_id=user_id, challenge_id=challenge_id).first()
+
+        if challenge_statistic:
+           return challenge_statistic
+
+        challenge_statistic = ChallengeStatistic(user_id, challenge_id)
+        db.session.add(challenge_statistic)
+        db.session.commit()
+
+        return challenge_statistic
+
+    def set_score(self) -> None:
+        self.score = round(
+            (GATE_WEIGHT / max(self.gates, 1)) 
+            + (PATH_WEIGHT / max(self.longest_path, 1)) 
+            + (DURATION_WEIGHT / max(self.duration, 1))
+        )
+
+    def serialize(self) -> dict:
+        return {
+            "user_id": self.user_id,
+            "challenge_id": self.challenge_id,
+            "passed": self.passed,
+            "gates": self.gates,
+            "longest_path": self.longest_path,
+            "attempts": self.attempts,
+            "duration": self.duration,
         }

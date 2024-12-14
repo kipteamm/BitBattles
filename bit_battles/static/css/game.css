@@ -27,6 +27,7 @@ body {
     margin: 0 auto;
 }
 
+.result-contents.daily-challenge,
 .result-contents.challenge {
     margin-top: 75px;
 }
@@ -67,7 +68,7 @@ body {
     margin: 4px 0px 0px 0px;
 }
 
-.result-contents .battle-results {
+.result-contents:not(.challenge) .battle-results {
     margin-bottom: 100px;
 }
 
@@ -87,6 +88,13 @@ body {
 }
 .result-contents .battle-results li b {
     flex: 1;
+}
+
+.result-contents .exit {
+    text-align: center;
+}
+.result-contents .description {
+    margin-top: 50px;
 }
 
 div.home,

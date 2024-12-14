@@ -1,0 +1,23 @@
+.difficulty-content {
+    max-width: 800px;
+    margin: 100px auto;
+    text-align: center;
+}
+
+.slider {
+    display: flex;
+    font-weight: bold;
+    justify-content: center;
+    margin: 1em 0;
+}
+
+.slider span {
+    opacity: 0.5;
+    cursor: pointer;
+    transition: .3s;
+    font-size: 24px;
+}
+
+.slider span:hover {
+    opacity: 1;
+}

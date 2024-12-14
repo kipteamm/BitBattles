@@ -1,4 +1,4 @@
-from bit_battles.challenges.models import DailyChallenge, DailyChallengeStatistic, Challenge
+from bit_battles.challenges.models import DailyChallenge, DailyChallengeStatistic, Challenge, ChallengeStatistic
 from bit_battles.utils.forms import validate_int
 from bit_battles.extensions import db
 
@@ -72,7 +72,13 @@ def challenge(id: str):
     if not challenge:
         return redirect("/app/challenges")
 
-    return render_template("challenges/challenge.html", challenge=challenge.serialize())
+    challenge_data = challenge.serialize()
+    challenge_statistic = ChallengeStatistic.get_or_create(current_user.id, challenge.id)
+    challenge_data["started_on"] = challenge_statistic.started_on
+    challenge_data["passed"] = challenge_statistic.passed
+    challenge_data["rated"] = challenge_statistic.rated
+
+    return render_template("challenges/challenge.html", challenge=challenge_data)
 
 
 @challenges_blueprint.route("/challenge/create", methods=["GET", "POST"])
@@ -149,13 +155,14 @@ def edit_challenge(id: str):
                 raise
 
             if not all(x in (0, 1) for x in output_column):
-                raise       
-        challenge.outputs = json.dumps(outputs)
+                raise
 
     except:
         flash("Invalid output data", "error")
         return render_template("challenges/edit_challenge.html", challenge=challenge.edit_serialize())
         
+    challenge.set_truthtable(inputs, outputs)
+
     description = request.form.get("description", None, str)
     if description:
         description = bleach.clean(description, tags=["h2", "h3", "b", "i", "u", "s", "p", "circuit"])

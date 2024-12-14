@@ -18,15 +18,16 @@
         const player = {{ current_user.serialize()|tojson }}
     </script>
 
+    <link rel="stylesheet" type="text/css" href="/static/css/challenge.css">
     <link rel="stylesheet" type="text/css" href="/static/css/game.css">
     <link rel="stylesheet" type="text/css" href="/static/css/basics.css">
 </head>
 <body>
-    <div class="home">
-        <button onclick="if(window.history.length>1){window.history.back();}else{window.location.href='/app/battles';}">🏠</button>
-    </div>
-
     <div class="stage" id="challenge">
+        <div class="home">
+            <button onclick="if(window.history.length>1){window.history.back();}else{window.location.href='/app/challenges';}">🏠</button>
+        </div>
+        
         <div class="toolbar">
             <button onclick="debugMode()">🖐</button>
             <button onclick="editMode()">🔧</button>
@@ -52,11 +53,30 @@
     </div>
 
     <div class="stage results" id="results">
-        {% include "components/navbar.html" %}
-
         <div class="result-contents challenge">
             <div id="player-results"></div>
-            {{ challenge.description|safe }}
+            
+            <div class="exit">
+                <button onclick="{% if challenge.passed or challenge.rated or challenge.official %}window.location.href='/app/challenges'{% else %}loadStage('difficulty'){% endif %}">Exit</button>
+            </div>
+
+            <div class="description">
+                {{ challenge.description|safe }}
+            </div>
+        </div>
+    </div>
+
+    <div class="stage difficulty" id="difficulty">
+        <div class="difficulty-content">
+            <h2>How difficult would you rate this challenge?</h2>
+
+            <div class="slider">
+                <span onclick="rate(5)" title="FUCK YOU!">[ 🤬 ]</span>
+                <span onclick="rate(4)" title="NOOOOO!!!">[ 😠 ]</span>
+                <span onclick="rate(3)" title="UGH why :(">[ 🙁 ]</span>
+                <span onclick="rate(2)" title="yes">[ 🙂 ]</span>
+                <span onclick="rate(1)" title="YES.">[ 😄 ]</span>
+            </div>
         </div>
     </div>
 </body>

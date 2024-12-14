@@ -155,11 +155,10 @@ async function submit() {
         const json = await response.json();
         if (!response.ok) return sendAlert(json.error);
         if (!json.passed) return sendAlert("You did not pass the test.");
+        loadStage("results");
     } catch {
         sendAlert("Unexpected error.");
     }
-
-    loadStage("results");
 }
 
 let alerts = [];
