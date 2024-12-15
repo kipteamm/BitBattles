@@ -4,6 +4,8 @@
     <link rel="stylesheet" type="text/css" href="/static/css/challenges.css">
 
     <div class="challenges-container">
+        <button onclick="window.location.href='/app/challenge/create'">Create challenge</button>
+
         {% for challenge in challenges %}
             {% include "components/challenge.html" %}
         {% endfor %}

@@ -18,6 +18,10 @@
     display: block;
 }
 
+.challenge {
+    margin: 10px 0px;
+}
+
 div.truthtable {
     right: 25px;
     top: 25px;

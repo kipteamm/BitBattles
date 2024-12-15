@@ -4,12 +4,18 @@
     <link rel="stylesheet" type="text/css" href="/static/css/challenges.css">
 
     <div class="challenges-container">
+        <h4 style="text-align:center;"><i>Challenges are still under development.</i></h4>
         <div class="challenges-selector">
             <button onclick="selectChallenges('official-challenges')" id="official-challenges-btn" disabled>Official challenges</button>
             <button onclick="selectChallenges('community-challenges')" id="community-challenges-btn">Community challenges</button>
         </div>
 
         <div class="challenges active" id="official-challenges">
+            {% if current_user.moderator %}
+                <div class="challenge">
+                    <button onclick="window.location.href='/app/user/{{ current_user.username }}/challenges'">Manage challenges</button>
+                </div>
+            {% endif %}
             {% for challenge in challenges %}
                 {% if challenge.official %}
                     {% include "components/challenge.html" %}
@@ -17,7 +23,9 @@
             {% endfor %}
         </div>
         <div class="challenges" id="community-challenges">
-            <button onclick="window.location.href='/app/user/{{ current_user.username }}/challenges'">Manage challenges</button>
+            <div class="challenge">
+                <button onclick="window.location.href='/app/user/{{ current_user.username }}/challenges'">Manage challenges</button>
+            </div>
             {% for challenge in challenges %}
                 {% if not challenge.official %}
                     {% include "components/challenge.html" %}
