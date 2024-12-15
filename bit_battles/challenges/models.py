@@ -262,3 +262,20 @@ class ChallengeStatistic(db.Model):
             "attempts": self.attempts,
             "duration": self.duration,
         }
+    
+    def leaderboard_serialize(self) -> dict:
+        user = User.query.with_entities(
+            User.username # type: ignore
+        ).filter_by(id=self.user_id).first()
+        if not user:
+            return {}
+
+        return {
+            "user_id": self.user_id,
+            "username": user.username,
+            "gates": self.gates,
+            "longest_path": self.longest_path,
+            "duration": f"{round(self.duration // 60)}m {round(self.duration % 60)}s",
+            "circuit": self.circuit,
+            "score": self.score
+        }

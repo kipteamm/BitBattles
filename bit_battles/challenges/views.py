@@ -82,6 +82,30 @@ def challenge(id: str):
     return render_template("challenges/challenge.html", challenge=challenge_data)
 
 
+@challenges_blueprint.route("/challenge/<string:id>/results", methods=["GET"])
+@login_required
+def challenge_results(id: str):
+    challenge: t.Optional[Challenge] = Challenge.query.get(id)
+    if not challenge:
+        return redirect("/app/challenges")
+    
+    challenge_statistic = ChallengeStatistic.query.filter_by(challenge_id=challenge.id, user_id=current_user.id, passed=True).first()
+    if not challenge_statistic:
+        return redirect(f"/app/challenge/{challenge.id}")
+    
+    results = ChallengeStatistic.query.filter(
+        ChallengeStatistic.passed == True, # type: ignore
+        ChallengeStatistic.challenge_id == challenge.id
+    ).order_by(
+        ChallengeStatistic.score.desc(), # type: ignore
+        ChallengeStatistic.duration,
+        ChallengeStatistic.started_on.desc() # type: ignore
+    ).limit(10).all()
+
+    results = [result.leaderboard_serialize() for result in results]
+    return render_template("challenges/challenge_results.html", challenge=challenge, results=results)
+
+
 @challenges_blueprint.route("/challenge/create", methods=["GET", "POST"])
 @login_required
 def create_challenge():

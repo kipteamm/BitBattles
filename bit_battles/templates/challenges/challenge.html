@@ -57,6 +57,7 @@
             <div id="player-results"></div>
             
             <div class="exit">
+                <button onclick="window.location.href='/app/challenge/{{ challenge.id }}/results'">Results</button>
                 <button onclick="{% if challenge.passed or challenge.rated or challenge.official %}window.location.href='/app/challenges'{% else %}loadStage('difficulty'){% endif %}">Exit</button>
             </div>
 
