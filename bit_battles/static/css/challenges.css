@@ -20,6 +20,36 @@
 
 .challenge {
     margin: 10px 0px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.challenge a {
+    flex: 1;
+    cursor: pointer;
+}
+.challenge a:hover {
+    text-decoration: underline;
+}
+
+.challenge span.very-easy {
+    color: var(--success-acc);
+}
+.challenge span.easy {
+    color: var(--success);
+}
+.challenge span.yes {
+    color: var(--passed);
+}
+.challenge span.hard {
+    color: var(--failed);
+}
+.challenge span.very-hard {
+    color: var(--failed-acc);
+}
+
+.challenge button {
+    margin: 0px auto;
 }
 
 div.truthtable {

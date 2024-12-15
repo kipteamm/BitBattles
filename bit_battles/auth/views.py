@@ -42,8 +42,8 @@ def login():
     if request.method == "GET":
         return render_template("auth/login.html")
 
-    username = request.form['user']
-    password = request.form['password']
+    username = request.form.get('user')
+    password = request.form.get('password')
 
     user = User.query.filter_by(username=username).first()
     if not user:

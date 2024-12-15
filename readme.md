@@ -32,5 +32,5 @@ flask db upgrade
 After that any change to the database can be migrated using
 ```bash
 flask db migrate -m "migration name"
-flask db upgraed
+flask db upgrade
 ```

@@ -3,8 +3,10 @@
     --bg-sec: #b9b9b9;
 
     --success: #1cba2e;
+    --success-acc: #1d5723;
     --passed: #f1b324;
     --failed: #f94747;
+    --failed-acc: #b92828;
 
     --font-family: "Geist Mono"
 }

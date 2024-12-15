@@ -1,6 +1,22 @@
-<div class="challenge">
+<div class="challenge">  
+    {% if challenge.rating <= 1 %}
+        <span class="difficulty very-easy">[ Very easy ]</span>
+    {% elif challenge.rating <= 2 %}
+        <span class="difficulty easy">[ Easy ]</span>
+    {% elif challenge.rating <= 2 %}
+        <span class="difficulty yes">[ Yes ]</span>
+    {% elif challenge.rating <= 2 %}
+        <span class="difficulty hard">[ Hard ]</span>
+    {% else %}
+        <span class="difficulty very-hard">[ Very hard ]</span>
+    {% endif %}
+
     <a onclick="window.location.href='/app/challenge/{{ challenge.id }}'">{{ challenge.name }}</a>
-    {{ challenge.rating }}
+
+    {% if challenge.and_gates or challenge.or_gates or challenge.not_gates or challenge.xor_gates %}
+        Limited gates
+    {% endif %}
+
     {% if current_user.moderator %}
         <button onclick="window.location.href='/app/challenge/{{ challenge.id }}/moderation'">MOD</button>
     {% endif %}
