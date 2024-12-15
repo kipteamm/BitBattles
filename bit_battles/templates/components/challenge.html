@@ -1,14 +1,14 @@
 <div class="challenge">  
     {% if challenge.rating <= 1 %}
-        <span class="difficulty very-easy">[ Very easy ]</span>
+        <b class="difficulty very-easy">[ Very easy ]</b>
     {% elif challenge.rating <= 2 %}
-        <span class="difficulty easy">[ Easy ]</span>
+        <b class="difficulty easy">[ Easy ]</b>
     {% elif challenge.rating <= 2 %}
-        <span class="difficulty yes">[ Yes ]</span>
+        <b class="difficulty yes">[ Yes ]</b>
     {% elif challenge.rating <= 2 %}
-        <span class="difficulty hard">[ Hard ]</span>
+        <b class="difficulty hard">[ Hard ]</b>
     {% else %}
-        <span class="difficulty very-hard">[ Very hard ]</span>
+        <b class="difficulty very-hard">[ Very hard ]</b>
     {% endif %}
 
     <a onclick="window.location.href='/app/challenge/{{ challenge.id }}'">{{ challenge.name }}</a>

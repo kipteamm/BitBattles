@@ -32,19 +32,19 @@
     text-decoration: underline;
 }
 
-.challenge span.very-easy {
+.challenge b.very-easy {
     color: var(--success-acc);
 }
-.challenge span.easy {
+.challenge b.easy {
     color: var(--success);
 }
-.challenge span.yes {
+.challenge b.yes {
     color: var(--passed);
 }
-.challenge span.hard {
+.challenge b.hard {
     color: var(--failed);
 }
-.challenge span.very-hard {
+.challenge b.very-hard {
     color: var(--failed-acc);
 }
 
