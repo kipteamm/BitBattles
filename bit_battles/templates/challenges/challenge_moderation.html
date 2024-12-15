@@ -1,0 +1,25 @@
+{% extends "bases/app_base.html" %}
+
+{% block content %}
+    <link rel="stylesheet" type="text/css" href="/static/css/new_battle.css">
+
+    <form method="POST">
+        <div class="setting">
+            <b>Official</b>
+            <input type="checkbox" name="official"{% if challenge.official%} checked{% endif %}>
+        </div>
+        
+        <div class="setting">
+            <b>Rating</b>
+            <select name="inputs">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+        </div>
+
+        <button type="submit">Save</button>
+    </form>
+{% endblock %}  

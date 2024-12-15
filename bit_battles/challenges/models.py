@@ -144,6 +144,7 @@ class Challenge(db.Model):
 
     official = db.Column(db.Boolean(), default=False)
     rating = db.Column(db.Integer(), default=0)
+    
     difficulty = db.Column(db.Integer(), default=0)
     ratings = db.Column(db.Integer(), default=0)
 
@@ -199,7 +200,10 @@ class Challenge(db.Model):
             "xor_gates": self.xor_gates,
             "inputs": self.inputs,
             "outputs": outputs,
-            "description": self.description
+            "name": self.name,
+            "description": self.description,
+            "official": self.official,
+            "rating": self.rating
         }
 
 

@@ -30,3 +30,16 @@ def validate_int(value: int, min: int=0, max: int=0) -> tuple[t.Optional[int], s
         return None, f"Maximum value is {max}"
     
     return value, "No error"
+
+
+def validate_bool(value: t.Union[str, bool]) -> tuple[t.Optional[int], str]:
+    if isinstance(value, bool):
+        return value, "No error"
+    
+    if value == "on":
+        return True, "No error"
+    
+    if value == "off":
+        return False, "No error"
+    
+    return None, "Invalid boolean"

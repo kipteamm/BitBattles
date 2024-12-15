@@ -18,6 +18,8 @@ class User(UserMixin, db.Model):
     token = db.Column(db.String(128), nullable=True)
     battle_token = db.Column(db.String(128), nullable=True)
     
+    moderator = db.Column(db.Boolean(), default=False)
+
     username = db.Column(db.String(30), nullable=False, unique=True)
     creation_timestamp = db.Column(db.Float(), nullable=False, unique=False)
 

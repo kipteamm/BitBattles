@@ -1,5 +1,5 @@
 from bit_battles.challenges.models import DailyChallenge, DailyChallengeStatistic, Challenge, ChallengeStatistic
-from bit_battles.utils.forms import validate_int
+from bit_battles.utils.forms import validate_int, validate_bool
 from bit_battles.extensions import db
 
 from flask_login import login_required, current_user
@@ -176,3 +176,35 @@ def edit_challenge(id: str):
     db.session.commit()
 
     return render_template("challenges/edit_challenge.html", challenge=challenge.edit_serialize())
+
+
+@challenges_blueprint.route("/challenge/<string:id>/moderation", methods=["GET", "POST"])
+@login_required
+def challenge_moderation(id: str):
+    challenge: t.Optional[Challenge] = Challenge.query.get(id)
+    if not challenge:
+        return redirect("/app/challenges")
+    
+    if request.method == "GET":
+        return render_template("challenges/challenge_moderation.html", challenge=challenge)
+    
+    official, error = validate_bool(request.form.get("official", "off", str))
+    if not official:
+        flash("Invalid boolean", "error")
+        return render_template("challenges/challenge_moderation.html", challenge=challenge)
+    
+    challenge.official = official
+
+    rating, error = validate_int(request.form.get("rating", 1, int), 1, 5)
+    if not rating:
+        flash("Invalid boolean", "error")
+        return render_template("challenges/challenge_moderation.html", challenge=challenge)
+
+    else:
+        challenge.difficulty = 0
+        challenge.ratings = 0
+
+    challenge.rating = rating
+    db.session.commit()
+
+    return render_template("challenges/challenge_moderation.html", challenge=challenge)

@@ -1,0 +1,11 @@
+{% extends "bases/app_base.html" %}
+
+{% block content %}
+    <link rel="stylesheet" type="text/css" href="/static/css/challenges.css">
+
+    <div class="challenges-container">
+        {% for challenge in challenges %}
+            {% include "components/challenge.html" %}
+        {% endfor %}
+    </div>
+{% endblock %}

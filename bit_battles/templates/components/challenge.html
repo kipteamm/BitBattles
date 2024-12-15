@@ -1,3 +1,10 @@
 <div class="challenge">
-    {{ challenge.name }}
+    <a onclick="window.location.href='/app/challenge/{{ challenge.id }}'">{{ challenge.name }}</a>
+    {{ challenge.rating }}
+    {% if current_user.moderator %}
+        <button onclick="window.location.href='/app/challenge/{{ challenge.id }}/moderation'">MOD</button>
+    {% endif %}
+    {% if current_user.id == challenge.user_id %}
+        <button onclick="window.location.href='/app/challenge/{{ challenge.id }}/edit'">EDIT</button>
+    {% endif %}
 </div>
