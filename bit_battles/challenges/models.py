@@ -181,7 +181,8 @@ class Challenge(db.Model):
             "not_gates": self.not_gates,
             "xor_gates": self.xor_gates,
             "truthtable": json.loads(self.truthtable),
-            "description": self.description
+            "description": self.description,
+            "official": self.official,
         }
 
     def edit_serialize(self) -> dict:
