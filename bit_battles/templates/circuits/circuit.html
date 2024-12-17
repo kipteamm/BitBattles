@@ -16,7 +16,8 @@
     <script src="/static/js/circuit.js"></script>
 
     <script>
-        const circuit = {{ circuit|tojson }}; 
+        const circuit = {{ circuit|tojson }};
+        const truthtable = {{ truthtable|tojson }};
     </script>
 </head>
 <body>
@@ -33,6 +34,13 @@
         <button onclick="toggleSelectGate('OR')">OR</button>
         <button onclick="toggleSelectGate('NOT')">NOT</button>
         <button onclick="toggleSelectGate('XOR')">XOR</button>
+        <button onclick="test(truthtable, false)">Test</button>
+    </div>
+
+    <div class="truthtable" id="truthtable">
+        <div class="test" id="test-column">
+            <div class="title">Pass</div>
+        </div>
     </div>
 
     <div class="canvasContainer">
