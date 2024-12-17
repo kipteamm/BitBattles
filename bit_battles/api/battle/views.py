@@ -54,7 +54,7 @@ def start_battle(id):
     table = TableGenerator(battle.inputs, battle.outputs, None).table
     battle.truthtable = json.dumps(table)
     battle.stage = "battle"
-    battle.started_on = time.time()
+    battle.started_on = time.time() + 3
     db.session.commit()
     
     socketio.emit("update_battle", battle.serialize(), to=battle.id)

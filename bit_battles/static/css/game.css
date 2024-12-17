@@ -47,6 +47,25 @@ body {
     text-align: center;
 }
 
+.countdown {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
+    height: 100vh;
+}
+
+.countdown.active h2 {
+    transform: scale(1);
+    color: black;
+}
+.countdown h2 {
+    transform: scale(100);
+    color: white;
+    font-size: 100px;
+    transition: 1s ease-in;
+}
+
 .result-contents h2 {
     text-align: center;
 }

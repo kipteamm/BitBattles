@@ -3,6 +3,7 @@ let truthtable;
 let alertsElement;
 let resultsPlayerList;
 let currentStage = null;
+let countdownElement;
 
 if (document.readyState !== 'loading') {
     gameInit();
@@ -17,6 +18,7 @@ function gameInit() {
     truthtable = document.getElementById("truthtable");
     alertsElement = document.getElementById("alerts");
     resultsPlayerList = document.getElementById("results-player-list");
+    countdownElement = document.getElementById("countdown");
     loadStage(battle.stage);
 }
 
@@ -46,9 +48,40 @@ function resetGame() {
     alerts = [];
 }
 
+const countdownSound = new Audio("/static/audio/countdown.mp3");
 let gamesCounter = 0;
+let timer = 3;
 
-function loadStage(stage) {
+function countDown() {
+    countdownSound.pause();
+    countdownSound.currentTime = 0;
+    countdownSound.volume = 0.2;
+    countdownSound.play();
+
+    return new Promise((resolve) => {
+        const updateCountdown = () => {
+            countdownElement.classList.add("active");
+            countdownElement.innerHTML = `<h2>${timer}</h2>`;
+
+            setTimeout(() => {countdownElement.classList.remove("active");}, 300);
+        };
+
+        updateCountdown();
+
+        const interval = setInterval(() => {
+            timer--;
+            if (timer === 0) {
+                clearInterval(interval);
+                countdownElement.innerHTML = "";
+                resolve();
+                return;
+            }
+            updateCountdown();
+        }, 1000);
+    });
+}
+
+async function loadStage(stage) {
     if (currentStage) currentStage.classList.remove("active");
     currentStage = document.getElementById(stage);
     currentStage.classList.add("active");
@@ -57,6 +90,11 @@ function loadStage(stage) {
         resetGame();
     }
     if (stage === "battle") {
+        timer = 3;
+        await countDown();
+        loadStage("start-battle");
+    }
+    if (stage === "start-battle") {
         secondsElapsed = Math.round((new Date().getTime() / 1000) - battle.started_on)
         timerElement.textContent = formatTime(secondsElapsed);
         loadGateButtons(battle.gates);
