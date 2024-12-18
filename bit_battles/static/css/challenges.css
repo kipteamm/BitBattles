@@ -48,6 +48,13 @@
     color: var(--failed-acc);
 }
 
+.challenge b.status {
+    color: #c0c0c0;
+}
+.challenge b.status.completed {
+    color: #ceb04e;
+}
+
 .challenge button {
     margin: 0px auto;
 }

@@ -14,7 +14,13 @@
     <a onclick="window.location.href='/app/challenge/{{ challenge.id }}'">{{ challenge.name }}</a>
 
     {% if challenge.and_gates or challenge.or_gates or challenge.not_gates or challenge.xor_gates %}
-        Limited gates
+        (Limited gates)
+    {% endif %}
+
+    {% if challenge.completed %}
+        <b class="status completed">[ Completed ]</b>
+    {% else %}
+        <b class="status">[ Not completed ]</b>
     {% endif %}
 
     {% if current_user.moderator %}

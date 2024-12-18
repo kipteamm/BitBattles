@@ -4,6 +4,7 @@ from bit_battles.auth.models import User
 from bit_battles.extensions import db
 from bit_battles.config import PATH_WEIGHT, GATE_WEIGHT, DURATION_WEIGHT
 
+from flask_login import current_user 
 from datetime import datetime, timezone, timedelta
 
 import string
@@ -176,11 +177,14 @@ class Challenge(db.Model):
         return {
             "id": self.id,
             "user_id": self.user_id,
+            "completed": ChallengeStatistic.query.filter_by(challenge_id=self.id, user_id=current_user.id).first() is not None,
             "and_gates": self.and_gates,
             "or_gates": self.or_gates,
             "not_gates": self.not_gates,
             "xor_gates": self.xor_gates,
             "truthtable": json.loads(self.truthtable),
+            "name": self.name,
+            "rating": self.rating,
             "description": self.description,
             "official": self.official,
         }

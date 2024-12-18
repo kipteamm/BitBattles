@@ -62,7 +62,7 @@ def daily_challenge():
 @challenges_blueprint.get("/challenges")
 @login_required
 def challenges():
-    challenges = Challenge.query.all()
+    challenges = [challenge.serialize() for challenge in Challenge.query.all()]
     return render_template("challenges/challenges.html", challenges=challenges)
 
 
