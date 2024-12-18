@@ -17,10 +17,16 @@
         (Limited gates)
     {% endif %}
 
-    {% if challenge.completed %}
-        <b class="status completed">[ Completed ]</b>
-    {% else %}
-        <b class="status">[ Not completed ]</b>
+    {% if not challenge.editing %}
+        <b title="{{ challenge.users_finished }} completed this challenge">[ 👩‍🔧 {{ challenge.users_finished }} ]</b>
+    {% endif %}
+
+    {% if not challenge.editing %}
+        {% if challenge.completed %}
+            <b class="status completed">[ Completed ]</b>
+        {% else %}
+            <b class="status">[ Not completed ]</b>
+        {% endif %}
     {% endif %}
 
     {% if current_user.moderator %}

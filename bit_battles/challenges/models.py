@@ -177,7 +177,6 @@ class Challenge(db.Model):
         return {
             "id": self.id,
             "user_id": self.user_id,
-            "completed": ChallengeStatistic.query.filter_by(challenge_id=self.id, user_id=current_user.id, passed=True).first() is not None,
             "and_gates": self.and_gates,
             "or_gates": self.or_gates,
             "not_gates": self.not_gates,
@@ -187,6 +186,9 @@ class Challenge(db.Model):
             "rating": self.rating,
             "description": self.description,
             "official": self.official,
+            "users_finished": ChallengeStatistic.query.filter_by(challenge_id=self.id, passed=True).count(),
+            "completed": ChallengeStatistic.query.filter_by(challenge_id=self.id, user_id=current_user.id, passed=True).first() is not None,
+            "editing": False
         }
 
     def edit_serialize(self) -> dict:
@@ -208,7 +210,8 @@ class Challenge(db.Model):
             "name": self.name,
             "description": self.description,
             "official": self.official,
-            "rating": self.rating
+            "rating": self.rating,
+            "editing": True
         }
 
 
