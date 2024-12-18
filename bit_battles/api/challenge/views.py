@@ -50,7 +50,8 @@ def daily_submit(date):
     try:
         passed, longest_path = Simulate(
             gates, 
-            wires
+            wires,
+            {}
             ).test(json.loads(challenge.truthtable))
 
         gates_used = len(gates) - 5
@@ -138,9 +139,17 @@ def challenge_submit(challenge_id):
     challenge_statistic.attempts += 1
 
     try:
+        gate_limits = {
+            "AND": challenge.and_gates,
+            "OR": challenge.or_gates,
+            "NOT": challenge.not_gates,
+            "XOR": challenge.xor_gates
+        }
+
         passed, longest_path = Simulate(
             gates, 
-            wires
+            wires,
+            gate_limits
             ).test(json.loads(challenge.truthtable))
 
         gates_used = len(gates) - challenge.inputs - challenge.outputs

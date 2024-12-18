@@ -61,9 +61,11 @@
                 <button onclick="{% if challenge.passed or challenge.rated or challenge.official %}window.location.href='/app/challenges'{% else %}loadStage('difficulty'){% endif %}">Exit</button>
             </div>
 
-            <div class="description">
-                {{ challenge.description|safe }}
-            </div>
+            {% if challenge.description %}
+                <div class="description">
+                    {{ challenge.description|safe }}
+                </div>
+            {% endif %}
         </div>
     </div>
 

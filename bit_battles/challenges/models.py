@@ -177,7 +177,7 @@ class Challenge(db.Model):
         return {
             "id": self.id,
             "user_id": self.user_id,
-            "completed": ChallengeStatistic.query.filter_by(challenge_id=self.id, user_id=current_user.id).first() is not None,
+            "completed": ChallengeStatistic.query.filter_by(challenge_id=self.id, user_id=current_user.id, passed=True).first() is not None,
             "and_gates": self.and_gates,
             "or_gates": self.or_gates,
             "not_gates": self.not_gates,

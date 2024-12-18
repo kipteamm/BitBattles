@@ -33,13 +33,14 @@ class TableGenerator:
 
 
 class Simulate:
-    def __init__(self, gates: list[dict], wires: list[dict]) -> None:
+    def __init__(self, gates: list[dict], wires: list[dict], gate_limits: dict) -> None:
         self._gates = gates
         self._wires = wires
         self._wire_lookup = defaultdict(list)
         self._input_lookup = defaultdict(dict)
         self._outputs = []
         self._prepared = False
+        self._gate_limits = gate_limits
 
     def _get_input_wires(self, gate: dict) -> list:
         wires: t.Optional[list[dict]] = []
@@ -84,7 +85,15 @@ class Simulate:
             self._wire_lookup[f"{wire['startX']},{wire['startY']}"].append(wire)
             self._wire_lookup[f"{wire['endX']},{wire['endY']}"].append(wire)
 
+        gate_counts = defaultdict(int)
         for gate in self._gates:
+            gate_counts[gate["type"]] += 1
+            limit = self._gate_limits.get(gate["type"])
+
+            if limit:
+                if gate_counts[gate["type"]] > limit:
+                    raise ValueError(f"Maximum amount of {gate['type']} gates exceeded.")
+
             gate["inputStates"] = self._get_input_wires(gate)
             gate["path"] = {"input": None, "gates": 0}
 

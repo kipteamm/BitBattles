@@ -117,7 +117,8 @@ def submit(id):
     try:
         passed, longest_path = Simulate(
             gates, 
-            wires
+            wires,
+            {}
             ).test(json.loads(battle.truthtable))
 
         gates_used = len(gates) - battle.inputs - battle.outputs
