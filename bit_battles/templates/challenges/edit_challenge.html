@@ -56,4 +56,6 @@
         <textarea name="description" placeholder="Text after completion">{% if challenge.description %}{{ challenge.description }}{% endif %}</textarea>
         <button type="submit">Save</button>
     </form>
+
+    <button type="button" onclick="window.location.href='/app/challenge/{{ challenge.id }}/delete'">Delete</button>
 {% endblock %}

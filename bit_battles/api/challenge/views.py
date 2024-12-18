@@ -223,7 +223,7 @@ def rate_challenge(challenge_id):
     if not challenge_statistic:
         return {"error": "You don't have any results for this challenge."}, 400
 
-    challenge: t.Optional[Challenge] = Challenge.query.filter_by(challenge_id=challenge_id, official=False).first()
+    challenge: t.Optional[Challenge] = Challenge.query.filter_by(id=challenge_id, official=False).first()
     if not challenge:
         return {"error": "Challenge not found."}, 400
 
@@ -231,7 +231,7 @@ def rate_challenge(challenge_id):
     weight = min(round(math.sqrt(ChallengeStatistic.query.filter_by(user_id=user.id, passed=True).count())), 10)
     challenge.ratings += weight
     challenge.difficulty += weight * difficulty
-    challenge.rating = round(challenge.difficulty/challenge.ratings)
+    challenge.rating = math.floor(challenge.difficulty/challenge.ratings)
 
     db.session.commit()
 

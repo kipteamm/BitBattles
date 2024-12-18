@@ -202,6 +202,22 @@ def edit_challenge(id: str):
     return render_template("challenges/edit_challenge.html", challenge=challenge.edit_serialize())
 
 
+@challenges_blueprint.route("/challenge/<string:id>/delete", methods=["GET"])
+@login_required
+def delete_challenge(id: str):
+    challenge: t.Optional[Challenge] = Challenge.query.get(id)
+    if not challenge:
+        return redirect("/app/challenges")
+    
+    if not challenge.user_id == current_user.id and not current_user.moderator:
+        return redirect("/app/challenges")
+
+    db.session.delete(challenge)
+    db.session.commit()
+
+    return redirect("/app/challenges")
+
+
 @challenges_blueprint.route("/challenge/<string:id>/moderation", methods=["GET", "POST"])
 @login_required
 def challenge_moderation(id: str):
