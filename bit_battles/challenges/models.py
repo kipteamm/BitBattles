@@ -213,6 +213,21 @@ class Challenge(db.Model):
             "rating": self.rating,
             "editing": True
         }
+    
+    def list_serialize(self, editing: bool) -> dict:
+        data = {
+            "id": self.id,
+            "name": self.name,
+            "rating": self.rating,
+            "editing": editing,
+        }
+
+        if not editing:
+            data["official"] = self.official
+            data["users_finished"] = ChallengeStatistic.query.filter_by(challenge_id=self.id, passed=True).count()
+            data["completed"] = ChallengeStatistic.query.filter_by(challenge_id=self.id, user_id=current_user.id, passed=True).first() is not None
+
+        return data
 
 
 class ChallengeStatistic(db.Model):

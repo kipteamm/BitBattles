@@ -61,5 +61,5 @@ def challenges(username: str):
     return render_template(
         "app/challenges.html", 
         user=user, 
-        challenges=Challenge.query.filter_by(user_id=user.id).all()
+        challenges=[challenge.list_serialize(True) for challenge in Challenge.query.filter_by(user_id=user.id).all()]
     )

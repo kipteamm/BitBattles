@@ -32,7 +32,7 @@
     {% if current_user.moderator %}
         <button onclick="window.location.href='/app/challenge/{{ challenge.id }}/moderation'">MOD</button>
     {% endif %}
-    {% if current_user.id == challenge.user_id %}
+    {% if challenge.editing %}
         <button onclick="window.location.href='/app/challenge/{{ challenge.id }}/edit'">EDIT</button>
     {% endif %}
 </div>
