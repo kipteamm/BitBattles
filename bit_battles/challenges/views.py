@@ -1,4 +1,4 @@
-from bit_battles.challenges.functions import get_daily_leaderboard
+from bit_battles.challenges.functions import get_daily_leaderboard, get_challenge_leaderboard
 from bit_battles.challenges.models import DailyChallenge, DailyChallengeStatistic, Challenge, ChallengeStatistic
 from bit_battles.utils.forms import validate_int, validate_bool
 from bit_battles.extensions import db
@@ -90,16 +90,7 @@ def challenge_results(id: str):
     if not challenge_statistic:
         return redirect(f"/app/challenge/{challenge.id}")
     
-    results = ChallengeStatistic.query.filter(
-        ChallengeStatistic.passed == True, # type: ignore
-        ChallengeStatistic.challenge_id == challenge.id
-    ).order_by(
-        ChallengeStatistic.score.desc(), # type: ignore
-        ChallengeStatistic.duration,
-        ChallengeStatistic.started_on.desc() # type: ignore
-    ).limit(10).all()
-
-    results = [result.leaderboard_serialize() for result in results]
+    results = get_challenge_leaderboard(id)
     return render_template("challenges/challenge_results.html", challenge=challenge, results=results)
 
 

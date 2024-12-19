@@ -2,7 +2,7 @@ from bit_battles.utils.snowflakes import SnowflakeGenerator
 from bit_battles.utils.functions import relative_timestamp
 from bit_battles.auth.models import User
 from bit_battles.extensions import db
-from bit_battles.config import PATH_WEIGHT, GATE_WEIGHT, DURATION_WEIGHT
+from bit_battles.config import PATH_WEIGHT, GATE_WEIGHT
 
 from sqlalchemy import func
 
@@ -78,7 +78,7 @@ class Battle(db.Model):
         shortest_path, least_gates, longest_submission_on = metrics
         shortest_path = shortest_path * PATH_WEIGHT
         least_gates = least_gates * GATE_WEIGHT
-        longest_duration = (longest_submission_on - self.started_on) * DURATION_WEIGHT
+        longest_duration = (longest_submission_on - self.started_on)
 
         players = Player.query.filter_by(battle_id=self.id).all()
         highest_score, winner = None, None

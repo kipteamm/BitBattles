@@ -66,7 +66,6 @@ def daily_submit(date):
                 challenge_statistic.circuit = id
 
             challenge_statistic.duration = time.time() - challenge_statistic.started_on
-            challenge_statistic.set_score()
 
             cache.delete(f"daily:{date}")
 
@@ -166,7 +165,7 @@ def challenge_submit(challenge_id):
                 challenge_statistic.circuit = id
 
             challenge_statistic.duration = time.time() - challenge_statistic.started_on
-            challenge_statistic.set_score()
+            cache.delete(f"challenge:{challenge_id}")
 
         db.session.commit()
         return {"passed": challenge_statistic.passed}, 200

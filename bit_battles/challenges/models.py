@@ -2,7 +2,6 @@ from bit_battles.utils.snowflakes import SnowflakeGenerator
 from bit_battles.utils.battle import TableGenerator
 from bit_battles.auth.models import User
 from bit_battles.extensions import db
-from bit_battles.config import PATH_WEIGHT, GATE_WEIGHT, DURATION_WEIGHT
 
 from flask_login import current_user 
 from datetime import datetime, timezone, timedelta
@@ -99,13 +98,6 @@ class DailyChallengeStatistic(db.Model):
             streak += 1
 
         return streak
-    
-    def set_score(self) -> None:
-        self.score = round(
-            (GATE_WEIGHT / max(self.gates, 1)) 
-            + (PATH_WEIGHT / max(self.longest_path, 1)) 
-            + (DURATION_WEIGHT / max(self.duration, 1))
-        )
 
     def leaderboard_serialize(self) -> dict:
         user = User.query.with_entities(
@@ -267,13 +259,6 @@ class ChallengeStatistic(db.Model):
         db.session.commit()
 
         return challenge_statistic
-
-    def set_score(self) -> None:
-        self.score = round(
-            (GATE_WEIGHT / max(self.gates, 1)) 
-            + (PATH_WEIGHT / max(self.longest_path, 1)) 
-            + (DURATION_WEIGHT / max(self.duration, 1))
-        )
 
     def serialize(self) -> dict:
         return {
