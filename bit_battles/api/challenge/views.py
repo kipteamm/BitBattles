@@ -4,7 +4,7 @@ from bit_battles.utils.circuit import Circuit
 from bit_battles.utils.battle import Simulate
 from bit_battles.utils.forms import validate_int
 from bit_battles.auth.models import User
-from bit_battles.extensions import db
+from bit_battles.extensions import db, cache
 
 from sqlalchemy import func
 from datetime import datetime
@@ -67,6 +67,8 @@ def daily_submit(date):
 
             challenge_statistic.duration = time.time() - challenge_statistic.started_on
             challenge_statistic.set_score()
+
+            cache.delete(f"daily:{date}")
 
         db.session.commit()
         return {"passed": challenge_statistic.passed}, 200

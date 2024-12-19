@@ -10,7 +10,7 @@ from bit_battles.main.views import main_blueprint
 from bit_battles.auth.views import auth_blueprint
 from bit_battles.app.views import app_blueprint
 
-from .extensions import db, socketio
+from .extensions import db, socketio, cache
 from .secrets import SECRET_KEY
 from .config import DEBUG
 
@@ -44,6 +44,7 @@ def create_app() -> Flask:
 
     socketio.init_app(app)
     migrate.init_app(app, db)
+    cache.init_app(app)
     db.init_app(app)
 
     @login_manager.user_loader

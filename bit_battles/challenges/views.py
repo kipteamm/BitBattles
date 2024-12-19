@@ -1,3 +1,4 @@
+from bit_battles.challenges.functions import get_daily_leaderboard
 from bit_battles.challenges.models import DailyChallenge, DailyChallengeStatistic, Challenge, ChallengeStatistic
 from bit_battles.utils.forms import validate_int, validate_bool
 from bit_battles.extensions import db
@@ -19,16 +20,8 @@ challenges_blueprint = Blueprint("challenges", __name__, url_prefix="/app")
 @login_required
 def daily():
     today = datetime.now(timezone.utc).date()
-    dailies = DailyChallengeStatistic.query.filter(
-        DailyChallengeStatistic.passed == True, # type: ignore
-        DailyChallengeStatistic.date == today
-    ).order_by(
-        DailyChallengeStatistic.score.desc(), # type: ignore
-        DailyChallengeStatistic.duration,
-        DailyChallengeStatistic.started_on.desc() # type: ignore
-    ).limit(10).all()
 
-    dailies = [daily.leaderboard_serialize() for daily in dailies]
+    dailies = get_daily_leaderboard(today)
     return render_template("challenges/daily.html", dailies=dailies, passed=DailyChallengeStatistic.query.filter_by(date=today, user_id=current_user.id, passed=True).first() is not None)
 
 
