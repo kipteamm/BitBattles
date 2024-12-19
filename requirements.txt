@@ -1,6 +1,7 @@
 flask-socketio==5.4.1
 Flask-Login==0.6.3
 Flask-Migrate==4.0.7
+flask-caching==2.3.0
 gunicorn==23.0.0
 eventlet==0.37.0
 orjson==3.10.12

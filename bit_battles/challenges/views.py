@@ -19,10 +19,14 @@ challenges_blueprint = Blueprint("challenges", __name__, url_prefix="/app")
 @challenges_blueprint.get("/daily")
 @login_required
 def daily():
-    today = datetime.now(timezone.utc).date()
+    try:
+        date = datetime.strptime(request.args.get("date", ""), "%Y-%m-%d").date()
+    
+    except:
+        date = datetime.now(timezone.utc).date()
 
-    dailies = get_daily_leaderboard(today)
-    return render_template("challenges/daily.html", dailies=dailies, passed=DailyChallengeStatistic.query.filter_by(date=today, user_id=current_user.id, passed=True).first() is not None)
+    dailies = get_daily_leaderboard(date)
+    return render_template("challenges/daily.html", dailies=dailies, passed=DailyChallengeStatistic.query.filter_by(date=date, user_id=current_user.id, passed=True).first() is not None)
 
 
 @challenges_blueprint.get("/challenge/daily")
