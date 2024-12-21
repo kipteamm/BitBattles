@@ -29,7 +29,7 @@
             <h2>Awaiting start</h2>
 
             <p>
-                Share this battle code with your players: <code>{{ battle.id }}</code>
+                Share this battle code with your players: <code>{{ battle.id }} <a class="copy" title="copy" onclick="navigator.clipboard.writeText('{{ battle.id }}');">📋</a></code>
             </p>
 
             <ul id="queue-player-list"></ul>

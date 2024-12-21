@@ -47,6 +47,10 @@ body {
     text-align: center;
 }
 
+.queue a.copy {
+    cursor: pointer;
+}
+
 .countdown {
     display: flex;
     align-items: center;
