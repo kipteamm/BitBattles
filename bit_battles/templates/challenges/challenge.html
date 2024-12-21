@@ -57,8 +57,12 @@
             <div id="player-results"></div>
             
             <div class="exit">
-                <button onclick="window.location.href='/app/challenge/{{ challenge.id }}/results'">Results</button>
-                <button onclick="{% if challenge.passed or challenge.rated or challenge.official %}window.location.href='/app/challenges'{% else %}loadStage('difficulty'){% endif %}">Exit</button>
+                {% if challenge.passed %}<button onclick="window.location.href='/app/challenge/{{ challenge.id }}/results'">Results</button>{% endif %}
+                {% if challenge.passed or challenge.rated or challenge.official %}
+                    <button onclick="window.location.href='/app/challenges'">Exit</button>
+                {% else %}
+                    <button onclick="loadStage('difficulty')">Proceed</button>
+                {% endif %}
             </div>
 
             {% if challenge.description %}

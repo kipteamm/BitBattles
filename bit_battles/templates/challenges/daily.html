@@ -9,7 +9,7 @@
                 <div class="entry user"{% if passed %} onclick="window.open('/app/circuit/daily/{{ daily.circuit }}')"{% endif %}>
                     <span class="position-{{ loop.index }}">[{{ loop.index }}]</span>
                     <img src="https://api.dicebear.com/9.x/shapes/svg?seed={{ daily.username }}&backgroundColor=b6e3f4&size=32" alt="{{ daily.username }}'s avatar">
-                    <h4>{{ daily.username }}{% if daily.streak > 0 %}&emsp;(🔥{{ daily.streak }}){% endif %}</h4>
+                    <h4>{{ daily.username }}{% if daily.user_id == current_user.id %} (You){% endif %}{% if daily.streak > 0 %}&emsp;(🔥{{ daily.streak }}){% endif %}</h4>
                     <i>{% if passed %}View circuit{% else %}Submit to view{% endif %}</i>
                     <span><b>Gates:</b> {{ daily.gates }}</span>                        
                     <span><b>Longest path:</b> {{ daily.longest_path }}</span>                        

@@ -7,10 +7,10 @@
         <h2>{{ challenge.name }}</h2>
         <div class="leaderboard">
             {% for result in results %}
-                <div class="entry user" onclick="window.open('/app/circuit/challenge/{{ result.circuit }}')">
+                <div class="entry user{% if result.user_id == current_user.id %} active{% endif %}" onclick="window.open('/app/circuit/challenge/{{ result.circuit }}')">
                     <span class="position-{{ loop.index }}">[{{ loop.index }}]</span>
                     <img src="https://api.dicebear.com/9.x/shapes/svg?seed={{ result.username }}&backgroundColor=b6e3f4&size=32" alt="{{ result.username }}'s avatar">
-                    <h4>{{ result.username }}</h4>
+                    <h4>{{ result.username }}{% if result.user_id == current_user.id %} (You){% endif %}</h4>
                     <i>View circuit</i>
                     <span><b>Gates:</b> {{ result.gates }}</span>                        
                     <span><b>Longest path:</b> {{ result.longest_path }}</span>           

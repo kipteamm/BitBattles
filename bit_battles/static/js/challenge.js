@@ -249,5 +249,5 @@ async function rate(difficulty) {
         headers: {"Authorization": `Bearer ${getCookie("ut")}`, "Content-Type": "application/json"}
     });
 
-    return window.location.href="/app/challenges"
+    return window.location.href=`/app/challenge/${challenge.id}/results`;
 }
