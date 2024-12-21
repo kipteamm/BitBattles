@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    {% include "components/embed.html" %}
+
+    <title>Bit Battles - Free editor</title>
+    
+    <link rel="stylesheet" type="text/css" href="/static/css/basics.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/game.css">
+
+    <script src="/static/js/editor.js" defer></script>
+    <script src="/static/js/simulation.js"></script>
+    <script src="/static/js/circuit.js"></script>
+
+    <script>
+        const circuit = {{ circuit|tojson }};
+    </script>
+</head>
+<body>
+    <div class="canvasContainer">
+        <canvas id="game"></canvas>
+    </div>
+</body>
+</html>

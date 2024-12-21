@@ -151,6 +151,7 @@ class Player(db.Model):
 
     battle_id = db.Column(db.String(128), db.ForeignKey("battles.id", ondelete="CASCADE"), primary_key=True)
     user_id = db.Column(db.String(128), db.ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    circuit_id = db.Column(db.String(128), default=None, nullable=True)
 
     gates = db.Column(db.Integer(), default=0)
     attempts = db.Column(db.Integer(), default=0)
@@ -166,7 +167,8 @@ class Player(db.Model):
             "longest_path": self.longest_path,
             "submission_on": self.submission_on,
             "passed": self.passed,
-            "score": self.score
+            "score": self.score,
+            "circuit_id": self.circuit_id
         }
     
 

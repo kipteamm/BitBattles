@@ -11,13 +11,15 @@ if (document.readyState !== 'loading') {
 function circuitInit() {
     debugMode();
 
-    truthtableElement = document.getElementById("truthtable");
-    loadTruthtable(truthtable);
     loadGates(circuit.g);
     loadWires(circuit.w);
 
     drawGrid();
     drawCanvas();
+
+    if (!truthtable) return;
+    truthtableElement = document.getElementById("truthtable");
+    loadTruthtable(truthtable);
 }
 
 function loadTruthtable(data) {

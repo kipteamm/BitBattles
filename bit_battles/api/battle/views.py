@@ -1,5 +1,6 @@
 from bit_battles.utils.decorators import battle_authorized
 from bit_battles.battles.models import Battle, Player
+from bit_battles.utils.circuit import Circuit
 from bit_battles.utils.battle import TableGenerator, Simulate
 from bit_battles.auth.models import User
 from bit_battles.extensions import db, socketio
@@ -137,6 +138,10 @@ def submit(id):
     players_passed = Player.query.filter(Player.battle_id == player.battle_id, Player.attempts > 0, Player.passed == True).count()
     
     if passed:
+        success, id = Circuit(gates, wires).save("battle", battle.id, player.user_id)
+        if success:
+            player.circuit_id = id
+
         socketio.emit("finish", {"id": user.id, "username": user.username, "submission_on": player.submission_on, "gates": player.gates, "longest_path": player.longest_path}, to=player.battle_id)
 
     if players == players_passed == 2 or players_passed == 3:

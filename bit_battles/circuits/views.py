@@ -44,3 +44,13 @@ def challenge_circuits(id):
         return redirect(get_back_url(request))
 
     return render_template("circuits/circuit.html", circuit=circuit["circuit"], truthtable=json.loads(challenge.truthtable))
+
+
+@circuits_blueprint.get("/battle/<string:id>")
+@login_required
+def battle_circuits(id):
+    success, circuit = Circuit.load("battle", id)
+    if not success:
+        return redirect(get_back_url(request))
+
+    return render_template("circuits/battle_circuit.html", circuit=circuit["circuit"])

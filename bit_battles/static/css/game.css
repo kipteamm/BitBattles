@@ -76,6 +76,7 @@ body {
 
 .result-contents .player {
     margin: 15px 0px;
+    cursor: pointer;
 }
 .result-contents .player.you {
     margin: 0px -15px;

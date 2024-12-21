@@ -271,7 +271,7 @@ function addResultPlayer(_player, gatesAverage, pathAverage, timeAverage) {
     const gatePerformance = (_player.gates - gatesAverage).toFixed(2);
     const pathPerformance = (_player.longest_path - pathAverage).toFixed(2);
     element.innerHTML = `
-        <h4>[${_player.score}] ${_player.username}${_player.id === player.id? " (you)": ""}</h4>
+        <h4>${_player.username}${_player.id === player.id? " (you)": ""}</h4>
     `
 
     if (_player.passed) {
@@ -290,6 +290,8 @@ function addResultPlayer(_player, gatesAverage, pathAverage, timeAverage) {
             </p>
         `
     }
+    
+    element.setAttribute("onclick", `window.open('/app/circuit/battle/${_player.circuit_id}')`)
     return element;
 }
 
