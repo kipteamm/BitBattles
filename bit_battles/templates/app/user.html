@@ -19,12 +19,13 @@
                     {% set win_rate = ((statistics[statistic].wins / (statistics[statistic].wins + statistics[statistic].loses)) * 100)|round|int %}
                     <div class="statistic battle">
                         <div>
-                            {% if win_rate > 50 %}
+                            {% if win_rate >= 50 %}
                                 [ <span class="won">v</span> ]
-                            {% else %}
+                                You <b>won</b> {{ win_rate }}% of your battles.
+                                {% else %}
                                 [ <span class="passed">•</span> ]
+                                You <b>lost</b> {{ 100 - win_rate }}% of your battles.
                             {% endif %}
-                            You <b>won</b> {{ win_rate }}% of your battles.
                         </div>
                     </div>
 
