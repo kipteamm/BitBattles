@@ -30,18 +30,28 @@ def profile(username: str):
         return redirect(f"/app/user/{current_user.username}")
 
     battle_statistics = defaultdict(list)
-        
+    statistics = defaultdict(dict)
+
     for battle in BattleStatistic.query.filter_by(user_id=user.id).order_by(
-        BattleStatistic.creation_timestamp.desc() # type: ignore
-        ).all():
+        BattleStatistic.creation_timestamp.desc()  # type: ignore
+    ).all():
         name = battle.battle_type.split("-")
-        battle_statistics[f"Inputs: {name[0]} Outputs: {name[1]} Gates: {name[2].replace(',', ', ')}"].append(battle.serialize())
+        key = f"Inputs: {name[0]} Outputs: {name[1]} Gates: {name[2].replace(',', ', ')}"
+        battle_statistics[key].append(battle.serialize())
+
+        if "wins" not in statistics[key]:
+            statistics[key]["wins"] = 0
+        if "loses" not in statistics[key]:
+            statistics[key]["loses"] = 0
+
+        statistics[key]["wins" if battle.winner else "loses"] += 1
 
     return render_template(
         "app/user.html", 
         user=user, 
         streak=DailyChallengeStatistic.get_streak(user.id), 
-        statistics=battle_statistics
+        battle_statistics=battle_statistics,
+        statistics=statistics
     )
 
 

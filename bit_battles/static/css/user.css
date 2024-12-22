@@ -21,10 +21,16 @@
 details,
 summary h4 {
     display: inline-block;
+    margin: 0px;
 }
 
 details {
     width: 450px;
+    margin: 20px;
+}
+
+.battle.statistic {
+    margin: 5px 0px 15px 0px;
 }
 
 .battle {

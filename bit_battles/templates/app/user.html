@@ -11,11 +11,23 @@
                 <b>Daily streak: {{ streak }}</b>
             </div>
         </div>
-    
+
         <div class="battle-history">
-            {% for statistic, values in statistics.items() %}
+            {% for statistic, values in battle_statistics.items() %}
                 <details>
                     <summary><h4>{{ statistic }}</h4></summary>
+                    {% set win_rate = ((statistics[statistic].wins / (statistics[statistic].wins + statistics[statistic].loses)) * 100)|round|int %}
+                    <div class="statistic battle">
+                        <div>
+                            {% if win_rate > 50 %}
+                                [ <span class="won">v</span> ]
+                            {% else %}
+                                [ <span class="passed">•</span> ]
+                            {% endif %}
+                            You <b>won</b> {{ win_rate }}% of your battles.
+                        </div>
+                    </div>
+
                     {% for battle in values %}  
                         <div class="battle">
                             <div>
