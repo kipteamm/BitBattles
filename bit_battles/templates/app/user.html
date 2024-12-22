@@ -14,39 +14,43 @@
 
         <div class="battle-history">
             {% for statistic, values in battle_statistics.items() %}
-                <details>
-                    <summary><h4>{{ statistic }}</h4></summary>
-                    {% set win_rate = ((statistics[statistic].wins / (statistics[statistic].wins + statistics[statistic].loses)) * 100)|round|int %}
-                    <div class="statistic battle">
-                        <div>
-                            {% if win_rate >= 50 %}
-                                [ <span class="won">v</span> ]
-                                You <b>won</b> {{ win_rate }}% of your battles.
-                                {% else %}
-                                [ <span class="passed">•</span> ]
-                                You <b>lost</b> {{ 100 - win_rate }}% of your battles.
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    {% for battle in values %}  
+                <div class="battle-type">
+                    <h4>{{ statistic }}</h4>
+                    <details>
+                        <summary>
+                        {% set win_rate = ((statistics[statistic].wins / (statistics[statistic].wins + statistics[statistic].loses)) * 100)|round|int %}
                         <div class="battle">
                             <div>
-                                {% if battle.winner %}
+                                {% if win_rate >= 50 %}
                                     [ <span class="won">v</span> ]
-                                    You <b>won</b> this battle.
-                                {% elif not battle.passed %}
-                                    [ <span class="failed">x</span> ]
-                                    You <b>failed</b> this battle.
-                                {% else %}
+                                    You <b>won</b> {{ win_rate }}% of your battles.
+                                    {% else %}
                                     [ <span class="passed">•</span> ]
-                                    You <b>lost</b> this battle.
+                                    You <b>lost</b> {{ 100 - win_rate }}% of your battles.
                                 {% endif %}
                             </div>
-                            <i>{{ battle.relative_timestamp }}</i>
                         </div>
-                    {% endfor %}
-                </details>
+                        </summary>
+
+                        {% for battle in values %}  
+                            <div class="battle statistic">
+                                <div>
+                                    {% if battle.winner %}
+                                        [ <span class="won">v</span> ]
+                                        You <b>won</b> this battle.
+                                    {% elif not battle.passed %}
+                                        [ <span class="failed">x</span> ]
+                                        You <b>failed</b> this battle.
+                                    {% else %}
+                                        [ <span class="passed">•</span> ]
+                                        You <b>lost</b> this battle.
+                                    {% endif %}
+                                </div>
+                                <i>{{ battle.relative_timestamp }}</i>
+                            </div>
+                        {% endfor %}
+                    </details>
+                </div>
             {% endfor %}
         </div>
     </div>
