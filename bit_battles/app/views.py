@@ -36,7 +36,7 @@ def profile(username: str):
         BattleStatistic.creation_timestamp.desc()  # type: ignore
     ).all():
         name = battle.battle_type.split("-")
-        key = f"Inputs: {name[0]} Outputs: {name[1]} Gates: {name[2].replace(',', ', ')}"
+        key = f"Inputs: {name[0]}&emsp;&nbsp;Outputs: {name[1]}&emsp;&nbsp;Gates: {name[2].replace(',', ', ')}"
         battle_statistics[key].append(battle.serialize())
 
         if "wins" not in statistics[key]:

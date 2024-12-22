@@ -15,7 +15,7 @@
         <div class="battle-history">
             {% for statistic, values in battle_statistics.items() %}
                 <div class="battle-type">
-                    <h4>{{ statistic }}</h4>
+                    <h4>{{ statistic|safe }}</h4>
                     <details>
                         <summary>
                         {% set win_rate = ((statistics[statistic].wins / (statistics[statistic].wins + statistics[statistic].loses)) * 100)|round|int %}
