@@ -25,7 +25,7 @@ def battles():
 
         winners = sorted([winner.leaderboard_serialize() for winner in winners], key=lambda x: x["score"], reverse=True)
 
-        return render_template("battles/battles.html", winners=winners)
+        return render_template("battles/battles.html", winners=winners, battles=Battle.query.filter_by(private=False, stage="queue").count())
     
     player = Player.query.filter_by(user_id=current_user.id).first()
     if player:
