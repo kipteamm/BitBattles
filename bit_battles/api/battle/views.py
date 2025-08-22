@@ -144,11 +144,47 @@ def submit(id):
 
         socketio.emit("finish", {"id": user.id, "username": user.username, "submission_on": player.submission_on, "gates": player.gates, "longest_path": player.longest_path}, to=player.battle_id)
 
-    if players == players_passed == 2 or players_passed == 3:
+    if players_passed + 1 == min(players, 3):
+        socketio.emit("give_up", to=battle.id)
+        db.session.commit()
+        return {"passed": passed}, 200
+
+    if (players_passed == 2 and players == 2) or players_passed == 3:
         battle.score_players()
         battle.stage = "results"
         socketio.emit("update_battle", battle.serialize(), to=battle.id)
 
     db.session.commit()
-
     return {"passed": passed}, 200
+
+
+@battle_api_blueprint.patch("/battle/<string:id>/give-up")
+@battle_authorized
+def give_up(id):
+    battle: t.Optional[Battle] = Battle.query.get(id)
+    if not battle:
+        return {"error": "Battle not found."}, 400
+    
+    user: User = g.user
+    player: t.Optional[Player] = Player.query.filter_by(battle_id=id, user_id=user.id).first()
+    if not player:
+        return {"error": "You are not in this battle."}, 400
+
+    players_passed = Player.query.filter(Player.battle_id == player.battle_id, Player.attempts > 0, Player.passed == True).count() + 1
+    players = battle.players.count()
+
+    if players_passed < min(players, 3):
+        return {"error": "You can't yet give up."}, 400
+    
+    user: User = g.user
+    player: t.Optional[Player] = Player.query.filter_by(battle_id=id, user_id=user.id).first()
+    if not player:
+        return {"error": "You are not in this battle."}, 400
+    
+    if (players_passed == 2 and players == 2) or players_passed == 3:
+        battle.score_players()
+        battle.stage = "results"
+        socketio.emit("update_battle", battle.serialize(), to=battle.id)
+    
+    db.session.commit()
+    return {"success": True}, 204

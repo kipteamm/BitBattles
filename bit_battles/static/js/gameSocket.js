@@ -23,6 +23,9 @@ socket.on("player_leave", function(data) {
 
 socket.on("finish", function(data) {
     sendAlert(`${data.username} finished in ${formatSeconds(data.submission_on - battle.started_on)} with ${data.gates} gate${data.gates === 1? "": "s"} (longest path: ${data.longest_path})`);
+    if (data.username !== player.username) return;
+
+    player.finished = true;
 });
 
 socket.on("update_battle", function(data) {
@@ -32,4 +35,13 @@ socket.on("update_battle", function(data) {
 
 socket.on("disband", function() {
     return window.location.href="/app/battles";
+});
+
+socket.on("give_up", function() {
+    if (player.finished) return;
+    const giveUp = document.getElementById("give-up");
+    giveUp.classList.add("active");
+
+    giveUp.style.top = `${37.5 + truthtable.offsetHeight}px`;
+    sendAlert("If you no longer see a way out, a wild give up button has appeared.");
 });

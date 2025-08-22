@@ -127,13 +127,6 @@ class Battle(db.Model):
         db.session.bulk_save_objects(battle_statistics)
         db.session.commit()
 
-        # Ensure a directory for storing JSON files
-        os.makedirs("battle_data", exist_ok=True)
-        json_file_path = os.path.join("battle_data", f"{self.id}-{self.started_on}.json")
-
-        with open(json_file_path, "w") as json_file:
-            json.dump({"battle_id": self.id, "players": battle_data,}, json_file, indent=4)
-
     def serialize(self) -> dict:
         return {
             "id": self.id,

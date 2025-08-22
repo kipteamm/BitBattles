@@ -193,6 +193,15 @@ div.cell.on {
     background-color: var(--success);
 }
 
+button.give-up {
+    display: none;
+    position: absolute;
+    right: 25px;
+}
+button.give-up.active {
+    display: block;
+}
+
 canvas {
     display: block;
     padding: 0;

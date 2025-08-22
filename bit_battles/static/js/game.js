@@ -91,6 +91,7 @@ async function loadStage(stage) {
     }
     if (stage === "battle") {
         timer = 3;
+        player.finished = false;
         await countDown();
         loadStage("start-battle");
     }
@@ -348,4 +349,13 @@ function formatSeconds(seconds) {
     const remainingSeconds = (seconds % 60).toFixed(3);
 
     return `${minutes}m ${remainingSeconds}s`;
+}
+
+async function giveUp() {
+    const response = await fetch(`/api/battle/${battle.id}/give-up`, {
+        method: "PATCH",
+        headers: {"Authorization": `Bearer ${getCookie("bt")}`}
+    });
+
+    if (!response.ok) return;
 }
