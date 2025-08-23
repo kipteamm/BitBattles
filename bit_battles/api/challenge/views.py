@@ -1,7 +1,7 @@
+from bit_battles.minigames.logic_simulation import Simulate
 from bit_battles.challenges.models import DailyChallengeStatistic, DailyChallenge, Challenge, ChallengeStatistic
 from bit_battles.utils.decorators import user_authorized
 from bit_battles.utils.circuit import Circuit
-from bit_battles.utils.battle import Simulate
 from bit_battles.utils.forms import validate_int
 from bit_battles.auth.models import User
 from bit_battles.extensions import db, cache

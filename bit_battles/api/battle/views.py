@@ -1,7 +1,8 @@
+from bit_battles.minigames.logic_simulation import Simulate
+from bit_battles.minigames.truthtables import TableGenerator
 from bit_battles.utils.decorators import battle_authorized
 from bit_battles.battles.models import Battle, Player
 from bit_battles.utils.circuit import Circuit
-from bit_battles.utils.battle import TableGenerator, Simulate
 from bit_battles.auth.models import User
 from bit_battles.extensions import db, socketio
 

@@ -1,5 +1,5 @@
+from bit_battles.minigames.truthtables import TableGenerator
 from bit_battles.utils.snowflakes import SnowflakeGenerator
-from bit_battles.utils.battle import TableGenerator
 from bit_battles.auth.models import User
 from bit_battles.extensions import db
 
