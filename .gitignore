@@ -26,3 +26,10 @@ battle_data/*
 # Circuits
 circuits.sqlite3
 circuits.sqlite3-journal
+
+# C++
+cmake-build-debug/
+.idea/
+
+# JS
+node_modules/

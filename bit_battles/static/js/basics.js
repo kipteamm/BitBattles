@@ -4,9 +4,7 @@ function getCookie(name) {
 
     for (const cookie of cookies) {
         const [cookieName, cookieValue] = cookie.trim().split('=');
-        if (cookieName === name) {
-            return cookieValue;
-        }
+        if (cookieName === name) return cookieValue;
     }
 
     return null;
