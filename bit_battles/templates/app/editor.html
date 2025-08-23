@@ -11,7 +11,8 @@
     <link rel="stylesheet" type="text/css" href="/static/css/basics.css">
     <link rel="stylesheet" type="text/css" href="/static/css/game.css">
 
-    <script src="/static/js/editor.js" defer></script>
+    <script src="/static/js/editor.js"></script>
+    <script src="/static/js/circuitEditor.js"></script>
     <script src="/static/js/simulation.js"></script>
 </head>
 <body>
@@ -19,18 +20,21 @@
         <button onclick="if(window.history.length>1){window.history.back();}else{window.location.href='/app/battles';}">🏠</button>
     </div>
 
-    <div class="toolbar">
+    <div class="toolbar" id="toolbar">
         <button onclick="debugMode()">🖐</button>
         <button onclick="editMode()">🔧</button>
+
+        <!--
         <button onclick="toggleSelectGate('INPUT')">INPUT</button>
         <button onclick="toggleSelectGate('OUTPUT')">OUTPUT</button>
         <button onclick="toggleSelectGate('AND')">AND</button>
         <button onclick="toggleSelectGate('OR')">OR</button>
         <button onclick="toggleSelectGate('NOT')">NOT</button>
         <button onclick="toggleSelectGate('XOR')">XOR</button>
+        -->
     </div>
     <div class="canvasContainer">
-        <canvas id="game"></canvas>
+        <canvas id="editor"></canvas>
     </div>
 
     {% include "components/instructions.html" %}
