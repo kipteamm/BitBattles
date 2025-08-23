@@ -336,7 +336,7 @@ async function loadResults() {
 }
 
 async function restartGame() {
-    const response = await fetch(`/api/battle/${battle.id}/restart`, {
+    const response = await fetch(`/api/battle/${battle.id}/new`, {
         method: "POST",
         headers: {"Authorization": `Bearer ${getCookie("bt")}`}
     });

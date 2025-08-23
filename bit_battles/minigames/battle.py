@@ -1,9 +1,11 @@
 from bit_battles.minigames.truthtables import TableGenerator
+from bit_battles.utils.functions import format_seconds
 from bit_battles.auth.models import User
 
 from functools import wraps
 from enum import Enum
 
+import typing as t
 import random
 import string
 
@@ -21,14 +23,15 @@ class BattleManager:
 
         battle.register()
 
-    def remove_battle(self, battle_id: str) -> None:
-        battle = self._battles.pop(battle_id)
-
+    def remove_battle(self, battle: 'Battle') -> None:
         for player in battle.players:
             self.remove_player(player.id)
 
+        battle.players.clear()
         if not battle.private:
-            self._public.discard(battle_id)
+            self._public.discard(battle.id)
+
+        del self._battles[battle.id]
 
     def get_battle(self, battle_id: str) -> "Battle | None":
         battle = self._battles.get(battle_id)
@@ -44,8 +47,10 @@ class BattleManager:
         self._players[player.id] = player
         player.register()
 
-    def remove_player(self, player_id: str) -> None:
-        del self._players[player_id]
+    def remove_player(self, player: "Player") -> None:
+        player.battle.players.remove(player)
+
+        del self._players[player.id]
 
     def get_player(self, user_id: str) -> "Player | None":
         player = self._players.get(user_id)
@@ -53,13 +58,6 @@ class BattleManager:
             return None
         
         return player
-
-
-class Minigames(Enum):
-    CIRCUIT_CLASH = 0
-    STATE_SPRINT = 1
-    PATTERN_PICTIONARY = 2
-    PROCESSOR_PARTY = 3
 
 
 def require_registration(method):
@@ -71,6 +69,12 @@ def require_registration(method):
     return wrapper
 
 
+class SubmissionState(Enum):
+    PASSED = 1
+    FAILED = 2
+    ERROR = 3
+
+
 class Player:
     def __init__(self, user: User, battle: "Battle") -> None:
         self._registered = False
@@ -79,8 +83,25 @@ class Player:
         self.username = user.username
         self.battle = battle
 
+        self.attempts: int = 0
+        self.passed: bool = False
+        self.submission_on: float = 0
+        self.score: float = 0
+
     def register(self) -> None:
         self._registered = True
+
+    @require_registration
+    def reset(self) -> None:
+        self.attempts = 0
+        self.submission_on = 0
+        self.passed = False
+        self.score = 0
+
+    @require_registration
+    def get_message(self, state: SubmissionState) -> str:
+        raise NotImplementedError
+        
 
     @require_registration
     def serialize(self, *fields: str) -> dict:
@@ -107,21 +128,38 @@ def _get_id() -> str:
 
 
 class Battle:
-    def __init__(self, minigame: Minigames, owner_id: str, private: bool) -> None:
-        self._minigame = minigame
-        self._registered = False
-        self.players: list[Player] = []
+    def __init__(self, owner_id: str, private: bool) -> None:
+        self._registered: bool = False
 
-        self.stage = "queue"
-        self.id = _get_id()
-        self.private = private
-        self.owner_id = owner_id
+        self.players: list[Player] = []
+        self.started_on: float = 0
+        self.stage: str = "queue"
+
+        self.id: str = _get_id()
+        self.private: bool = private
+        self.owner_id: str = owner_id
 
     def register(self) -> None:
         self._registered = True
 
     @require_registration
     def add_player(self, user: User) -> None:
+        raise NotImplementedError
+    
+    @require_registration
+    def start(self) -> None:
+        raise NotImplementedError
+
+    @require_registration
+    def players_passed(self) -> int:
+        return sum(int(player.passed) for player in self.players)
+
+    @require_registration
+    def submit(self, player: Player, data: dict[str, t.Any]) -> tuple[SubmissionState, str]:
+        raise NotImplementedError
+   
+    @require_registration
+    def calculate_scores(self) -> None:
         raise NotImplementedError
 
     @require_registration
@@ -149,6 +187,22 @@ class CCPlayer(Player):
     def __init__(self, user: User, battle: "Battle") -> None:
         super().__init__(user, battle)
 
+        self.gates = 0
+        self.longest_path = 0
+
+    def reset(self) -> None:
+        super().reset()
+
+        self.gates = 0
+        self.longest_path = 0
+
+    @require_registration
+    def get_message(self, state: SubmissionState) -> str:
+        if state == SubmissionState.PASSED:
+            return f"{self.username} finished in {format_seconds(self.submission_on - self.battle.started_on)} with {self.gates} gate{'' if self.gates == 1 else 's'} and a longest path of {self.longest_path}."
+        
+        raise NotImplementedError
+
 
 class CircuitClash(Battle):
     def __init__(self, owner_id: str, private: bool, inputs: int, outputs: int, gates: list[Gates]) -> None:
@@ -160,11 +214,11 @@ class CircuitClash(Battle):
 
         Generates a truthtable with the given settings
         """
-        super().__init__(Minigames.CIRCUIT_CLASH, owner_id, private)
+        super().__init__(owner_id, private)
         self.inputs = inputs
         self.outputs = outputs
         self.gates = gates
-        self.truthtable = TableGenerator(inputs, outputs).table
+        self.truthtable = {}
 
         manager.add_battle(self)
 
@@ -174,6 +228,45 @@ class CircuitClash(Battle):
 
         self.players.append(player)
         manager.add_player(player)
+
+    @require_registration
+    def start(self) -> None:
+        self.truthtable = TableGenerator(self.inputs, self.outputs, None).table
+
+    @require_registration
+    def submit(self, player: Player, data: dict[str, t.Any]) -> tuple[SubmissionState, str | None]:
+        gates, wires = data.get("gates"), data.get("wires")
+        if not gates or not wires:
+            return SubmissionState.ERROR, "Missing circuit data."
+        
+        try:
+            passed, longest_path = Simulate(
+                gates, 
+                wires,
+                {}
+                ).test(json.loads(battle.truthtable))
+
+            gates_used = len(gates) - battle.inputs - battle.outputs
+
+            player.gates = gates_used
+            player.longest_path = longest_path
+
+            player.submission_on = time.time()
+            player.passed = passed
+
+
+        except Exception as e:
+            db.session.commit()
+            return {"error": str(e)}, 400
+
+        if not passed:
+            return SubmissionState.FAILED, None
+        
+        success, id = Circuit(gates, wires).save("battle", battle.id, player.user_id)
+        if success:
+            player.circuit_id = id
+
+        return SubmissionState.PASSED, None
 
 
 manager = BattleManager()

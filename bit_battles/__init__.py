@@ -1,9 +1,9 @@
 from bit_battles.api.challenge.views import challenge_api_blueprint
 from bit_battles.challenges.views import challenges_blueprint 
 from bit_battles.api.battle.views import battle_api_blueprint
+from bit_battles.minigames.battle import manager, Player
 from bit_battles.circuits.views import circuits_blueprint 
 from bit_battles.battles.events import register_events
-from bit_battles.battles.models import Battle, Player
 from bit_battles.battles.views import battle_blueprint
 from bit_battles.auth.models import User
 from bit_battles.main.views import main_blueprint
@@ -64,21 +64,16 @@ def create_app() -> Flask:
         if isinstance(current_user, AnonymousUserMixin):
             return
 
-        player: t.Optional[Player] = Player.query.filter_by(user_id=current_user.id).first()
+        player: t.Optional[Player] = manager.get_player(current_user.id)
         if not player:
             return
-
-        battle: t.Optional[Battle] = Battle.query.get(player.battle_id)
-        if not battle:
-            return
         
-        if battle.owner_id == current_user.id:  
-            db.session.delete(battle)
-            socketio.emit("disband", to=battle.id)
+        if player.battle.owner_id == player.id:  
+            socketio.emit("disband", to=player.battle.id)
+            manager.remove_battle(player.battle)
+
         else:
-            battle.players.remove(current_user)
-            socketio.emit("player_leave", {"id": current_user.id}, to=battle.id)
+            socketio.emit("player_leave", {"id": current_user.id}, to=player.battle.id)
+            manager.remove_player(player)
         
-        db.session.commit()
-
     return app
