@@ -1,5 +1,5 @@
 from bit_battles.challenges.models import DailyChallengeStatistic, Challenge
-from bit_battles.battles.models import BattleStatistic
+from bit_battles.battles.models import CircuitClashStatistics
 from bit_battles.auth.models import User
 from bit_battles.extensions import db
 
@@ -32,8 +32,8 @@ def profile(username: str):
     battle_statistics = defaultdict(list)
     statistics = defaultdict(dict)
 
-    for battle in BattleStatistic.query.filter_by(user_id=user.id).order_by(
-        BattleStatistic.creation_timestamp.desc()  # type: ignore
+    for battle in CircuitClashStatistics.query.filter_by(user_id=user.id).order_by(
+        CircuitClashStatistics.creation_timestamp.desc()  # type: ignore
     ).all():
         name = battle.battle_type.split("-")
         key = f"Inputs: {name[0]}&emsp;&nbsp;Outputs: {name[1]}&emsp;&nbsp;Gates: {name[2].replace(',', ', ')}"

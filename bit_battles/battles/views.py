@@ -1,5 +1,6 @@
-from bit_battles.minigames.battle import Battle, CircuitClash, Gates, manager
-from bit_battles.battles.models import BattleStatistic
+from bit_battles.minigames.circuit_clash import CircuitClash, Gates
+from bit_battles.minigames.battle import Battle, manager
+from bit_battles.battles.models import CircuitClashStatistics
 from bit_battles.utils.forms import validate_int
 from bit_battles.auth.models import User
 
@@ -19,12 +20,12 @@ def battles():
     user: User = current_user # type: ignore
 
     if request.method == "GET":
-        winners = BattleStatistic.query.filter(
-                BattleStatistic.winner == True, # type: ignore
-                BattleStatistic.score <= 300 # type: ignore
+        winners = CircuitClashStatistics.query.filter(
+                CircuitClashStatistics.winner == True, # type: ignore
+                CircuitClashStatistics.score <= 300 # type: ignore
             ).order_by(
-                BattleStatistic.creation_timestamp.desc(), # type: ignore
-                BattleStatistic.score.desc() # type: ignore
+                CircuitClashStatistics.creation_timestamp.desc(), # type: ignore
+                CircuitClashStatistics.score.desc() # type: ignore
             ).limit(3).all()
 
         winners = sorted([winner.leaderboard_serialize() for winner in winners], key=lambda x: x["score"], reverse=True)

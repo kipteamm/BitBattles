@@ -1,174 +1,13 @@
+from bit_battles.minigames.circuit_clash import CircuitClash
 from bit_battles.utils.snowflakes import SnowflakeGenerator
 from bit_battles.utils.functions import relative_timestamp
-from bit_battles.utils.circuit import Circuit
 from bit_battles.auth.models import User
 from bit_battles.extensions import db
-from bit_battles.config import PATH_WEIGHT, GATE_WEIGHT
 
-from sqlalchemy import func
-
-import random
-import string
-import json
 import time
-
-
-BATTLE_ID = string.ascii_letters + string.digits
-
-
-class Battle(db.Model):
-    __tablename__ = "battles"
-
-    id = db.Column(db.String(5), primary_key=True)
-    owner_id = db.Column(db.String(128), db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    private = db.Column(db.Boolean(), default=False)
-    players = db.relationship('User', secondary='players', backref=db.backref('battles', lazy='dynamic'), lazy='dynamic')
-
-    inputs = db.Column(db.Integer(), default=3)
-    outputs = db.Column(db.Integer(), default=2)
-    gates = db.Column(db.String(128), default="['AND', 'NOT', 'OR']")
-    truthtable = db.Column(db.Text(5000), default=None)
-
-    stage = db.Column(db.String(128), default="queue")
-    started_on = db.Column(db.Float(), default=0)
-
-    def set_id(self) -> None:
-        self.id = "".join(random.choices(BATTLE_ID, k=5))
-        while db.session.query(db.exists().where(Battle.id == self.id)).scalar():
-            self.id = "".join(random.choices(BATTLE_ID, k=5))
-
-    def __init__(self, owner_id: str, inputs: int=3, outputs: int=2, gates: list=["AND", "NOT", "OR"], private: bool=False) -> None:
-        self.owner_id = owner_id
-        self.inputs = inputs
-        self.outputs = outputs
-        self.gates = json.dumps(gates)
-        self.private = private
-        self.set_id()
-
-    def _get_players(self) -> list:
-        players = []
-
-        for user in self.players.order_by(Player.score.desc()): # type: ignore
-            data = user.serialize()
-            player = Player.query.filter_by(battle_id=self.id, user_id=user.id).first()
-
-            if not player:
-                continue
-
-            data.update(player.serialize())
-            data["time"] = round(player.submission_on - self.started_on, 3)
-            players.append(data)
-
-        return players
-    
-    def score_players(self) -> None:
-        metrics = (
-            db.session.query(
-                func.min(Player.longest_path),
-                func.min(Player.gates),
-                func.max(Player.submission_on)
-            )
-            .filter(Player.battle_id == self.id, Player.passed == True)
-            .first()
-        )
-
-        if not metrics:
-            return
-
-        shortest_path, least_gates, longest_submission_on = metrics
-        shortest_path = shortest_path * PATH_WEIGHT
-        least_gates = least_gates * GATE_WEIGHT
-        longest_duration = (longest_submission_on - self.started_on)
-
-        players = Player.query.filter_by(battle_id=self.id).all()
-        highest_score, winner = None, None
-        battle_data = []
-
-        for player in players:
-            if not player.passed:
-                continue
-
-            player_duration = player.submission_on - self.started_on
-            player.score = round(
-                (shortest_path / max(player.longest_path, 1))
-                + (least_gates / max(player.gates, 1))
-                + (longest_duration / max(player_duration, 1))
-            )
-
-            # Determine winner
-            if not highest_score or player.score > highest_score:
-                highest_score = player.score
-                winner = player
-
-            battle_data.append({
-                "user_id": player.user_id,
-                "gates": player.gates,
-                "attempts": player.attempts,
-                "longest_path": player.longest_path,
-                "duration": round(player.submission_on - self.started_on, 3),
-            })
-
-        battle_statistics = [
-            BattleStatistic(
-                self,
-                player.user_id,
-                player == winner,
-                player.passed,
-                player.gates,
-                player.longest_path,
-                player.attempts,
-                player.submission_on - self.started_on,
-                player.score
-            )
-            for player in players
-            if User.query.get(player.user_id)
-        ]
-
-        db.session.bulk_save_objects(battle_statistics)
-        db.session.commit()
-
-    def serialize(self) -> dict:
-        return {
-            "id": self.id,
-            "owner_id": self.owner_id,
-            "players": self._get_players(),
-            "stage": self.stage,
-            "started_on": self.started_on,
-            "truthtable": json.loads(self.truthtable) if self.truthtable else None,
-            "gates": json.loads(self.gates)
-        }
-
-
-class Player(db.Model):
-    __tablename__ = "players"
-
-    battle_id = db.Column(db.String(128), db.ForeignKey("battles.id", ondelete="CASCADE"), primary_key=True)
-    user_id = db.Column(db.String(128), db.ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
-    circuit_id = db.Column(db.String(128), default=None, nullable=True)
-
-    gates = db.Column(db.Integer(), default=0)
-    attempts = db.Column(db.Integer(), default=0)
-    longest_path = db.Column(db.Integer(), default=0)
-    submission_on = db.Column(db.Integer(), default=0)
-    passed = db.Column(db.Boolean(), default=False)
-    score = db.Column(db.Integer(), default=0)
-
-    def on_delete(self):
-        Circuit.delete("battles", self.circuit_id)
-
-    def serialize(self) -> dict:
-        return {
-            "gates": self.gates,
-            "attempts": self.attempts,
-            "longest_path": self.longest_path,
-            "submission_on": self.submission_on,
-            "passed": self.passed,
-            "score": self.score,
-            "circuit_id": self.circuit_id
-        }
     
 
-class BattleStatistic(db.Model):
+class CircuitClashStatistics(db.Model):
     __tablename__ = "battle_statistics"
 
     id = db.Column(db.String(128), primary_key=True, default=SnowflakeGenerator.generate_id)
@@ -185,9 +24,9 @@ class BattleStatistic(db.Model):
 
     creation_timestamp = db.Column(db.Float(), default=0)
 
-    def __init__(self, battle: Battle, user_id: str, winner: bool, passed: bool, gates: int, longest_path: int, attempts: int, duration: float, score: int) -> None:
+    def __init__(self, battle: CircuitClash, user_id: str, winner: bool, passed: bool, gates: int, longest_path: int, attempts: int, duration: float, score: int) -> None:
         self.user_id = user_id
-        self.battle_type = f"{battle.inputs}-{battle.outputs}-{','.join(json.loads(battle.gates))}"
+        self.battle_type = f"{battle.inputs}-{battle.outputs}-{','.join(gate.name for gate in battle.gates)}"
         self.winner = winner
         self.passed = passed
         self.gates = gates
