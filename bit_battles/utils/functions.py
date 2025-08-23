@@ -2,6 +2,7 @@ from urllib import parse
 from flask import Request
 
 import time
+import math
 
 
 def get_back_url(request: Request) -> str:
@@ -30,3 +31,10 @@ def relative_timestamp(timestamp: float) -> str:
     else:
         years = time_difference // 31449600
         return f"{int(years)} year{'s' if years != 1 else ''} ago"
+    
+
+def format_seconds(seconds) -> str:
+    minutes = seconds // 60
+    remainingSeconds = round(seconds % 60, 3)
+
+    return f"{minutes}m {remainingSeconds}s"

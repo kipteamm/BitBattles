@@ -22,8 +22,8 @@ socket.on("player_leave", function(data) {
 });
 
 socket.on("finish", function(data) {
-    sendAlert(`${data.username} finished in ${formatSeconds(data.submission_on - battle.started_on)} with ${data.gates} gate${data.gates === 1? "": "s"} (longest path: ${data.longest_path})`);
-    if (data.username !== player.username) return;
+    sendAlert(data.message);
+    if (data.id !== player.id) return;
 
     player.finished = true;
 });
