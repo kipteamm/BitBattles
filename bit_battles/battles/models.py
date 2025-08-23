@@ -1,5 +1,6 @@
 from bit_battles.utils.snowflakes import SnowflakeGenerator
 from bit_battles.utils.functions import relative_timestamp
+from bit_battles.utils.circuit import Circuit
 from bit_battles.auth.models import User
 from bit_battles.extensions import db
 from bit_battles.config import PATH_WEIGHT, GATE_WEIGHT
@@ -10,7 +11,6 @@ import random
 import string
 import json
 import time
-import os
 
 
 BATTLE_ID = string.ascii_letters + string.digits
@@ -21,20 +21,20 @@ class Battle(db.Model):
 
     id = db.Column(db.String(5), primary_key=True)
     owner_id = db.Column(db.String(128), db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    private = db.Column(db.Boolean(), default=False)
+    players = db.relationship('User', secondary='players', backref=db.backref('battles', lazy='dynamic'), lazy='dynamic')
 
     inputs = db.Column(db.Integer(), default=3)
     outputs = db.Column(db.Integer(), default=2)
     gates = db.Column(db.String(128), default="['AND', 'NOT', 'OR']")
-    private = db.Column(db.Boolean(), default=False)
-    players = db.relationship('User', secondary='players', backref=db.backref('battles', lazy='dynamic'), lazy='dynamic')
+    truthtable = db.Column(db.Text(5000), default=None)
 
     stage = db.Column(db.String(128), default="queue")
     started_on = db.Column(db.Float(), default=0)
-    truthtable = db.Column(db.Text(5000), default=None)
 
     def set_id(self) -> None:
         self.id = "".join(random.choices(BATTLE_ID, k=5))
-        while Battle.query.get(self.id):
+        while db.session.query(db.exists().where(Battle.id == self.id)).scalar():
             self.id = "".join(random.choices(BATTLE_ID, k=5))
 
     def __init__(self, owner_id: str, inputs: int=3, outputs: int=2, gates: list=["AND", "NOT", "OR"], private: bool=False) -> None:
@@ -152,6 +152,9 @@ class Player(db.Model):
     submission_on = db.Column(db.Integer(), default=0)
     passed = db.Column(db.Boolean(), default=False)
     score = db.Column(db.Integer(), default=0)
+
+    def on_delete(self):
+        Circuit.delete("battles", self.circuit_id)
 
     def serialize(self) -> dict:
         return {

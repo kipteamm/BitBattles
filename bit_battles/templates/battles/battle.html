@@ -17,7 +17,7 @@
     <script src="/static/js/game.js"></script>
     <script>
         battle = {{ battle|tojson }};
-        const player = {{ player|tojson }};
+        const player = {{ user|tojson }};
     </script>
 
     <link rel="stylesheet" type="text/css" href="/static/css/game.css">
@@ -35,7 +35,7 @@
             <ul id="queue-player-list"></ul>
 
             <div class="button">
-                {% if player.id == battle.owner_id %}
+                {% if user.id == battle.owner_id %}
                     <button onclick="startBattle()">Start battle</button>
                 {% endif %}
 
@@ -77,7 +77,7 @@
 
     <div class="stage results" id="results">
         <div class="result-contents" id="results-player-list">
-            {% if player.id == battle.owner_id %}
+            {% if user.id == battle.owner_id %}
                 <div class="new-game">
                     <button onclick="restartGame()">New round</button>
                 </div>

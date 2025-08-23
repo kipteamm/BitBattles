@@ -166,3 +166,31 @@ class Circuit:
         except Exception as e:
             print(f"Unexpected error: {e}")
             return False, {}
+
+    @classmethod
+    def delete(cls, table: str, circuit_id: int) -> bool:
+        query = f"""
+            DELETE FROM {table}_circuits WHERE id = ?
+        """
+
+        try:
+            with get_db_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    query,
+                    (circuit_id,)
+                )
+                circuit = cursor.fetchone()
+
+                if not circuit:
+                    return False
+                
+                return True
+            
+        except sqlite3.Error as e:
+            print(f"Database error: {e}")
+            return False
+        
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            return False
