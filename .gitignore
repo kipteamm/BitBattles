@@ -20,3 +20,9 @@ circuits.sqlite3
 circuits.sqlite3-journal
 
 .env
+# C++
+cmake-build-debug/
+.idea/
+
+# JS
+node_modules/

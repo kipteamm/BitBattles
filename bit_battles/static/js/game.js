@@ -17,10 +17,11 @@ function i2hex(i) {
     return ('0' + i.toString(16)).slice(-2);
 }
 
-const data = {"gates":[{"x":220,"y":160,"type":"INPUT","state":"off","rotation":0,"inputs":[],"output":{"x":240,"y":170},"id":null},{"x":220,"y":200,"type":"INPUT","state":"off","rotation":0,"inputs":[],"output":{"x":240,"y":210},"id":null},{"x":320,"y":160,"type":"AND","state":"off","rotation":0,"inputs":[{"x":320,"y":170},{"x":320,"y":190},{"x":320,"y":210}],"output":{"x":380,"y":190},"id":null},{"x":460,"y":180,"type":"OUTPUT","state":"off","rotation":0,"inputs":[{"x":460,"y":190}],"output":{"x":null,"y":null},"id":null}],"wires":[{"startX":460,"startY":190,"endX":380,"endY":190,"state":"off"},{"startX":240,"startY":170,"endX":320,"endY":170,"state":"off"},{"startX":320,"startY":210,"endX":240,"endY":210,"state":"off"}]};
-const encoded = msgpack.encode(data);
-const base64String = btoa(String.fromCharCode(...encoded));
-console.log(base64String)
+// const data = {"gates":[{"x":220,"y":160,"type":"INPUT","state":"off","rotation":0,"inputs":[],"output":{"x":240,"y":170},"id":null},{"x":220,"y":200,"type":"INPUT","state":"off","rotation":0,"inputs":[],"output":{"x":240,"y":210},"id":null},{"x":320,"y":160,"type":"AND","state":"off","rotation":0,"inputs":[{"x":320,"y":170},{"x":320,"y":190},{"x":320,"y":210}],"output":{"x":380,"y":190},"id":null},{"x":460,"y":180,"type":"OUTPUT","state":"off","rotation":0,"inputs":[{"x":460,"y":190}],"output":{"x":null,"y":null},"id":null}],"wires":[{"startX":460,"startY":190,"endX":380,"endY":190,"state":"off"},{"startX":240,"startY":170,"endX":320,"endY":170,"state":"off"},{"startX":320,"startY":210,"endX":240,"endY":210,"state":"off"}]};
+// const encoded = msgpack.encode(data);
+// console.log(JSON.stringify(encoded), `${encoded}`);
+// const base64String = btoa(String.fromCharCode(...encoded));
+// console.log(base64String)
 
 function gameInit() {
     timerElement = document.getElementById("timer");

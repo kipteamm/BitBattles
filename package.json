@@ -1,0 +1,23 @@
+{
+  "name": "logisimbattles",
+  "version": "1.0.0",
+  "description": "Players in a battle have to implement the same truthtable in the least amount of time while using as little gates as possible.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kipteamm/LogisimBattles.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kipteamm/LogisimBattles/issues"
+  },
+  "homepage": "https://github.com/kipteamm/LogisimBattles#readme",
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}
