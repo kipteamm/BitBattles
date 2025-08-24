@@ -13,7 +13,7 @@ editor.registerPlaceable(AND);
 
 
 const state = new Placeable(
-    new Circle("#818181", 1.5), 
+    new Circle("#81818184", 1.5), 
     "STATE",
     { top: 0, left: 0, radius: 1.5, align: true, color: null },
 );
@@ -25,5 +25,7 @@ function placeState(placed: Placed) {
     placed.setLabel(`q${editor.getPlaced().length - 1}`);
     console.log("here", placed)
 }
+
+console.log(editor);
 
 };

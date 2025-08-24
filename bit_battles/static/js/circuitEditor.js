@@ -10,4 +10,5 @@ window.onload = () => {
         placed.setLabel(`q${editor.getPlaced().length - 1}`);
         console.log("here", placed);
     }
+    console.log(editor);
 };
