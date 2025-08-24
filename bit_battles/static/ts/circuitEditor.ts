@@ -13,7 +13,7 @@ editor.registerPlaceable(AND);
 
 
 const state = new Placeable(
-    new Circle("#81818184", 1.5), 
+    new Circle("#949494ff", 1.5), 
     "STATE",
     { top: 0, left: 0, radius: 1.5, align: true, color: null },
 );
