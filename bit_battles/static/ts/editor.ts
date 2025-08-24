@@ -12,14 +12,15 @@ class Shape {
 
     draw (ctx: CanvasRenderingContext2D, x: number, y: number, label: string) {};
     drawLabel(ctx: CanvasRenderingContext2D, x: number, y: number, label: string) {
-        const centerX = x + (this.size) / 2;
-        const centerY = y + (this.size) / 2;
+        const centerX = x + (this.getSize()) / 2;
+        const centerY = y + (this.getSize()) / 2;
 
         ctx.fillStyle = "black";
         ctx.font = "10px Arial";
         ctx.textAlign = "center";
         ctx.fillText(label, centerX, centerY + 5); // + 5 for better vertical alignment;
     }
+    drawOutline(ctx: CanvasRenderingContext2D, x: number, y: number) {};
 }
 
 class Square extends Shape {
@@ -36,6 +37,13 @@ class Square extends Shape {
         ctx.fillRect(x, y, this.size, this.size);
         this.drawLabel(ctx, x, y, label);
     }
+
+    override drawOutline(ctx: CanvasRenderingContext2D, x: number, y: number) {
+        ctx.fillStyle = "black";
+        ctx.beginPath();
+        ctx.roundRect(x - gridSize/4, y - gridSize/4, this.size + gridSize/2, this.size + gridSize/2, [5, 5, 5, 5]);
+        ctx.stroke();
+    }
 }
 
 class Circle extends Shape {
@@ -50,10 +58,16 @@ class Circle extends Shape {
     override draw(ctx: CanvasRenderingContext2D, x: number, y: number, label: string) {
         ctx.fillStyle = this.color;
         ctx.beginPath();
-        // Offset sligthly because it makes it look less missaligned
-        ctx.arc(x + gridSize / 2, y + gridSize / 2, this.size, 0, Math.PI * 2);
+        ctx.arc(x + this.size, y + this.size, this.size, 0, Math.PI * 2);
         ctx.fill();
-        this.drawLabel(ctx, x - gridSize / 4, y - gridSize / 4, label);
+        this.drawLabel(ctx, x, y, label);
+
+    }
+    override drawOutline(ctx: CanvasRenderingContext2D, x: number, y: number) {
+        ctx.fillStyle = "black";
+        ctx.beginPath();
+        ctx.arc(x + this.size, y + this.size, this.size + gridSize/4, 0, Math.PI * 2);
+        ctx.stroke();
     }
 }
 
@@ -120,11 +134,28 @@ class Connector {
     }
 
     draw(ctx: CanvasRenderingContext2D) {
-        if (!this.color) return; // Do not draw invisible connectors
+        if (!this.color) return;
         ctx.fillStyle = this.color;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fill();
+    }
+    drawOutline(ctx: CanvasRenderingContext2D) {
+        if (!this.color) return;
+        ctx.fillStyle = "black";
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size + gridSize/4, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+
+    overlaps(snappedX: number, snappedY: number, overlapSize: number) {
+        // We add a small offset gridSize/4 to make it easier to find a connector
+        return (
+            snappedX + overlapSize >= this.x - this.size - gridSize/4 &&
+            snappedX < this.x + this.size + gridSize/4 &&
+            snappedY + overlapSize >= this.y - this.size - gridSize/4 &&
+            snappedY < this.y + this.size + gridSize/4
+        )
     }
 }
 
@@ -142,20 +173,35 @@ class Placed {
         this.y = y;
 
         _connectors.forEach(connector => {
+            let connectorX, connectorY;
+
+            if (this.shape instanceof Circle) {
+                connectorX = this.x + this.shape.getSize() / 2;
+                connectorY = this.y + this.shape.getSize() / 2;
+            } else {
+                connectorX = this.x + (connector.left * gridSize + (connector.align? gridSize / 2: 0)), // Offset by half a gridSize because circles appear offsetted.
+                connectorY = this.y + (connector.top * gridSize + gridSize / 2);
+            }
+
             this.connectors.push(new Connector(
-                this.x + (connector.left * gridSize + (connector.align? gridSize / 2: 0)), // Offset by half a gridSize because circles appear offsetted.
-                this.y + (connector.top * gridSize + gridSize / 2),
+                connectorX,
+                connectorY,
                 connector.radius * gridSize,
                 connector.color
             ));
         });
     }
 
+    getConnectors() { return this.connectors; }
     setLabel(label: string) { this.label = label; }
 
     draw(ctx: CanvasRenderingContext2D) {
         this.shape.draw(ctx, this.x, this.y, this.label);
         this.connectors.forEach(connector => connector.draw(ctx));
+    }
+
+    drawOutline(ctx: CanvasRenderingContext2D) {
+        this.shape.drawOutline(ctx, this.x, this.y);
     }
 
     overlaps(snappedX: number, snappedY: number, overlapSize: number) {
@@ -177,8 +223,10 @@ class Editor {
     private placeables: Placeable[] = [];
     private toolbar: HTMLElement;
     private placing: Placeable | null = null;
+    private hovering: Placed | Connector | undefined = undefined;
 
     private placed: Placed[] = [];
+    private connectors: Connector[] = [];
 
     private dragging = false;
     private panX = 0;
@@ -208,6 +256,16 @@ class Editor {
         this.draw();
     }
 
+    private _getWorldCoordinates() {
+        const worldX = this.lastX - this.panX;
+        const worldY = this.lastY - this.panY;
+
+        const snappedX = Math.floor(worldX / gridSize) * gridSize;
+        const snappedY = Math.floor(worldY / gridSize) * gridSize;
+
+        return [snappedX, snappedY];
+    }
+
     private setupPanControls() {
         this.canvas.addEventListener("mousedown", (e) => {
             if (e.button !== 2) return;
@@ -229,6 +287,15 @@ class Editor {
             this.lastX = e.clientX;
             this.lastY = e.clientY;
 
+            if (!this.dragging) {
+                const [snappedX, snappedY] = this._getWorldCoordinates()
+
+                this.hovering = this.findConnector(this.lastX, this.lastY, 1);
+                if (this.hovering) return this.draw();
+
+                this.hovering = this.findGate(snappedX, snappedY, 1);
+            }
+
             this.draw();
         });
 
@@ -238,13 +305,14 @@ class Editor {
 
     private registerListeners() {
         this.canvas.addEventListener("click", (e) => {
-            const worldX = this.lastX - this.panX;
-            const worldY = this.lastY - this.panY;
-
-            const snappedX = Math.floor(worldX / gridSize) * gridSize;
-            const snappedY = Math.floor(worldY / gridSize) * gridSize;
+            const [snappedX, snappedY] = this._getWorldCoordinates()
 
             if (this.placing) {
+                const gate = this.findGate(snappedX, snappedY, this.placing.getShape().getSize());
+
+                if (gate) return;
+                if (this.hovering) return;
+
                 const placed = new Placed(
                     this.placing.getShape(),
                     this.placing.getLabel(),
@@ -254,12 +322,8 @@ class Editor {
                 )
     
                 this.placed.push(placed);
+                this.connectors.push(...placed.getConnectors());
                 this.placing.fire("place", placed);
-                return;
-            }
-
-            const gate = this.findGate(snappedX, snappedY, 1);
-            if (gate) {
                 return;
             }
 
@@ -283,21 +347,18 @@ class Editor {
         this.ctx.save();
         this.ctx.translate(this.panX, this.panY);
 
-        if (this.placing) this.drawPlacing();
         this.placed.forEach(elm => { elm.draw(this.ctx); });
+        if (this.placing) this.drawPlacing();
+        if (this.hovering) this.hovering.drawOutline(this.ctx);
 
         this.ctx.restore();
     }
 
     private drawPlacing() {
         if (!this.placing) return;
+        if (this.hovering) return;
 
-        const worldX = this.lastX - this.panX;
-        const worldY = this.lastY - this.panY;
-
-        const snappedX = Math.floor(worldX / gridSize) * gridSize;
-        const snappedY = Math.floor(worldY / gridSize) * gridSize;
-
+        let [snappedX, snappedY] = this._getWorldCoordinates()
         if (this.findGate(snappedX, snappedY, this.placing.getShape().getSize())) return;
 
         this.ctx.globalAlpha = 0.5;
@@ -318,6 +379,10 @@ class Editor {
     togglePlaceable(placeable: Placeable | null = null) {
         this.placing = (this.placing === placeable)? null: placeable;
         if (!this.placing) return this.draw();
+    }
+
+    findConnector(snappedX: number, snappedY: number, overlapSize: number) {
+        return this.connectors.find(elm => elm.overlaps(snappedX, snappedY, overlapSize));
     }
 
     findGate(snappedX: number, snappedY: number, overlapSize: number) {
