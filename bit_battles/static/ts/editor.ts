@@ -2,17 +2,25 @@ const gridSize = 20;
 
 class Shape {
     protected color: string = "#123456";
+    protected size: number = 0;
 
     constructor (color: string) {
         this.color = color;
     }
 
     draw (ctx: CanvasRenderingContext2D, x: number, y: number, label: string) {};
+    drawLabel(ctx: CanvasRenderingContext2D, x: number, y: number, label: string) {
+        const centerX = x + (this.size * gridSize) / 2;
+        const centerY = y + (this.size * gridSize) / 2;
+
+        ctx.fillStyle = "black";
+        ctx.font = "10px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(label, centerX, centerY + 5); // + 5 for better vertical alignment;
+    }
 }
 
 class Square extends Shape {
-    private size: number = 0;
-
     constructor (color: string, size: number) {
         super(color);
 
@@ -22,40 +30,44 @@ class Square extends Shape {
     override draw(ctx: CanvasRenderingContext2D, x: number, y: number, label: string) {
         ctx.fillStyle = this.color;
         ctx.fillRect(x, y, this.size * gridSize, this.size * gridSize);
+        this.drawLabel(ctx, x, y, label);
     }
 }
 
 class Circle extends Shape {
-    private radius: number = 0;
-
     constructor (color: string, radius: number) {
         super(color);
 
-        this.radius = radius;
+        this.size = radius;
     }
 
     override draw(ctx: CanvasRenderingContext2D, x: number, y: number, label: string) {
         ctx.fillStyle = this.color;
         ctx.beginPath();
-        ctx.arc(x + gridSize / 2, y + gridSize / 2, this.radius * gridSize, 0, Math.PI * 2);
+        // Offset sligthly because it makes it look less missaligned
+        ctx.arc(x + gridSize / 2, y + gridSize / 2, this.size * gridSize, 0, Math.PI * 2);
         ctx.fill();
+        this.drawLabel(ctx, x - gridSize / 4, y - gridSize / 4, label);
     }
 }
 
 
 class Placeable {
     private editor!: Editor;
-    private shape: Shape
-    private label: string
+    private shape: Shape;
+    private label: string;
+    
+    private events: Record<string, CallableFunction> = {};
+    // private events: { [key: string]: CallableFunction } = {};
 
     constructor (shape: Shape, label: string) {
         this.shape = shape
         this.label = label
     }
 
-    setEditor(editor: Editor) { this.editor = editor; }
+    _setEditor(editor: Editor) { this.editor = editor; }
 
-    getButton () {
+    _getButton () {
         const button = document.createElement("button");
         button.addEventListener("click", () => this.editor.togglePlaceable(this));
         button.innerText = this.label;
@@ -63,8 +75,39 @@ class Placeable {
         return button
     }
 
+    getShape() { return this.shape; }
+    getLabel() { return this.label; }
+
+    listen (event: string, callable: CallableFunction) {
+        this.events[event] = callable;
+    }
+
+    fire (event: string, ...args: any[]) {
+        this.events[event]?.(...args);
+    }
+
     draw(ctx: CanvasRenderingContext2D, snappedX: number, snappedY: number) {
         this.shape.draw(ctx, snappedX, snappedY, this.label);
+    }
+}
+
+class Placed {
+    private shape: Shape;
+    private label: string;
+    private x: number;
+    private y: number;
+
+    constructor (shape: Shape, label: string, x: number, y: number) {
+        this.shape = shape
+        this.label = label
+        this.x = x;
+        this.y = y;
+    }
+
+    setLabel(label: string) { this.label = label; }
+
+    draw(ctx: CanvasRenderingContext2D) {
+        this.shape.draw(ctx, this.x, this.y, this.label);
     }
 }
 
@@ -77,6 +120,8 @@ class Editor {
     private placeables: Array<Placeable> = [];
     private toolbar: HTMLElement;
     private placing: Placeable | null = null;
+
+    private placed: Array<Placed> = [];
 
     private dragging = false;
     private panX = 0;
@@ -102,6 +147,7 @@ class Editor {
         this.toolbar = document.getElementById("toolbar") as HTMLElement;
 
         this.setupPanControls();
+        this.registerListeners();
         this.draw();
     }
 
@@ -124,13 +170,32 @@ class Editor {
             const dy = e.clientY - this.lastY;
             this.panX += dx;
             this.panY += dy;
-            this.draw();
-
+            
             this.canvas.style.backgroundPosition = `${(gridSize * this.zoom) / 2 + this.panX}px ${(gridSize * this.zoom) / 2 + this.panY}px`;
+            this.draw();
         });
 
         this.canvas.addEventListener("mouseup", () => this.dragging = false);
         this.canvas.addEventListener("contextmenu", (e) => e.preventDefault()); // disable context menu
+    }
+
+    private registerListeners() {
+        this.canvas.addEventListener("click", (e) => {
+            if (!this.placing) return;
+
+            const snappedX = Math.floor(this.lastX / gridSize) * gridSize;
+            const snappedY = Math.floor(this.lastY / gridSize) * gridSize;
+
+            const placed = new Placed(
+                this.placing.getShape(),
+                this.placing.getLabel(),
+                snappedX,
+                snappedY
+            )
+            
+            this.placed.push(placed);
+            this.placing.fire("place", placed);
+        });
     }
 
     private draw() {
@@ -138,6 +203,7 @@ class Editor {
         // this.ctx.drawImage(this.overlayCanvas, 0, 0);
 
         if (this.placing) this.drawPlacing();
+        this.placed.forEach(elm => { elm.draw(this.ctx); });
 
         this.ctx.save();
         this.ctx.translate(this.panX, this.panY);
@@ -155,16 +221,17 @@ class Editor {
     }
 
     getContext() { return this.ctx; }
+    getPlaced() { return this.placed; }
 
     registerPlaceable(placeable: Placeable) { 
-        placeable.setEditor(this);
+        placeable._setEditor(this);
 
         this.placeables.push(placeable);
-        this.toolbar.appendChild(placeable.getButton());
+        this.toolbar.appendChild(placeable._getButton());
     }
 
     togglePlaceable(placeable: Placeable | null) {
         this.placing = (this.placing === placeable)? null: placeable;
-        if (!this.placing) return;
+        this.draw();
     }
 }

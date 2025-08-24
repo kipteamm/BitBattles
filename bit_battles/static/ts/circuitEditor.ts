@@ -7,10 +7,17 @@ editor.registerPlaceable(
         3
     ), "AND")
 );
-editor.registerPlaceable(
-    new Placeable(new Circle(
+
+const state = new Placeable(new Circle(
         "#9b9b9bff",
         1.5
     ), "STATE")
-);
+editor.registerPlaceable(state);
+state.listen("place", placeState);
+
+function placeState(placed: Placed) {
+    placed.setLabel(`q${editor.getPlaced().length - 1}`);
+    console.log("here", placed)
+}
+
 };
