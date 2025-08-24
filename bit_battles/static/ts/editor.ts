@@ -133,6 +133,8 @@ class Connector {
         this.color = color;
     }
 
+    getColor() { return this.color; }
+
     draw(ctx: CanvasRenderingContext2D) {
         if (!this.color) return;
         ctx.fillStyle = this.color;
@@ -222,8 +224,10 @@ class Editor {
 
     private placeables: Placeable[] = [];
     private toolbar: HTMLElement;
+
     private placing: Placeable | null = null;
     private hovering: Placed | Connector | undefined = undefined;
+    private rotation: number = 0;
 
     private placed: Placed[] = [];
     private connectors: Connector[] = [];
@@ -290,8 +294,8 @@ class Editor {
             if (!this.dragging) {
                 const [snappedX, snappedY] = this._getWorldCoordinates()
 
-                this.hovering = this.findConnector(this.lastX, this.lastY, 1);
-                if (this.hovering) return this.draw();
+                this.hovering = this.findConnector(this.lastX - this.panX, this.lastY - this.panY, 1);
+                if (this.hovering && this.hovering.getColor()) return this.draw();
 
                 this.hovering = this.findGate(snappedX, snappedY, 1);
             }
@@ -336,6 +340,21 @@ class Editor {
                 case "Escape":
                     if (this.placing) this.togglePlaceable();
                     break;
+                case "z":
+                    this.rotation = this.rotation === 360? 90: this.rotation + 90;
+                    break;
+                case "ArrowUp":
+                    this.rotation = 90;
+                    break;
+                case "ArrowLeft":
+                    this.rotation = 0;
+                    break;
+                case "ArrowDown":
+                    this.rotation = 270;
+                    break;
+                case "ArrowRight":
+                    this.rotation = 180;
+                    break;
                 default: break;
             }
         })
@@ -378,6 +397,8 @@ class Editor {
 
     togglePlaceable(placeable: Placeable | null = null) {
         this.placing = (this.placing === placeable)? null: placeable;
+        this.rotation = 0;
+
         if (!this.placing) return this.draw();
     }
 

@@ -93,6 +93,7 @@ class Connector {
         this.size = radius;
         this.color = color;
     }
+    getColor() { return this.color; }
     draw(ctx) {
         if (!this.color)
             return;
@@ -160,6 +161,7 @@ class Editor {
         this.placeables = [];
         this.placing = null;
         this.hovering = undefined;
+        this.rotation = 0;
         this.placed = [];
         this.connectors = [];
         this.dragging = false;
@@ -209,8 +211,8 @@ class Editor {
             this.lastY = e.clientY;
             if (!this.dragging) {
                 const [snappedX, snappedY] = this._getWorldCoordinates();
-                this.hovering = this.findConnector(this.lastX, this.lastY, 1);
-                if (this.hovering)
+                this.hovering = this.findConnector(this.lastX - this.panX, this.lastY - this.panY, 1);
+                if (this.hovering && this.hovering.getColor())
                     return this.draw();
                 this.hovering = this.findGate(snappedX, snappedY, 1);
             }
@@ -241,6 +243,21 @@ class Editor {
                 case "Escape":
                     if (this.placing)
                         this.togglePlaceable();
+                    break;
+                case "z":
+                    this.rotation = this.rotation === 360 ? 90 : this.rotation + 90;
+                    break;
+                case "ArrowUp":
+                    this.rotation = 90;
+                    break;
+                case "ArrowLeft":
+                    this.rotation = 0;
+                    break;
+                case "ArrowDown":
+                    this.rotation = 270;
+                    break;
+                case "ArrowRight":
+                    this.rotation = 180;
                     break;
                 default: break;
             }
@@ -279,6 +296,7 @@ class Editor {
     }
     togglePlaceable(placeable = null) {
         this.placing = (this.placing === placeable) ? null : placeable;
+        this.rotation = 0;
         if (!this.placing)
             return this.draw();
     }
