@@ -8,10 +8,12 @@ class Shape {
         this.color = color;
     }
 
+    getSize() { return 0; }
+
     draw (ctx: CanvasRenderingContext2D, x: number, y: number, label: string) {};
     drawLabel(ctx: CanvasRenderingContext2D, x: number, y: number, label: string) {
-        const centerX = x + (this.size * gridSize) / 2;
-        const centerY = y + (this.size * gridSize) / 2;
+        const centerX = x + (this.size) / 2;
+        const centerY = y + (this.size) / 2;
 
         ctx.fillStyle = "black";
         ctx.font = "10px Arial";
@@ -24,12 +26,14 @@ class Square extends Shape {
     constructor (color: string, size: number) {
         super(color);
 
-        this.size = size;
+        this.size = size * gridSize;
     }
+
+    getSize() { return this.size; }
 
     override draw(ctx: CanvasRenderingContext2D, x: number, y: number, label: string) {
         ctx.fillStyle = this.color;
-        ctx.fillRect(x, y, this.size * gridSize, this.size * gridSize);
+        ctx.fillRect(x, y, this.size, this.size);
         this.drawLabel(ctx, x, y, label);
     }
 }
@@ -38,14 +42,16 @@ class Circle extends Shape {
     constructor (color: string, radius: number) {
         super(color);
 
-        this.size = radius;
+        this.size = radius * gridSize;
     }
+
+    getSize() { return this.size * 2; }
 
     override draw(ctx: CanvasRenderingContext2D, x: number, y: number, label: string) {
         ctx.fillStyle = this.color;
         ctx.beginPath();
         // Offset sligthly because it makes it look less missaligned
-        ctx.arc(x + gridSize / 2, y + gridSize / 2, this.size * gridSize, 0, Math.PI * 2);
+        ctx.arc(x + gridSize / 2, y + gridSize / 2, this.size, 0, Math.PI * 2);
         ctx.fill();
         this.drawLabel(ctx, x - gridSize / 4, y - gridSize / 4, label);
     }
@@ -108,6 +114,15 @@ class Placed {
 
     draw(ctx: CanvasRenderingContext2D) {
         this.shape.draw(ctx, this.x, this.y, this.label);
+    }
+
+    overlaps(snappedX: number, snappedY: number, overlapSize: number) {
+        return (
+            snappedX + overlapSize > this.x &&
+            snappedX < this.x + this.shape.getSize() &&
+            snappedY + overlapSize > this.y &&
+            snappedY < this.y + this.shape.getSize() 
+        )
     }
 }
 
@@ -192,10 +207,19 @@ class Editor {
                 snappedX,
                 snappedY
             )
-            
+
             this.placed.push(placed);
             this.placing.fire("place", placed);
         });
+
+        window.addEventListener("keydown", (e) => {
+            switch (e.key) {
+                case "Escape":
+                    if (this.placing) this.togglePlaceable();
+                    break;
+                default: break;
+            }
+        })
     }
 
     private draw() {
@@ -215,6 +239,8 @@ class Editor {
         const snappedX = Math.floor(this.lastX / gridSize) * gridSize;
         const snappedY = Math.floor(this.lastY / gridSize) * gridSize;
 
+        if (this.findGate(snappedX, snappedY, this.placing.getShape().getSize())) return;
+
         this.ctx.globalAlpha = 0.5;
         this.placing.draw(this.ctx, snappedX, snappedY);
         this.ctx.globalAlpha = 1;
@@ -230,8 +256,12 @@ class Editor {
         this.toolbar.appendChild(placeable._getButton());
     }
 
-    togglePlaceable(placeable: Placeable | null) {
+    togglePlaceable(placeable: Placeable | null = null) {
         this.placing = (this.placing === placeable)? null: placeable;
         this.draw();
     }
+
+    findGate(snappedX: number, snappedY: number, overlapSize: number) {
+        return this.placed.find(elm => elm.overlaps(snappedX, snappedY, overlapSize));
+    } 
 }
