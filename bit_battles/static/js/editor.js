@@ -7,15 +7,20 @@ class Shape {
         this.color = color;
     }
     getSize() { return 0; }
-    draw(ctx, x, y, label) { }
+    draw(ctx, x, y, rotation, label) { }
     ;
-    drawLabel(ctx, x, y, label) {
+    drawLabel(ctx, x, y, rotation, label) {
         const centerX = x + (this.getSize()) / 2;
         const centerY = y + (this.getSize()) / 2;
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate((rotation * Math.PI) / 180);
         ctx.fillStyle = "black";
         ctx.font = "10px Arial";
         ctx.textAlign = "center";
-        ctx.fillText(label, centerX, centerY + 5); // + 5 for better vertical alignment;
+        ctx.textBaseline = "middle";
+        ctx.fillText(label, 0, 0);
+        ctx.restore();
     }
     drawOutline(ctx, x, y) { }
     ;
@@ -26,10 +31,10 @@ class Square extends Shape {
         this.size = size * gridSize;
     }
     getSize() { return this.size; }
-    draw(ctx, x, y, label) {
+    draw(ctx, x, y, rotation, label) {
         ctx.fillStyle = this.color;
         ctx.fillRect(x, y, this.size, this.size);
-        this.drawLabel(ctx, x, y, label);
+        this.drawLabel(ctx, x, y, rotation, label);
     }
     drawOutline(ctx, x, y) {
         ctx.fillStyle = "black";
@@ -44,12 +49,12 @@ class Circle extends Shape {
         this.size = radius * gridSize;
     }
     getSize() { return this.size * 2; }
-    draw(ctx, x, y, label) {
+    draw(ctx, x, y, rotation, label) {
         ctx.fillStyle = this.color;
         ctx.beginPath();
         ctx.arc(x + this.size, y + this.size, this.size, 0, Math.PI * 2);
         ctx.fill();
-        this.drawLabel(ctx, x, y, label);
+        this.drawLabel(ctx, x, y, 0, label);
     }
     drawOutline(ctx, x, y) {
         ctx.fillStyle = "black";
@@ -82,8 +87,8 @@ class Placeable {
         var _a, _b;
         (_b = (_a = this.events)[event]) === null || _b === void 0 ? void 0 : _b.call(_a, ...args);
     }
-    draw(ctx, snappedX, snappedY) {
-        this.shape.draw(ctx, snappedX, snappedY, this.label);
+    draw(ctx, snappedX, snappedY, rotation) {
+        this.shape.draw(ctx, snappedX, snappedY, rotation, this.label);
     }
 }
 class Connector {
@@ -112,28 +117,48 @@ class Connector {
     }
     overlaps(snappedX, snappedY, overlapSize) {
         // We add a small offset gridSize/4 to make it easier to find a connector
-        return (snappedX + overlapSize >= this.x - this.size - gridSize / 4 &&
+        return (snappedX + overlapSize > this.x - this.size - gridSize / 4 &&
             snappedX < this.x + this.size + gridSize / 4 &&
-            snappedY + overlapSize >= this.y - this.size - gridSize / 4 &&
+            snappedY + overlapSize > this.y - this.size - gridSize / 4 &&
             snappedY < this.y + this.size + gridSize / 4);
     }
 }
 class Placed {
-    constructor(shape, label, _connectors, x, y) {
+    constructor(shape, label, _connectors, x, y, rotation) {
         this.connectors = [];
         this.shape = shape;
         this.label = label;
         this.x = x;
         this.y = y;
+        this.rotation = (shape instanceof Square) ? rotation : 0;
         _connectors.forEach(connector => {
-            let connectorX, connectorY;
+            let connectorX = this.x;
+            let connectorY = this.y;
             if (this.shape instanceof Circle) {
-                connectorX = this.x + this.shape.getSize() / 2;
-                connectorY = this.y + this.shape.getSize() / 2;
+                connectorX += this.shape.getSize() / 2;
+                connectorY += this.shape.getSize() / 2;
             }
             else {
-                connectorX = this.x + (connector.left * gridSize + (connector.align ? gridSize / 2 : 0)), // Offset by half a gridSize because circles appear offsetted.
-                    connectorY = this.y + (connector.top * gridSize + gridSize / 2);
+                // An offset (gridSize / 2) is applied because circles appear offsetted.
+                switch (rotation) {
+                    case 90:
+                        connectorX += connector.top * gridSize + (gridSize / 2);
+                        connectorY += connector.left * gridSize;
+                        break;
+                    case 180:
+                        connectorX += (connector.left * gridSize + this.shape.getSize()) % (this.shape.getSize() * 2);
+                        connectorY += connector.top * gridSize + (gridSize / 2);
+                        break;
+                    case 270:
+                        connectorX += (connector.top * gridSize) + (gridSize / 2);
+                        connectorY += (connector.left * gridSize + this.shape.getSize()) % (this.shape.getSize() * 2);
+                        break;
+                    default:
+                    case 0:
+                        connectorX += connector.left * gridSize;
+                        connectorY += connector.top * gridSize + (gridSize / 2);
+                        break;
+                }
             }
             this.connectors.push(new Connector(connectorX, connectorY, connector.radius * gridSize, connector.color));
         });
@@ -141,7 +166,7 @@ class Placed {
     getConnectors() { return this.connectors; }
     setLabel(label) { this.label = label; }
     draw(ctx) {
-        this.shape.draw(ctx, this.x, this.y, this.label);
+        this.shape.draw(ctx, this.x, this.y, this.rotation, this.label);
         this.connectors.forEach(connector => connector.draw(ctx));
     }
     drawOutline(ctx) {
@@ -230,7 +255,7 @@ class Editor {
                     return;
                 if (this.hovering)
                     return;
-                const placed = new Placed(this.placing.getShape(), this.placing.getLabel(), this.placing.getConnectors(), snappedX, snappedY);
+                const placed = new Placed(this.placing.getShape(), this.placing.getLabel(), this.placing.getConnectors(), snappedX, snappedY, this.rotation);
                 this.placed.push(placed);
                 this.connectors.push(...placed.getConnectors());
                 this.placing.fire("place", placed);
@@ -259,8 +284,9 @@ class Editor {
                 case "ArrowRight":
                     this.rotation = 180;
                     break;
-                default: break;
+                default: return;
             }
+            this.draw();
         });
     }
     draw() {
@@ -284,7 +310,7 @@ class Editor {
         if (this.findGate(snappedX, snappedY, this.placing.getShape().getSize()))
             return;
         this.ctx.globalAlpha = 0.5;
-        this.placing.draw(this.ctx, snappedX, snappedY);
+        this.placing.draw(this.ctx, snappedX, snappedY, this.rotation);
         this.ctx.globalAlpha = 1;
     }
     getContext() { return this.ctx; }
