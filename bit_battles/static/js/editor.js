@@ -6,9 +6,6 @@ class Shape {
         this.size = 0;
         this.color = color;
     }
-    getSize() { return 0; }
-    draw(ctx, x, y, rotation, label) { }
-    ;
     drawLabel(ctx, x, y, rotation, label) {
         const centerX = x + (this.getSize()) / 2;
         const centerY = y + (this.getSize()) / 2;
@@ -21,46 +18,6 @@ class Shape {
         ctx.textBaseline = "middle";
         ctx.fillText(label, 0, 0);
         ctx.restore();
-    }
-    drawOutline(ctx, x, y) { }
-    ;
-}
-class Square extends Shape {
-    constructor(color, size) {
-        super(color);
-        this.size = size * gridSize;
-    }
-    getSize() { return this.size; }
-    draw(ctx, x, y, rotation, label) {
-        ctx.fillStyle = this.color;
-        ctx.fillRect(x, y, this.size, this.size);
-        this.drawLabel(ctx, x, y, rotation, label);
-    }
-    drawOutline(ctx, x, y) {
-        ctx.fillStyle = "black";
-        ctx.beginPath();
-        ctx.roundRect(x - gridSize / 4, y - gridSize / 4, this.size + gridSize / 2, this.size + gridSize / 2, [5, 5, 5, 5]);
-        ctx.stroke();
-    }
-}
-class Circle extends Shape {
-    constructor(color, radius) {
-        super(color);
-        this.size = radius * gridSize;
-    }
-    getSize() { return this.size * 2; }
-    draw(ctx, x, y, rotation, label) {
-        ctx.fillStyle = this.color;
-        ctx.beginPath();
-        ctx.arc(x + this.size, y + this.size, this.size, 0, Math.PI * 2);
-        ctx.fill();
-        this.drawLabel(ctx, x, y, 0, label);
-    }
-    drawOutline(ctx, x, y) {
-        ctx.fillStyle = "black";
-        ctx.beginPath();
-        ctx.arc(x + this.size, y + this.size, this.size + gridSize / 4, 0, Math.PI * 2);
-        ctx.stroke();
     }
 }
 class Placeable {
@@ -108,9 +65,7 @@ class Connector {
         ctx.fill();
     }
     drawOutline(ctx) {
-        if (!this.color)
-            return;
-        ctx.fillStyle = "black";
+        ctx.strokeStyle = "black";
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size + gridSize / 4, 0, Math.PI * 2);
         ctx.stroke();
@@ -127,6 +82,7 @@ class Placed {
     constructor(shape, label, _connectors, x, y, rotation) {
         this.connectors = [];
         this.shape = shape;
+        this.category = label;
         this.label = label;
         this.x = x;
         this.y = y;
@@ -165,6 +121,8 @@ class Placed {
     }
     getConnectors() { return this.connectors; }
     getLabel() { return this.label; }
+    getRotation() { return this.rotation; }
+    getCategory() { return this.category; }
     setLabel(label) { this.label = label; }
     draw(ctx) {
         this.shape.draw(ctx, this.x, this.y, this.rotation, this.label);
@@ -180,13 +138,15 @@ class Placed {
             snappedY < this.y + this.shape.getSize());
     }
 }
+class Connection {
+}
 class Editor {
-    constructor(canvasId) {
+    constructor(canvasId, connection) {
         this.placeables = {};
         this.placing = null;
-        this.hovering = undefined;
         this.rotation = 0;
         this.moving = false;
+        this.holding = false;
         this.placed = [];
         this.connectors = [];
         this.dragging = false;
@@ -200,6 +160,7 @@ class Editor {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
         this.toolbar = document.getElementById("toolbar");
+        this.connection = connection;
         this.setupPanControls();
         this.registerListeners();
         this.draw();
@@ -231,10 +192,17 @@ class Editor {
             this.lastY = e.clientY;
             if (!this.dragging) {
                 const [snappedX, snappedY] = this._getWorldCoordinates();
-                this.hovering = this.findConnector(this.lastX - this.panX, this.lastY - this.panY, 1);
-                if (this.hovering && this.hovering.getColor())
+                const connector = this.findConnector(this.lastX - this.panX, this.lastY - this.panY, 1);
+                const gate = this.findGate(snappedX, snappedY, 1);
+                if (gate && connector) {
+                    this.hovering = (this.holding || this.connecting) ? connector : gate;
                     return this.draw();
-                this.hovering = this.findGate(snappedX, snappedY, 1);
+                }
+                else {
+                    // Either a gate or a connector is found. Only allow this.hovering to be a 
+                    // gate when no connector is found AND we are not currently drawing a wire.
+                    this.hovering = (connector || this.connecting) ? connector : gate;
+                }
             }
             this.draw();
         });
@@ -258,23 +226,33 @@ class Editor {
                 this.moving = false;
                 this.togglePlaceable(null);
             }
-            if (!(this.hovering instanceof Placed))
+            if (!this.hovering)
                 return;
-            this.placing = this.placeables[this.hovering.getLabel()];
-            this.deletePlaced(this.hovering);
-            this.moving = true;
+            if (this.hovering instanceof Placed) {
+                this.placing = this.placeables[this.hovering.getCategory()];
+                this.rotation = this.hovering.getRotation();
+                this.deletePlaced(this.hovering);
+                this.moving = true;
+                return;
+            }
+            this.connect(this.hovering);
         });
         this.canvas.addEventListener("contextmenu", (e) => {
             e.preventDefault();
+            if (this.connecting)
+                this.connecting = undefined;
             if (!(this.hovering instanceof Placed))
                 return;
             this.deletePlaced(this.hovering);
+            this.draw();
         });
         window.addEventListener("keydown", (e) => {
             switch (e.key) {
                 case "Escape":
                     if (this.placing)
                         this.togglePlaceable();
+                    if (this.connecting)
+                        this.connecting = undefined;
                     break;
                 case "Delete":
                     if (this.hovering && this.hovering instanceof Placed)
@@ -295,17 +273,39 @@ class Editor {
                 case "ArrowRight":
                     this.rotation = 180;
                     break;
+                case "Shift":
+                    this.holding = true;
+                    return;
                 default: return;
             }
+            window.addEventListener("keyup", (e) => {
+                switch (e.key) {
+                    case "Shift":
+                        this.holding = false;
+                        return;
+                    default: return;
+                }
+            });
             this.draw();
         });
+    }
+    connect(connector) {
+        if (this.connecting) {
+            console.log(this.connecting, connector);
+            return;
+        }
+        this.connecting = connector;
     }
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.ctx.save();
         this.ctx.translate(this.panX, this.panY);
         this.placed.forEach(elm => { elm.draw(this.ctx); });
-        if (this.placing)
+        if (this.connecting) {
+            const [snappedX, snappedY] = this._getWorldCoordinates();
+            this.connection.draw(this.ctx, this.connecting.x, this.connecting.y, snappedX, snappedY, (this.hovering instanceof Connector) ? this.hovering : undefined);
+        }
+        else if (this.placing)
             this.drawPlacing();
         if (this.hovering && !this.placing)
             this.hovering.drawOutline(this.ctx);
@@ -316,7 +316,7 @@ class Editor {
             return;
         if (this.hovering)
             return;
-        let [snappedX, snappedY] = this._getWorldCoordinates();
+        const [snappedX, snappedY] = this._getWorldCoordinates();
         if (this.findGate(snappedX, snappedY, this.placing.getShape().getSize()))
             return;
         this.ctx.globalAlpha = 0.5;

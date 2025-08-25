@@ -1,6 +1,6 @@
 const gridSize = 20;
 
-class Shape {
+abstract class Shape {
     protected color: string = "#123456";
     protected size: number = 0;
 
@@ -8,9 +8,6 @@ class Shape {
         this.color = color;
     }
 
-    getSize() { return 0; }
-
-    draw (ctx: CanvasRenderingContext2D, x: number, y: number, rotation: number, label: string) {};
     drawLabel(ctx: CanvasRenderingContext2D, x: number, y: number, rotation: number, label: string) {
         const centerX = x + (this.getSize()) / 2;
         const centerY = y + (this.getSize()) / 2;
@@ -27,57 +24,10 @@ class Shape {
 
         ctx.restore()
     }
-    drawOutline(ctx: CanvasRenderingContext2D, x: number, y: number) {};
-}
 
-class Square extends Shape {
-    constructor (color: string, size: number) {
-        super(color);
-
-        this.size = size * gridSize;
-    }
-
-    getSize() { return this.size; }
-
-    override draw(ctx: CanvasRenderingContext2D, x: number, y: number, rotation: number, label: string) {
-        ctx.fillStyle = this.color;
-        ctx.fillRect(x, y, this.size, this.size);
-
-        this.drawLabel(ctx, x, y, rotation, label);
-    }
-
-    override drawOutline(ctx: CanvasRenderingContext2D, x: number, y: number) {
-        ctx.fillStyle = "black";
-        ctx.beginPath();
-        ctx.roundRect(x - gridSize/4, y - gridSize/4, this.size + gridSize/2, this.size + gridSize/2, [5, 5, 5, 5]);
-        ctx.stroke();
-    }
-}
-
-class Circle extends Shape {
-    constructor (color: string, radius: number) {
-        super(color);
-
-        this.size = radius * gridSize;
-    }
-
-    getSize() { return this.size * 2; }
-
-    override draw(ctx: CanvasRenderingContext2D, x: number, y: number, rotation: number, label: string) {
-        ctx.fillStyle = this.color;
-        ctx.beginPath();
-        ctx.arc(x + this.size, y + this.size, this.size, 0, Math.PI * 2);
-        ctx.fill();
-        
-        this.drawLabel(ctx, x, y, 0, label);
-
-    }
-    override drawOutline(ctx: CanvasRenderingContext2D, x: number, y: number) {
-        ctx.fillStyle = "black";
-        ctx.beginPath();
-        ctx.arc(x + this.size, y + this.size, this.size + gridSize/4, 0, Math.PI * 2);
-        ctx.stroke();
-    }
+    abstract getSize(): number;
+    abstract draw(ctx: CanvasRenderingContext2D, x: number, y: number, rotation: number, label: string): void;
+    abstract drawOutline(ctx: CanvasRenderingContext2D, x: number, y: number): void;
 }
 
 interface PlaceableConnector {
@@ -152,8 +102,7 @@ class Connector {
         ctx.fill();
     }
     drawOutline(ctx: CanvasRenderingContext2D) {
-        if (!this.color) return;
-        ctx.fillStyle = "black";
+        ctx.strokeStyle = "black";
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size + gridSize/4, 0, Math.PI * 2);
         ctx.stroke();
@@ -173,6 +122,7 @@ class Connector {
 class Placed {
     private shape: Shape;
     private label: string;
+    private category : string;
     private connectors: Connector[] = [];
     private x: number;
     private y: number;
@@ -180,6 +130,7 @@ class Placed {
     
     constructor (shape: Shape, label: string, _connectors: PlaceableConnector[], x: number, y: number, rotation: number) {
         this.shape = shape
+        this.category = label;
         this.label = label
         this.x = x;
         this.y = y;
@@ -226,6 +177,8 @@ class Placed {
 
     getConnectors() { return this.connectors; }
     getLabel() { return this.label; }
+    getRotation() { return this.rotation; }
+    getCategory() { return this.category; }
 
     setLabel(label: string) { this.label = label; }
 
@@ -248,6 +201,10 @@ class Placed {
     }
 }
 
+abstract class Connection {
+    abstract draw(ctx: CanvasRenderingContext2D, startX: number, startY: number, endX: number, endY: number, hovering: Connector | undefined): void;
+}
+
 class Editor {
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
@@ -256,9 +213,13 @@ class Editor {
     private toolbar: HTMLElement;
 
     private placing: Placeable | null = null;
-    private hovering: Placed | Connector | undefined = undefined;
+    private hovering: Placed | Connector | undefined;
     private rotation: number = 0;
     private moving: boolean = false;
+
+    private connecting: Connector | undefined;
+    private connection: Connection;
+    private holding: boolean = false;
 
     private placed: Placed[] = [];
     private connectors: Connector[] = [];
@@ -270,7 +231,7 @@ class Editor {
     private lastY = 0;
     private zoom = 1;
 
-    constructor (canvasId: string) {
+    constructor (canvasId: string, connection: Connection) {
         this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
         this.ctx = this.canvas.getContext("2d")!;
 
@@ -278,6 +239,7 @@ class Editor {
         this.canvas.height = window.innerHeight;
 
         this.toolbar = document.getElementById("toolbar") as HTMLElement;
+        this.connection = connection;
 
         this.setupPanControls();
         this.registerListeners();
@@ -318,10 +280,17 @@ class Editor {
             if (!this.dragging) {
                 const [snappedX, snappedY] = this._getWorldCoordinates()
 
-                this.hovering = this.findConnector(this.lastX - this.panX, this.lastY - this.panY, 1);
-                if (this.hovering && this.hovering.getColor()) return this.draw();
+                const connector = this.findConnector(this.lastX - this.panX, this.lastY - this.panY, 1);
+                const gate = this.findGate(snappedX, snappedY, 1);
+                if (gate && connector) {
+                    this.hovering = (this.holding || this.connecting)? connector: gate;
+                    return this.draw();
+                } else {
+                    // Either a gate or a connector is found. Only allow this.hovering to be a 
+                    // gate when no connector is found AND we are not currently drawing a wire.
+                    this.hovering = (connector || this.connecting)? connector: gate;
+                }
 
-                this.hovering = this.findGate(snappedX, snappedY, 1);
             }
 
             this.draw();
@@ -358,23 +327,32 @@ class Editor {
                 this.togglePlaceable(null);
             }
 
-            if (!(this.hovering instanceof Placed)) return;
-            this.placing = this.placeables[this.hovering.getLabel()];
-            this.deletePlaced(this.hovering);
-            this.moving = true;
-        });
+            if (!this.hovering) return;
+            if (this.hovering instanceof Placed) {
+                this.placing = this.placeables[this.hovering.getCategory()];
+                this.rotation = this.hovering.getRotation();
+                this.deletePlaced(this.hovering);
+                this.moving = true;
+                return;
+            }
 
+            this.connect(this.hovering);
+        });
+        
         this.canvas.addEventListener("contextmenu", (e) => {
             e.preventDefault()
 
+            if (this.connecting) this.connecting = undefined;
             if (!(this.hovering instanceof Placed)) return;
             this.deletePlaced(this.hovering);
+            this.draw();
         });
 
         window.addEventListener("keydown", (e) => {
             switch (e.key) {
                 case "Escape":
                     if (this.placing) this.togglePlaceable();
+                    if (this.connecting) this.connecting = undefined;
                     break;
                 case "Delete":
                     if (this.hovering && this.hovering instanceof Placed) this.deletePlaced(this.hovering);
@@ -394,11 +372,32 @@ class Editor {
                 case "ArrowRight":
                     this.rotation = 180;
                     break;
+                case "Shift":
+                    this.holding = true;
+                    return;
                 default: return;
             }
 
+            window.addEventListener("keyup", (e) => {
+                switch (e.key) {
+                    case "Shift":
+                        this.holding = false;
+                        return;
+                    default: return;
+                }
+            });
+
             this.draw();
         })
+    }
+
+    private connect(connector: Connector) {
+        if (this.connecting) {
+            console.log(this.connecting, connector);
+            return;
+        }
+
+        this.connecting = connector;
     }
 
     private draw() {
@@ -408,7 +407,11 @@ class Editor {
         this.ctx.translate(this.panX, this.panY);
 
         this.placed.forEach(elm => { elm.draw(this.ctx); });
-        if (this.placing) this.drawPlacing();
+        if (this.connecting) {
+            const [snappedX, snappedY] = this._getWorldCoordinates();
+            this.connection.draw(this.ctx, this.connecting.x, this.connecting.y, snappedX, snappedY, (this.hovering instanceof Connector)? this.hovering: undefined);
+
+        } else if (this.placing) this.drawPlacing();
         if (this.hovering && !this.placing) this.hovering.drawOutline(this.ctx);
 
         this.ctx.restore();
@@ -418,7 +421,7 @@ class Editor {
         if (!this.placing) return;
         if (this.hovering) return;
 
-        let [snappedX, snappedY] = this._getWorldCoordinates()
+        const [snappedX, snappedY] = this._getWorldCoordinates()
         if (this.findGate(snappedX, snappedY, this.placing.getShape().getSize())) return;
 
         this.ctx.globalAlpha = 0.5;
