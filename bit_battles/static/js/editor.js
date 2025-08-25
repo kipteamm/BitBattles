@@ -66,6 +66,7 @@ class Connector {
     }
     drawOutline(ctx) {
         ctx.strokeStyle = "black";
+        ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size + gridSize / 4, 0, Math.PI * 2);
         ctx.stroke();
@@ -151,10 +152,35 @@ class Connection {
         this.endX = endX;
         this.endY = endY;
         this.color = color;
+        this.horizontal = (startY === endY);
     }
     setColor(color) { this.color = color; }
     draw(ctx, connector) {
         connector.draw(ctx, this.startX, this.startY, this.endX, this.endY, this.color);
+    }
+    overlaps(snappedX, snappedY, overlapSize) {
+        if (this.horizontal)
+            return (snappedX + overlapSize > this.startX &&
+                snappedX < this.endX &&
+                snappedY + overlapSize > this.startY - gridSize / 2 &&
+                snappedY < this.startY + gridSize / 2);
+        return (snappedX + overlapSize > this.startX - gridSize / 2 &&
+            snappedX < this.endX + gridSize / 2 &&
+            snappedY + overlapSize > this.startY &&
+            snappedY < this.startY);
+    }
+    drawOutline(ctx, snappedX, snappedY) {
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        if (this.horizontal) {
+            // To make it match connector size; use radius gridSize/5 + gridSize/4
+            ctx.arc(snappedX + gridSize / 2, this.startY, gridSize / 4, 0, Math.PI * 2);
+        }
+        else {
+            ctx.arc(this.startX, snappedY + gridSize / 2, gridSize / 4, 0, Math.PI * 2);
+        }
+        ctx.stroke();
     }
 }
 class Editor {
@@ -221,6 +247,8 @@ class Editor {
                     // gate when no connector is found AND we are not currently drawing a wire.
                     this.hovering = (connector || this.connecting) ? connector : gate;
                 }
+                if (!this.hovering)
+                    this.hovering = this.findConnection(snappedX, snappedY, 1);
             }
             this.draw();
         });
@@ -253,15 +281,17 @@ class Editor {
                 this.moving = true;
                 return;
             }
-            this.connect(this.hovering);
+            if (this.hovering instanceof Connector)
+                this.connect(this.hovering);
         });
         this.canvas.addEventListener("contextmenu", (e) => {
             e.preventDefault();
             if (this.connecting)
                 this.connecting = undefined;
-            if (!(this.hovering instanceof Placed))
-                return;
-            this.deletePlaced(this.hovering);
+            if (this.hovering instanceof Placed)
+                this.deletePlaced(this.hovering);
+            if (this.hovering instanceof Connection)
+                this.deleteConnection(this.hovering);
             this.draw();
         });
         window.addEventListener("keydown", (e) => {
@@ -323,22 +353,21 @@ class Editor {
         this.ctx.translate(this.panX, this.panY);
         this.connections.forEach(elm => { elm.draw(this.ctx, this.connection); });
         this.placed.forEach(elm => { elm.draw(this.ctx); });
+        const [snappedX, snappedY] = this._getWorldCoordinates();
         if (this.connecting) {
-            const [snappedX, snappedY] = this._getWorldCoordinates();
             this.connection.drawGhost(this.ctx, this.connecting.x, this.connecting.y, snappedX, snappedY, (this.hovering instanceof Connector) ? this.hovering : undefined);
         }
         else if (this.placing)
-            this.drawPlacing();
+            this.drawPlacing(snappedX, snappedY);
         if (this.hovering && !this.placing)
-            this.hovering.drawOutline(this.ctx);
+            this.hovering.drawOutline(this.ctx, snappedX, snappedY);
         this.ctx.restore();
     }
-    drawPlacing() {
+    drawPlacing(snappedX, snappedY) {
         if (!this.placing)
             return;
         if (this.hovering)
             return;
-        const [snappedX, snappedY] = this._getWorldCoordinates();
         if (this.findGate(snappedX, snappedY, this.placing.getShape().getSize()))
             return;
         this.ctx.globalAlpha = 0.5;
@@ -364,10 +393,18 @@ class Editor {
     findGate(snappedX, snappedY, overlapSize) {
         return this.placed.find(elm => elm.overlaps(snappedX, snappedY, overlapSize));
     }
+    findConnection(snappedX, snappedY, overlapSize) {
+        return this.connections.find(elm => elm.overlaps(snappedX, snappedY, overlapSize));
+    }
     deletePlaced(placed) {
-        this.connectors.splice(this.connectors.indexOf(placed.getConnectors()[0]), placed.getConnectors().length);
-        this.placed.splice(this.placed.indexOf(placed), 1);
         if (placed === this.hovering)
             this.hovering = undefined;
+        this.connectors.splice(this.connectors.indexOf(placed.getConnectors()[0]), placed.getConnectors().length);
+        this.placed.splice(this.placed.indexOf(placed), 1);
+    }
+    deleteConnection(connection) {
+        if (connection === this.hovering)
+            this.hovering = undefined;
+        this.connections.splice(this.connections.indexOf(connection), 1);
     }
 }
