@@ -44,7 +44,7 @@ class Wire extends PlaceableConnection {
         this.endY = 0;
         this.color = "#1d5723";
     }
-    valid(startX, startY) {
+    _checkGhost(startX, startY) {
         const isHoriztonal = Math.abs(startX - this.endX) > Math.abs(startY - this.endY);
         if (isHoriztonal) {
             this.endY += gridSize / 2;
@@ -55,6 +55,13 @@ class Wire extends PlaceableConnection {
         this.endY += gridSize / 2;
         return startX === this.endX;
     }
+    valid(connection1, connection2) {
+        if (connection1.x === connection2.x)
+            return true;
+        if (connection1.y === connection2.y)
+            return true;
+        return false;
+    }
     drawGhost(ctx, startX, startY, endX, endY, connector) {
         if (connector) {
             this.endX = connector.x - gridSize / 2; // No need to offset because connector is already offset.
@@ -64,7 +71,7 @@ class Wire extends PlaceableConnection {
             this.endX = endX;
             this.endY = endY;
         }
-        const isValid = this.valid(startX, startY);
+        const isValid = this._checkGhost(startX, startY);
         if (!isValid)
             ctx.globalAlpha = 0.5;
         this.draw(ctx, startX, startY, this.endX, this.endY, isValid ? this.color : "#a60000");

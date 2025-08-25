@@ -309,6 +309,8 @@ class Editor {
     }
     connect(connector) {
         if (this.connecting) {
+            if (!this.connection.valid(this.connecting, connector))
+                return;
             this.connections.push(new Connection(this.connecting.x, this.connecting.y, connector.x, connector.y, this.connection.getColor()));
             this.connecting = undefined;
             return;
@@ -319,8 +321,8 @@ class Editor {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.ctx.save();
         this.ctx.translate(this.panX, this.panY);
-        this.placed.forEach(elm => { elm.draw(this.ctx); });
         this.connections.forEach(elm => { elm.draw(this.ctx, this.connection); });
+        this.placed.forEach(elm => { elm.draw(this.ctx); });
         if (this.connecting) {
             const [snappedX, snappedY] = this._getWorldCoordinates();
             this.connection.drawGhost(this.ctx, this.connecting.x, this.connecting.y, snappedX, snappedY, (this.hovering instanceof Connector) ? this.hovering : undefined);

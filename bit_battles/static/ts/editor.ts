@@ -205,6 +205,7 @@ abstract class PlaceableConnection {
     color: string = "#000";
 
     getColor() { return this.color; }
+    abstract valid(connection1: Connector, connection2: Connector): boolean;
     abstract drawGhost(ctx: CanvasRenderingContext2D, startX: number, startY: number, endX: number, endY: number, hovering: Connector | undefined): void;
     abstract draw(ctx: CanvasRenderingContext2D, startX: number, startY: number, endX: number, endY: number, color: string): void;
 }
@@ -420,6 +421,8 @@ class Editor {
 
     private connect(connector: Connector) {
         if (this.connecting) {
+            if (!this.connection.valid(this.connecting, connector)) return;
+
             this.connections.push(new Connection(
                 this.connecting.x,
                 this.connecting.y,
@@ -441,8 +444,8 @@ class Editor {
         this.ctx.save();
         this.ctx.translate(this.panX, this.panY);
 
-        this.placed.forEach(elm => { elm.draw(this.ctx); });
         this.connections.forEach(elm => { elm.draw(this.ctx, this.connection )});
+        this.placed.forEach(elm => { elm.draw(this.ctx); });
         if (this.connecting) {
             const [snappedX, snappedY] = this._getWorldCoordinates();
             this.connection.drawGhost(this.ctx, this.connecting.x, this.connecting.y, snappedX, snappedY, (this.hovering instanceof Connector)? this.hovering: undefined);
