@@ -225,6 +225,8 @@ class Placed {
     }
 
     getConnectors() { return this.connectors; }
+    getLabel() { return this.label; }
+
     setLabel(label: string) { this.label = label; }
 
     draw(ctx: CanvasRenderingContext2D) {
@@ -249,15 +251,14 @@ class Placed {
 class Editor {
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
-    // private overlayCanvas: HTMLCanvasElement;
-    // private overlayCtx: CanvasRenderingContext2D;
 
-    private placeables: Placeable[] = [];
+    private placeables: Record<string, Placeable> = {};
     private toolbar: HTMLElement;
 
     private placing: Placeable | null = null;
     private hovering: Placed | Connector | undefined = undefined;
     private rotation: number = 0;
+    private moving: boolean = false;
 
     private placed: Placed[] = [];
     private connectors: Connector[] = [];
@@ -275,13 +276,6 @@ class Editor {
 
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
-
-        // this.overlayCanvas = document.getElementById(canvasId) as HTMLCanvasElement;
-        // this.overlayCtx = this.overlayCanvas.getContext("2d")!;
-        // this.overlayCtx.globalAlpha = 0.5;
-
-        // this.overlayCanvas.width = this.canvas.width;
-        // this.overlayCanvas.height = this.canvas.height; // - 40;
 
         this.toolbar = document.getElementById("toolbar") as HTMLElement;
 
@@ -334,7 +328,6 @@ class Editor {
         });
 
         this.canvas.addEventListener("mouseup", () => this.dragging = false);
-        this.canvas.addEventListener("contextmenu", (e) => e.preventDefault()); // disable context menu
     }
 
     private registerListeners() {
@@ -359,17 +352,32 @@ class Editor {
                 this.placed.push(placed);
                 this.connectors.push(...placed.getConnectors());
                 this.placing.fire("place", placed);
-                return;
+
+                if (!this.moving) return;
+                this.moving = false;
+                this.togglePlaceable(null);
             }
 
-            // const connector = this.findConnector(snappedX, snappedY);
+            if (!(this.hovering instanceof Placed)) return;
+            this.placing = this.placeables[this.hovering.getLabel()];
+            this.deletePlaced(this.hovering);
+            this.moving = true;
+        });
 
+        this.canvas.addEventListener("contextmenu", (e) => {
+            e.preventDefault()
+
+            if (!(this.hovering instanceof Placed)) return;
+            this.deletePlaced(this.hovering);
         });
 
         window.addEventListener("keydown", (e) => {
             switch (e.key) {
                 case "Escape":
                     if (this.placing) this.togglePlaceable();
+                    break;
+                case "Delete":
+                    if (this.hovering && this.hovering instanceof Placed) this.deletePlaced(this.hovering);
                     break;
                 case "z":
                     this.rotation = this.rotation === 360? 90: this.rotation + 90;
@@ -395,13 +403,13 @@ class Editor {
 
     private draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        // this.ctx.drawImage(this.overlayCanvas, 0, 0);
+
         this.ctx.save();
         this.ctx.translate(this.panX, this.panY);
 
         this.placed.forEach(elm => { elm.draw(this.ctx); });
         if (this.placing) this.drawPlacing();
-        if (this.hovering) this.hovering.drawOutline(this.ctx);
+        if (this.hovering && !this.placing) this.hovering.drawOutline(this.ctx);
 
         this.ctx.restore();
     }
@@ -424,7 +432,7 @@ class Editor {
     registerPlaceable(placeable: Placeable) { 
         placeable._setEditor(this);
 
-        this.placeables.push(placeable);
+        this.placeables[placeable.getLabel()] = placeable;
         this.toolbar.appendChild(placeable._getButton());
     }
 
@@ -442,4 +450,11 @@ class Editor {
     findGate(snappedX: number, snappedY: number, overlapSize: number) {
         return this.placed.find(elm => elm.overlaps(snappedX, snappedY, overlapSize));
     } 
+
+    deletePlaced(placed: Placed) {
+        this.connectors.splice(this.connectors.indexOf(placed.getConnectors()[0]), placed.getConnectors().length)
+        this.placed.splice(this.placed.indexOf(placed), 1);
+
+        if (placed === this.hovering) this.hovering = undefined;
+    }
 }

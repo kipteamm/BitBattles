@@ -164,6 +164,7 @@ class Placed {
         });
     }
     getConnectors() { return this.connectors; }
+    getLabel() { return this.label; }
     setLabel(label) { this.label = label; }
     draw(ctx) {
         this.shape.draw(ctx, this.x, this.y, this.rotation, this.label);
@@ -181,12 +182,11 @@ class Placed {
 }
 class Editor {
     constructor(canvasId) {
-        // private overlayCanvas: HTMLCanvasElement;
-        // private overlayCtx: CanvasRenderingContext2D;
-        this.placeables = [];
+        this.placeables = {};
         this.placing = null;
         this.hovering = undefined;
         this.rotation = 0;
+        this.moving = false;
         this.placed = [];
         this.connectors = [];
         this.dragging = false;
@@ -199,11 +199,6 @@ class Editor {
         this.ctx = this.canvas.getContext("2d");
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
-        // this.overlayCanvas = document.getElementById(canvasId) as HTMLCanvasElement;
-        // this.overlayCtx = this.overlayCanvas.getContext("2d")!;
-        // this.overlayCtx.globalAlpha = 0.5;
-        // this.overlayCanvas.width = this.canvas.width;
-        // this.overlayCanvas.height = this.canvas.height; // - 40;
         this.toolbar = document.getElementById("toolbar");
         this.setupPanControls();
         this.registerListeners();
@@ -244,7 +239,6 @@ class Editor {
             this.draw();
         });
         this.canvas.addEventListener("mouseup", () => this.dragging = false);
-        this.canvas.addEventListener("contextmenu", (e) => e.preventDefault()); // disable context menu
     }
     registerListeners() {
         this.canvas.addEventListener("click", (e) => {
@@ -259,15 +253,32 @@ class Editor {
                 this.placed.push(placed);
                 this.connectors.push(...placed.getConnectors());
                 this.placing.fire("place", placed);
-                return;
+                if (!this.moving)
+                    return;
+                this.moving = false;
+                this.togglePlaceable(null);
             }
-            // const connector = this.findConnector(snappedX, snappedY);
+            if (!(this.hovering instanceof Placed))
+                return;
+            this.placing = this.placeables[this.hovering.getLabel()];
+            this.deletePlaced(this.hovering);
+            this.moving = true;
+        });
+        this.canvas.addEventListener("contextmenu", (e) => {
+            e.preventDefault();
+            if (!(this.hovering instanceof Placed))
+                return;
+            this.deletePlaced(this.hovering);
         });
         window.addEventListener("keydown", (e) => {
             switch (e.key) {
                 case "Escape":
                     if (this.placing)
                         this.togglePlaceable();
+                    break;
+                case "Delete":
+                    if (this.hovering && this.hovering instanceof Placed)
+                        this.deletePlaced(this.hovering);
                     break;
                 case "z":
                     this.rotation = this.rotation === 360 ? 90 : this.rotation + 90;
@@ -291,13 +302,12 @@ class Editor {
     }
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        // this.ctx.drawImage(this.overlayCanvas, 0, 0);
         this.ctx.save();
         this.ctx.translate(this.panX, this.panY);
         this.placed.forEach(elm => { elm.draw(this.ctx); });
         if (this.placing)
             this.drawPlacing();
-        if (this.hovering)
+        if (this.hovering && !this.placing)
             this.hovering.drawOutline(this.ctx);
         this.ctx.restore();
     }
@@ -317,7 +327,7 @@ class Editor {
     getPlaced() { return this.placed; }
     registerPlaceable(placeable) {
         placeable._setEditor(this);
-        this.placeables.push(placeable);
+        this.placeables[placeable.getLabel()] = placeable;
         this.toolbar.appendChild(placeable._getButton());
     }
     togglePlaceable(placeable = null) {
@@ -331,5 +341,11 @@ class Editor {
     }
     findGate(snappedX, snappedY, overlapSize) {
         return this.placed.find(elm => elm.overlaps(snappedX, snappedY, overlapSize));
+    }
+    deletePlaced(placed) {
+        this.connectors.splice(this.connectors.indexOf(placed.getConnectors()[0]), placed.getConnectors().length);
+        this.placed.splice(this.placed.indexOf(placed), 1);
+        if (placed === this.hovering)
+            this.hovering = undefined;
     }
 }
