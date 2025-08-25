@@ -201,8 +201,34 @@ class Placed {
     }
 }
 
-abstract class Connection {
-    abstract draw(ctx: CanvasRenderingContext2D, startX: number, startY: number, endX: number, endY: number, hovering: Connector | undefined): void;
+abstract class PlaceableConnection {
+    color: string = "#000";
+
+    getColor() { return this.color; }
+    abstract drawGhost(ctx: CanvasRenderingContext2D, startX: number, startY: number, endX: number, endY: number, hovering: Connector | undefined): void;
+    abstract draw(ctx: CanvasRenderingContext2D, startX: number, startY: number, endX: number, endY: number, color: string): void;
+}
+
+class Connection {
+    startX: number;
+    startY: number
+    endX: number;
+    endY: number
+    color: string;
+
+    constructor (startX: number, startY: number, endX: number, endY: number, color: string) {
+        this.startX = startX;
+        this.startY = startY;
+        this.endX = endX;
+        this.endY = endY;
+        this.color = color;
+    }
+
+    setColor(color: string) { this.color = color; }
+
+    draw(ctx: CanvasRenderingContext2D, connector: PlaceableConnection) {
+        connector.draw(ctx, this.startX, this.startY, this.endX, this.endY, this.color);
+    }
 }
 
 class Editor {
@@ -218,11 +244,12 @@ class Editor {
     private moving: boolean = false;
 
     private connecting: Connector | undefined;
-    private connection: Connection;
+    private connection: PlaceableConnection;
     private holding: boolean = false;
 
     private placed: Placed[] = [];
     private connectors: Connector[] = [];
+    private connections: Connection[] = []
 
     private dragging = false;
     private panX = 0;
@@ -231,7 +258,7 @@ class Editor {
     private lastY = 0;
     private zoom = 1;
 
-    constructor (canvasId: string, connection: Connection) {
+    constructor (canvasId: string, connection: PlaceableConnection) {
         this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
         this.ctx = this.canvas.getContext("2d")!;
 
@@ -393,7 +420,15 @@ class Editor {
 
     private connect(connector: Connector) {
         if (this.connecting) {
-            console.log(this.connecting, connector);
+            this.connections.push(new Connection(
+                this.connecting.x,
+                this.connecting.y,
+                connector.x,
+                connector.y,
+                this.connection.getColor()
+            ));
+
+            this.connecting = undefined;
             return;
         }
 
@@ -407,9 +442,10 @@ class Editor {
         this.ctx.translate(this.panX, this.panY);
 
         this.placed.forEach(elm => { elm.draw(this.ctx); });
+        this.connections.forEach(elm => { elm.draw(this.ctx, this.connection )});
         if (this.connecting) {
             const [snappedX, snappedY] = this._getWorldCoordinates();
-            this.connection.draw(this.ctx, this.connecting.x, this.connecting.y, snappedX, snappedY, (this.hovering instanceof Connector)? this.hovering: undefined);
+            this.connection.drawGhost(this.ctx, this.connecting.x, this.connecting.y, snappedX, snappedY, (this.hovering instanceof Connector)? this.hovering: undefined);
 
         } else if (this.placing) this.drawPlacing();
         if (this.hovering && !this.placing) this.hovering.drawOutline(this.ctx);

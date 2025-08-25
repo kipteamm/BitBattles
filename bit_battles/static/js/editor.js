@@ -138,7 +138,24 @@ class Placed {
             snappedY < this.y + this.shape.getSize());
     }
 }
+class PlaceableConnection {
+    constructor() {
+        this.color = "#000";
+    }
+    getColor() { return this.color; }
+}
 class Connection {
+    constructor(startX, startY, endX, endY, color) {
+        this.startX = startX;
+        this.startY = startY;
+        this.endX = endX;
+        this.endY = endY;
+        this.color = color;
+    }
+    setColor(color) { this.color = color; }
+    draw(ctx, connector) {
+        connector.draw(ctx, this.startX, this.startY, this.endX, this.endY, this.color);
+    }
 }
 class Editor {
     constructor(canvasId, connection) {
@@ -149,6 +166,7 @@ class Editor {
         this.holding = false;
         this.placed = [];
         this.connectors = [];
+        this.connections = [];
         this.dragging = false;
         this.panX = 0;
         this.panY = 0;
@@ -291,7 +309,8 @@ class Editor {
     }
     connect(connector) {
         if (this.connecting) {
-            console.log(this.connecting, connector);
+            this.connections.push(new Connection(this.connecting.x, this.connecting.y, connector.x, connector.y, this.connection.getColor()));
+            this.connecting = undefined;
             return;
         }
         this.connecting = connector;
@@ -301,9 +320,10 @@ class Editor {
         this.ctx.save();
         this.ctx.translate(this.panX, this.panY);
         this.placed.forEach(elm => { elm.draw(this.ctx); });
+        this.connections.forEach(elm => { elm.draw(this.ctx, this.connection); });
         if (this.connecting) {
             const [snappedX, snappedY] = this._getWorldCoordinates();
-            this.connection.draw(this.ctx, this.connecting.x, this.connecting.y, snappedX, snappedY, (this.hovering instanceof Connector) ? this.hovering : undefined);
+            this.connection.drawGhost(this.ctx, this.connecting.x, this.connecting.y, snappedX, snappedY, (this.hovering instanceof Connector) ? this.hovering : undefined);
         }
         else if (this.placing)
             this.drawPlacing();

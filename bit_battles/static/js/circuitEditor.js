@@ -37,11 +37,12 @@ class Circle extends Shape {
         ctx.stroke();
     }
 }
-class Wire extends Connection {
+class Wire extends PlaceableConnection {
     constructor() {
         super(...arguments);
         this.endX = 0;
         this.endY = 0;
+        this.color = "#1d5723";
     }
     valid(startX, startY) {
         const isHoriztonal = Math.abs(startX - this.endX) > Math.abs(startY - this.endY);
@@ -54,7 +55,7 @@ class Wire extends Connection {
         this.endY += gridSize / 2;
         return startX === this.endX;
     }
-    draw(ctx, startX, startY, endX, endY, connector) {
+    drawGhost(ctx, startX, startY, endX, endY, connector) {
         if (connector) {
             this.endX = connector.x - gridSize / 2; // No need to offset because connector is already offset.
             this.endY = connector.y - gridSize / 2; // No need to offset because connector is already offset.
@@ -66,14 +67,17 @@ class Wire extends Connection {
         const isValid = this.valid(startX, startY);
         if (!isValid)
             ctx.globalAlpha = 0.5;
-        ctx.strokeStyle = isValid ? "#1d5723" : "#a60000";
+        this.draw(ctx, startX, startY, this.endX, this.endY, isValid ? this.color : "#a60000");
+        if (!isValid)
+            ctx.globalAlpha = 1;
+    }
+    draw(ctx, startX, startY, endX, endY, color) {
+        ctx.strokeStyle = color;
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(startX, startY);
-        ctx.lineTo(this.endX, this.endY);
+        ctx.lineTo(endX, endY);
         ctx.stroke();
-        if (!isValid)
-            ctx.globalAlpha = 1;
     }
 }
 window.onload = () => {
