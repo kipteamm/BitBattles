@@ -16,7 +16,7 @@ abstract class Shape {
         ctx.translate(centerX, centerY);    
         ctx.rotate((rotation * Math.PI) / 180);
         
-        ctx.fillStyle = "black";
+        ctx.fillStyle = "white";
         ctx.font = "10px Arial";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -44,8 +44,6 @@ class Placeable {
     private label: string;
     private connectors: PlaceableConnector[];
     
-    private events: Record<string, CallableFunction> = {};
-
     constructor (shape: Shape, label: string, ...connectors: PlaceableConnector[]) {
         this.shape = shape
         this.label = label
@@ -65,14 +63,6 @@ class Placeable {
     getShape() { return this.shape; }
     getLabel() { return this.label; }
     getConnectors() { return this.connectors; }
-
-    listen (event: string, callable: CallableFunction) {
-        this.events[event] = callable;
-    }
-
-    fire (event: string, ...args: any[]) {
-        this.events[event]?.(...args);
-    }
 
     draw(ctx: CanvasRenderingContext2D, snappedX: number, snappedY: number, rotation: number) {
         this.shape.draw(ctx, snappedX, snappedY, rotation, this.label);
@@ -141,30 +131,25 @@ class Placed {
             let connectorX = this.x;
             let connectorY = this.y
 
-            if (this.shape instanceof Circle) {
-                connectorX += this.shape.getSize() / 2;
-                connectorY += this.shape.getSize() / 2;
-            } else {
-                // An offset (gridSize / 2) is applied because circles appear offsetted.
-                switch (rotation) {
-                    case 90:
-                        connectorX += connector.top * gridSize + (gridSize / 2);
-                        connectorY += connector.left * gridSize;
-                        break;
-                    case 180:
-                        connectorX += (connector.left * gridSize + this.shape.getSize()) % (this.shape.getSize() * 2);
-                        connectorY += connector.top * gridSize + (gridSize / 2);
-                        break;
-                    case 270:
-                        connectorX += (connector.top * gridSize) + (gridSize / 2);
-                        connectorY += (connector.left * gridSize + this.shape.getSize()) % (this.shape.getSize() * 2);
-                        break;
-                    default:
-                    case 0:
-                        connectorX += connector.left * gridSize;
-                        connectorY += connector.top * gridSize + (gridSize / 2);
-                        break;
-                }
+            // An offset (gridSize / 2) is applied because circles appear offsetted.
+            switch (rotation) {
+                case 90:
+                    connectorX += connector.top * gridSize + (gridSize / 2);
+                    connectorY += connector.left * gridSize;
+                    break;
+                case 180:
+                    connectorX += (connector.left * gridSize + this.shape.getSize()) % (this.shape.getSize() * 2);
+                    connectorY += connector.top * gridSize + (gridSize / 2);
+                    break;
+                case 270:
+                    connectorX += (connector.top * gridSize) + (gridSize / 2);
+                    connectorY += (connector.left * gridSize + this.shape.getSize()) % (this.shape.getSize() * 2);
+                    break;
+                default:
+                case 0:
+                    connectorX += connector.left * gridSize;
+                    connectorY += connector.top * gridSize + (gridSize / 2);
+                    break;
             }
 
             this.connectors.push(new Connector(
@@ -220,12 +205,14 @@ class Connection {
     horizontal: boolean;
 
     constructor (startX: number, startY: number, endX: number, endY: number, color: string) {
-        this.startX = startX;
-        this.startY = startY;
-        this.endX = endX;
-        this.endY = endY;
-        this.color = color;
         this.horizontal = (startY === endY);
+
+        this.startX = (startX < endX)? startX: endX;
+        this.startY = (startY < endY)? startY: endY;
+        this.endX = (startX < endX)? endX: startX;
+        this.endY = (startY < endY)? endY: startY;
+        
+        this.color = color;
     }
 
     setColor(color: string) { this.color = color; }
@@ -285,6 +272,8 @@ class Editor {
     private placed: Placed[] = [];
     private connectors: Connector[] = [];
     private connections: Connection[] = []
+
+    private events: Record<string, CallableFunction> = {};
 
     private dragging = false;
     private panX = 0;
@@ -384,7 +373,7 @@ class Editor {
     
                 this.placed.push(placed);
                 this.connectors.push(...placed.getConnectors());
-                this.placing.fire("place", placed);
+                this.events["place"]?.(placed);
 
                 if (!this.moving) return;
                 this.moving = false;
@@ -506,12 +495,17 @@ class Editor {
 
     getContext() { return this.ctx; }
     getPlaced() { return this.placed; }
+    getConnections() { return this.connections; }
 
     registerPlaceable(placeable: Placeable) { 
         placeable._setEditor(this);
 
         this.placeables[placeable.getLabel()] = placeable;
         this.toolbar.appendChild(placeable._getButton());
+    }
+
+    registerListener (event: string, callable: CallableFunction) {
+        this.events[event] = callable;
     }
 
     togglePlaceable(placeable: Placeable | null = null) {

@@ -21,9 +21,9 @@ class Circle extends Shape {
 }
 window.onload = () => {
     const editor = new Editor("editor", new Wire());
-    const state = new Placeable(new Circle("#949494ff", 1.5), "STATE", { top: 0, left: 0, radius: 1.5, align: true, color: null });
+    const state = new Placeable(new Circle("#949494ff", 1.5), "STATE", { top: 1, left: 1.5, radius: 1.5, align: true, color: null });
     editor.registerPlaceable(state);
-    state.listen("place", placeState);
+    editor.registerListener("place", placeState);
     function placeState(placed) {
         placed.setLabel(`q${editor.getPlaced().length - 1}`);
         console.log("here", placed);
