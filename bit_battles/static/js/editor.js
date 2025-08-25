@@ -12,7 +12,7 @@ class Shape {
         ctx.save();
         ctx.translate(centerX, centerY);
         ctx.rotate((rotation * Math.PI) / 180);
-        ctx.fillStyle = "black";
+        ctx.fillStyle = "white";
         ctx.font = "10px Arial";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -22,7 +22,6 @@ class Shape {
 }
 class Placeable {
     constructor(shape, label, ...connectors) {
-        this.events = {};
         this.shape = shape;
         this.label = label;
         this.connectors = connectors;
@@ -37,13 +36,6 @@ class Placeable {
     getShape() { return this.shape; }
     getLabel() { return this.label; }
     getConnectors() { return this.connectors; }
-    listen(event, callable) {
-        this.events[event] = callable;
-    }
-    fire(event, ...args) {
-        var _a, _b;
-        (_b = (_a = this.events)[event]) === null || _b === void 0 ? void 0 : _b.call(_a, ...args);
-    }
     draw(ctx, snappedX, snappedY, rotation) {
         this.shape.draw(ctx, snappedX, snappedY, rotation, this.label);
     }
@@ -91,31 +83,25 @@ class Placed {
         _connectors.forEach(connector => {
             let connectorX = this.x;
             let connectorY = this.y;
-            if (this.shape instanceof Circle) {
-                connectorX += this.shape.getSize() / 2;
-                connectorY += this.shape.getSize() / 2;
-            }
-            else {
-                // An offset (gridSize / 2) is applied because circles appear offsetted.
-                switch (rotation) {
-                    case 90:
-                        connectorX += connector.top * gridSize + (gridSize / 2);
-                        connectorY += connector.left * gridSize;
-                        break;
-                    case 180:
-                        connectorX += (connector.left * gridSize + this.shape.getSize()) % (this.shape.getSize() * 2);
-                        connectorY += connector.top * gridSize + (gridSize / 2);
-                        break;
-                    case 270:
-                        connectorX += (connector.top * gridSize) + (gridSize / 2);
-                        connectorY += (connector.left * gridSize + this.shape.getSize()) % (this.shape.getSize() * 2);
-                        break;
-                    default:
-                    case 0:
-                        connectorX += connector.left * gridSize;
-                        connectorY += connector.top * gridSize + (gridSize / 2);
-                        break;
-                }
+            // An offset (gridSize / 2) is applied because circles appear offsetted.
+            switch (rotation) {
+                case 90:
+                    connectorX += connector.top * gridSize + (gridSize / 2);
+                    connectorY += connector.left * gridSize;
+                    break;
+                case 180:
+                    connectorX += (connector.left * gridSize + this.shape.getSize()) % (this.shape.getSize() * 2);
+                    connectorY += connector.top * gridSize + (gridSize / 2);
+                    break;
+                case 270:
+                    connectorX += (connector.top * gridSize) + (gridSize / 2);
+                    connectorY += (connector.left * gridSize + this.shape.getSize()) % (this.shape.getSize() * 2);
+                    break;
+                default:
+                case 0:
+                    connectorX += connector.left * gridSize;
+                    connectorY += connector.top * gridSize + (gridSize / 2);
+                    break;
             }
             this.connectors.push(new Connector(connectorX, connectorY, connector.radius * gridSize, connector.color));
         });
@@ -147,12 +133,12 @@ class PlaceableConnection {
 }
 class Connection {
     constructor(startX, startY, endX, endY, color) {
-        this.startX = startX;
-        this.startY = startY;
-        this.endX = endX;
-        this.endY = endY;
-        this.color = color;
         this.horizontal = (startY === endY);
+        this.startX = (startX < endX) ? startX : endX;
+        this.startY = (startY < endY) ? startY : endY;
+        this.endX = (startX < endX) ? endX : startX;
+        this.endY = (startY < endY) ? endY : startY;
+        this.color = color;
     }
     setColor(color) { this.color = color; }
     draw(ctx, connector) {
@@ -193,6 +179,7 @@ class Editor {
         this.placed = [];
         this.connectors = [];
         this.connections = [];
+        this.events = {};
         this.dragging = false;
         this.panX = 0;
         this.panY = 0;
@@ -256,6 +243,7 @@ class Editor {
     }
     registerListeners() {
         this.canvas.addEventListener("click", (e) => {
+            var _a, _b;
             const [snappedX, snappedY] = this._getWorldCoordinates();
             if (this.placing) {
                 const gate = this.findGate(snappedX, snappedY, this.placing.getShape().getSize());
@@ -266,7 +254,7 @@ class Editor {
                 const placed = new Placed(this.placing.getShape(), this.placing.getLabel(), this.placing.getConnectors(), snappedX, snappedY, this.rotation);
                 this.placed.push(placed);
                 this.connectors.push(...placed.getConnectors());
-                this.placing.fire("place", placed);
+                (_b = (_a = this.events)["place"]) === null || _b === void 0 ? void 0 : _b.call(_a, placed);
                 if (!this.moving)
                     return;
                 this.moving = false;
@@ -376,10 +364,14 @@ class Editor {
     }
     getContext() { return this.ctx; }
     getPlaced() { return this.placed; }
+    getConnections() { return this.connections; }
     registerPlaceable(placeable) {
         placeable._setEditor(this);
         this.placeables[placeable.getLabel()] = placeable;
         this.toolbar.appendChild(placeable._getButton());
+    }
+    registerListener(event, callable) {
+        this.events[event] = callable;
     }
     togglePlaceable(placeable = null) {
         this.placing = (this.placing === placeable) ? null : placeable;

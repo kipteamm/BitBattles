@@ -87,10 +87,13 @@ class Wire extends PlaceableConnection {
         ctx.stroke();
     }
 }
+let editor;
 window.onload = () => {
-    const editor = new Editor("editor", new Wire());
+    editor = new Editor("editor", new Wire());
     const INPUT = new Placeable(new Square("#1d5723", 1), "IN", { top: 0, left: 1, radius: .20, align: false, color: "#000" });
     editor.registerPlaceable(INPUT);
+    const OUTPUT = new Placeable(new Circle("#1d5723", .5), "OUT", { top: 0, left: 0, radius: .20, align: false, color: "#000" });
+    editor.registerPlaceable(OUTPUT);
     const AND = new Placeable(new Square("#ffcc00", 3), "AND", { top: 0, left: 0, radius: .20, align: false, color: "#000" }, { top: 1, left: 0, radius: .20, align: false, color: "#000" }, { top: 2, left: 0, radius: .20, align: false, color: "#000" }, { top: 1, left: 3, radius: .20, align: false, color: "#000" });
     editor.registerPlaceable(AND);
     console.log(editor);

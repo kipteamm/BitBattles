@@ -98,8 +98,9 @@ class Wire extends PlaceableConnection {
 }
 
 
+let editor;
 window.onload = () => {
-const editor = new Editor("editor", new Wire());
+editor = new Editor("editor", new Wire());
 
 const INPUT = new Placeable(
     new Square("#1d5723", 1), 
@@ -107,6 +108,13 @@ const INPUT = new Placeable(
     { top: 0, left: 1, radius: .20, align: false, color: "#000" },
 );
 editor.registerPlaceable(INPUT);
+
+const OUTPUT = new Placeable(
+    new Circle("#1d5723", .5), 
+    "OUT",
+    { top: 0, left: 0, radius: .20, align: false, color: "#000" },
+);
+editor.registerPlaceable(OUTPUT);
 
 const AND = new Placeable(
     new Square("#ffcc00", 3), 
@@ -119,5 +127,4 @@ const AND = new Placeable(
 editor.registerPlaceable(AND);
 
 console.log(editor);
-
 };
