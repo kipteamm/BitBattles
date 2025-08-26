@@ -113,7 +113,6 @@ class Placed {
     setLabel(label) { this.label = label; }
     draw(ctx) {
         this.shape.draw(ctx, this.x, this.y, this.rotation, this.label);
-        this.connectors.forEach(connector => connector.draw(ctx));
     }
     drawOutline(ctx) {
         this.shape.drawOutline(ctx, this.x, this.y);
@@ -196,13 +195,6 @@ class Editor {
         this.registerListeners();
         this.draw();
     }
-    _getWorldCoordinates() {
-        const worldX = this.lastX - this.panX;
-        const worldY = this.lastY - this.panY;
-        const snappedX = Math.floor(worldX / gridSize) * gridSize;
-        const snappedY = Math.floor(worldY / gridSize) * gridSize;
-        return [snappedX, snappedY];
-    }
     setupPanControls() {
         this.canvas.addEventListener("mousedown", (e) => {
             if (e.button !== 2)
@@ -222,7 +214,7 @@ class Editor {
             this.lastX = e.clientX;
             this.lastY = e.clientY;
             if (!this.dragging) {
-                const [snappedX, snappedY] = this._getWorldCoordinates();
+                const [snappedX, snappedY] = this.getWorldCoordinates();
                 const connector = this.findConnector(this.lastX - this.panX, this.lastY - this.panY, 1);
                 const gate = this.findGate(snappedX, snappedY, 1);
                 if (gate && connector) {
@@ -243,8 +235,9 @@ class Editor {
     }
     registerListeners() {
         this.canvas.addEventListener("click", (e) => {
-            var _a, _b;
-            const [snappedX, snappedY] = this._getWorldCoordinates();
+            var _a, _b, _c, _d;
+            const [snappedX, snappedY] = this.getWorldCoordinates();
+            (_b = (_a = this.events)["click"]) === null || _b === void 0 ? void 0 : _b.call(_a, e);
             if (this.placing) {
                 const gate = this.findGate(snappedX, snappedY, this.placing.getShape().getSize());
                 if (gate)
@@ -254,7 +247,7 @@ class Editor {
                 const placed = new Placed(this.placing.getShape(), this.placing.getLabel(), this.placing.getConnectors(), snappedX, snappedY, this.rotation);
                 this.placed.push(placed);
                 this.connectors.push(...placed.getConnectors());
-                (_b = (_a = this.events)["place"]) === null || _b === void 0 ? void 0 : _b.call(_a, placed);
+                (_d = (_c = this.events)["place"]) === null || _d === void 0 ? void 0 : _d.call(_c, placed);
                 if (!this.moving)
                     return;
                 this.moving = false;
@@ -325,23 +318,11 @@ class Editor {
             this.draw();
         });
     }
-    connect(connector) {
-        if (this.connecting) {
-            if (!this.connection.valid(this.connecting, connector))
-                return;
-            this.connections.push(new Connection(this.connecting.x, this.connecting.y, connector.x, connector.y, this.connection.getColor()));
-            this.connecting = undefined;
-            return;
-        }
-        this.connecting = connector;
-    }
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.ctx.save();
         this.ctx.translate(this.panX, this.panY);
-        this.connections.forEach(elm => { elm.draw(this.ctx, this.connection); });
-        this.placed.forEach(elm => { elm.draw(this.ctx); });
-        const [snappedX, snappedY] = this._getWorldCoordinates();
+        const [snappedX, snappedY] = this.getWorldCoordinates();
         if (this.connecting) {
             this.connection.drawGhost(this.ctx, this.connecting.x, this.connecting.y, snappedX, snappedY, (this.hovering instanceof Connector) ? this.hovering : undefined);
         }
@@ -349,6 +330,9 @@ class Editor {
             this.drawPlacing(snappedX, snappedY);
         if (this.hovering && !this.placing)
             this.hovering.drawOutline(this.ctx, snappedX, snappedY);
+        this.connections.forEach(elm => { elm.draw(this.ctx, this.connection); });
+        this.placed.forEach(elm => { elm.draw(this.ctx); });
+        this.connectors.forEach(elm => { elm.draw(this.ctx); });
         this.ctx.restore();
     }
     drawPlacing(snappedX, snappedY) {
@@ -364,7 +348,16 @@ class Editor {
     }
     getContext() { return this.ctx; }
     getPlaced() { return this.placed; }
+    getConnectors() { return this.connectors; }
     getConnections() { return this.connections; }
+    getHovering() { return this.hovering; }
+    getWorldCoordinates() {
+        const worldX = this.lastX - this.panX;
+        const worldY = this.lastY - this.panY;
+        const snappedX = Math.floor(worldX / gridSize) * gridSize;
+        const snappedY = Math.floor(worldY / gridSize) * gridSize;
+        return [snappedX, snappedY];
+    }
     registerPlaceable(placeable) {
         placeable._setEditor(this);
         this.placeables[placeable.getLabel()] = placeable;
@@ -373,11 +366,25 @@ class Editor {
     registerListener(event, callable) {
         this.events[event] = callable;
     }
+    addConnector(connector) {
+        this.connectors.push(connector);
+    }
     togglePlaceable(placeable = null) {
         this.placing = (this.placing === placeable) ? null : placeable;
         this.rotation = 0;
+        this.connecting = undefined;
         if (!this.placing)
             return this.draw();
+    }
+    connect(connector) {
+        if (this.connecting) {
+            if (!this.connection.valid(this.connecting, connector))
+                return;
+            this.connections.push(new Connection(this.connecting.x, this.connecting.y, connector.x, connector.y, this.connection.getColor()));
+            this.connecting = undefined;
+            return;
+        }
+        this.connecting = connector;
     }
     findConnector(snappedX, snappedY, overlapSize) {
         return this.connectors.find(elm => elm.overlaps(snappedX, snappedY, overlapSize));

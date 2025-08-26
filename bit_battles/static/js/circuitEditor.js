@@ -28,7 +28,7 @@ class Circle extends Shape {
         ctx.beginPath();
         ctx.arc(x + this.size, y + this.size, this.size, 0, Math.PI * 2);
         ctx.fill();
-        this.drawLabel(ctx, x, y, 0, label);
+        this.drawLabel(ctx, x, y, rotation, label);
     }
     drawOutline(ctx, x, y) {
         ctx.strokeStyle = "black";
@@ -96,5 +96,16 @@ window.onload = () => {
     editor.registerPlaceable(OUTPUT);
     const AND = new Placeable(new Square("#ffcc00", 3), "AND", { top: 0, left: 0, radius: .20, align: false, color: "#000" }, { top: 1, left: 0, radius: .20, align: false, color: "#000" }, { top: 2, left: 0, radius: .20, align: false, color: "#000" }, { top: 1, left: 3, radius: .20, align: false, color: "#000" });
     editor.registerPlaceable(AND);
+    editor.registerListener("click", clickListener);
+    function clickListener(event) {
+        const hovering = editor.getHovering();
+        if (!(hovering instanceof Connection))
+            return;
+        const [worldX, wordlY] = editor.getWorldCoordinates();
+        const connector = new Connector(worldX + gridSize / 2, wordlY + gridSize / 2, gridSize / 5, "#000");
+        editor.addConnector(connector);
+        editor.connect(connector);
+        console.log(hovering);
+    }
     console.log(editor);
 };
