@@ -170,7 +170,6 @@ class Placed {
 
     draw(ctx: CanvasRenderingContext2D) {
         this.shape.draw(ctx, this.x, this.y, this.rotation, this.label);
-        this.connectors.forEach(connector => connector.draw(ctx));
     }
 
     drawOutline(ctx: CanvasRenderingContext2D) {
@@ -297,16 +296,6 @@ class Editor {
         this.draw();
     }
 
-    private _getWorldCoordinates() {
-        const worldX = this.lastX - this.panX;
-        const worldY = this.lastY - this.panY;
-
-        const snappedX = Math.floor(worldX / gridSize) * gridSize;
-        const snappedY = Math.floor(worldY / gridSize) * gridSize;
-
-        return [snappedX, snappedY];
-    }
-
     private setupPanControls() {
         this.canvas.addEventListener("mousedown", (e) => {
             if (e.button !== 2) return;
@@ -329,7 +318,7 @@ class Editor {
             this.lastY = e.clientY;
 
             if (!this.dragging) {
-                const [snappedX, snappedY] = this._getWorldCoordinates()
+                const [snappedX, snappedY] = this.getWorldCoordinates()
 
                 const connector = this.findConnector(this.lastX - this.panX, this.lastY - this.panY, 1);
                 const gate = this.findGate(snappedX, snappedY, 1);
@@ -354,7 +343,8 @@ class Editor {
 
     private registerListeners() {
         this.canvas.addEventListener("click", (e) => {
-            const [snappedX, snappedY] = this._getWorldCoordinates()
+            const [snappedX, snappedY] = this.getWorldCoordinates()
+            this.events["click"]?.(e);
 
             if (this.placing) {
                 const gate = this.findGate(snappedX, snappedY, this.placing.getShape().getSize());
@@ -444,40 +434,22 @@ class Editor {
         })
     }
 
-    private connect(connector: Connector) {
-        if (this.connecting) {
-            if (!this.connection.valid(this.connecting, connector)) return;
-
-            this.connections.push(new Connection(
-                this.connecting.x,
-                this.connecting.y,
-                connector.x,
-                connector.y,
-                this.connection.getColor()
-            ));
-
-            this.connecting = undefined;
-            return;
-        }
-
-        this.connecting = connector;
-    }
-
     private draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.ctx.save();
         this.ctx.translate(this.panX, this.panY);
 
-        this.connections.forEach(elm => { elm.draw(this.ctx, this.connection )});
-        this.placed.forEach(elm => { elm.draw(this.ctx); });
-
-        const [snappedX, snappedY] = this._getWorldCoordinates();
+        const [snappedX, snappedY] = this.getWorldCoordinates();
         if (this.connecting) {
             this.connection.drawGhost(this.ctx, this.connecting.x, this.connecting.y, snappedX, snappedY, (this.hovering instanceof Connector)? this.hovering: undefined);
 
         } else if (this.placing) this.drawPlacing(snappedX, snappedY);
         if (this.hovering && !this.placing) this.hovering.drawOutline(this.ctx, snappedX, snappedY);
+
+        this.connections.forEach(elm => { elm.draw(this.ctx, this.connection )});
+        this.placed.forEach(elm => { elm.draw(this.ctx); });
+        this.connectors.forEach(elm => { elm.draw(this.ctx); })
 
         this.ctx.restore();
     }
@@ -495,7 +467,19 @@ class Editor {
 
     getContext() { return this.ctx; }
     getPlaced() { return this.placed; }
+    getConnectors() { return this.connectors; }
     getConnections() { return this.connections; }
+    getHovering() { return this.hovering; }
+
+    getWorldCoordinates() {
+        const worldX = this.lastX - this.panX;
+        const worldY = this.lastY - this.panY;
+
+        const snappedX = Math.floor(worldX / gridSize) * gridSize;
+        const snappedY = Math.floor(worldY / gridSize) * gridSize;
+
+        return [snappedX, snappedY];
+    }
 
     registerPlaceable(placeable: Placeable) { 
         placeable._setEditor(this);
@@ -504,15 +488,39 @@ class Editor {
         this.toolbar.appendChild(placeable._getButton());
     }
 
-    registerListener (event: string, callable: CallableFunction) {
+    registerListener(event: string, callable: CallableFunction) {
         this.events[event] = callable;
+    }
+
+    addConnector(connector: Connector) {
+        this.connectors.push(connector);
     }
 
     togglePlaceable(placeable: Placeable | null = null) {
         this.placing = (this.placing === placeable)? null: placeable;
         this.rotation = 0;
+        this.connecting = undefined;
 
         if (!this.placing) return this.draw();
+    }
+
+    connect(connector: Connector) {
+        if (this.connecting) {
+            if (!this.connection.valid(this.connecting, connector)) return;
+
+            this.connections.push(new Connection(
+                this.connecting.x,
+                this.connecting.y,
+                connector.x,
+                connector.y,
+                this.connection.getColor()
+            ));
+
+            this.connecting = undefined;
+            return;
+        }
+
+        this.connecting = connector;
     }
 
     findConnector(snappedX: number, snappedY: number, overlapSize: number) {

@@ -36,7 +36,7 @@ class Circle extends Shape {
         ctx.arc(x + this.size, y + this.size, this.size, 0, Math.PI * 2);
         ctx.fill();
         
-        this.drawLabel(ctx, x, y, 0, label);
+        this.drawLabel(ctx, x, y, rotation, label);
 
     }
     drawOutline(ctx: CanvasRenderingContext2D, x: number, y: number) {
@@ -98,7 +98,7 @@ class Wire extends PlaceableConnection {
 }
 
 
-let editor;
+let editor: Editor;
 window.onload = () => {
 editor = new Editor("editor", new Wire());
 
@@ -125,6 +125,21 @@ const AND = new Placeable(
     { top: 1, left: 3, radius: .20, align: false, color: "#000" },
 );
 editor.registerPlaceable(AND);
+
+editor.registerListener("click", clickListener);
+
+function clickListener(event: PointerEvent) {
+    const hovering = editor.getHovering();
+    if (!(hovering instanceof Connection)) return;
+
+    const [worldX, wordlY] = editor.getWorldCoordinates();
+    const connector = new Connector(worldX + gridSize/2, wordlY + gridSize/2, gridSize/5, "#000");
+
+    editor.addConnector(connector);
+    editor.connect(connector);
+
+    console.log(hovering);
+}
 
 console.log(editor);
 };
