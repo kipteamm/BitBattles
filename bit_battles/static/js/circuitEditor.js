@@ -1,4 +1,7 @@
 "use strict";
+function getColor() {
+    return '#' + (Math.random() * 0xFFFFFF << 0).toString(16).padStart(6, '0');
+}
 class Square extends Shape {
     constructor(color, size) {
         super(color);
@@ -96,16 +99,58 @@ window.onload = () => {
     editor.registerPlaceable(OUTPUT);
     const AND = new Placeable(new Square("#ffcc00", 3), "AND", { top: 0, left: 0, radius: .20, align: false, color: "#000" }, { top: 1, left: 0, radius: .20, align: false, color: "#000" }, { top: 2, left: 0, radius: .20, align: false, color: "#000" }, { top: 1, left: 3, radius: .20, align: false, color: "#000" });
     editor.registerPlaceable(AND);
-    editor.registerListener("click", clickListener);
-    function clickListener(event) {
+    editor.registerListener("click", click);
+    function click(event) {
         const hovering = editor.getHovering();
+        if (editor.getMode() === Mode.DEBUG) {
+            if (!(hovering instanceof Placed))
+                return;
+            if (hovering.getLabel() !== "IN")
+                return;
+            console.log(hovering);
+            return;
+        }
         if (!(hovering instanceof Connection))
             return;
         const [worldX, wordlY] = editor.getWorldCoordinates();
-        const connector = new Connector(worldX + gridSize / 2, wordlY + gridSize / 2, gridSize / 5, "#000");
+        const connector = new Connector(worldX + gridSize / 2, wordlY + gridSize / 2, gridSize / 5, null, true);
         editor.addConnector(connector);
         editor.connect(connector);
-        console.log(hovering);
+    }
+    editor.registerListener("connect", connect);
+    function connect(startConnector, endConnector) {
+        splitWire(startConnector, editor.findConnection(startConnector.x, startConnector.y, 1));
+        splitWire(endConnector, editor.findConnection(endConnector.x, endConnector.y, 1));
+    }
+    function splitWire(connector, connection) {
+        if (!connection)
+            return;
+        connector.setColor("#000");
+        const wire = new Connection(connector, connection.endConnector, "#1d5723");
+        connection.updateConnectors(connection.startConnector, connector);
+        editor.addConnection(wire);
+    }
+    editor.registerListener("deleteConnection", deleteConnection);
+    function deleteConnection(connection) {
+        if (connection.startConnector.getConnections().size === 2)
+            mergeWire(connection.startConnector);
+        if (connection.endConnector.getConnections().size === 2)
+            mergeWire(connection.endConnector);
+        if (connection.startConnector.getConnections().size === 0)
+            editor.deleteConnector(connection.startConnector);
+        console.log("remove ", connection.startConnector);
+        if (connection.endConnector.getConnections().size === 0)
+            editor.deleteConnector(connection.endConnector);
+        console.log("remove ", connection.endConnector);
+    }
+    function mergeWire(connector) {
+        const [wire, temp] = connector.getConnections();
+        if (wire.isHorizontal() !== temp.isHorizontal())
+            return;
+        const startConnector = wire.startConnector === connector ? wire.endConnector : wire.startConnector;
+        const endConnector = temp.startConnector === connector ? temp.endConnector : temp.startConnector;
+        wire.updateConnectors(startConnector, endConnector);
+        editor.deleteConnection(temp, true);
     }
     console.log(editor);
 };
