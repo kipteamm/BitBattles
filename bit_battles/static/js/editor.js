@@ -299,7 +299,7 @@ class Editor {
             if (!this.hovering) {
                 if (!this.connecting)
                     return;
-                const connector = new Connector(snappedX + gridSize / 2, snappedY + gridSize / 2, gridSize / 5, getColor(), true);
+                const connector = new Connector(snappedX + gridSize / 2, snappedY + gridSize / 2, gridSize / 5, null, true);
                 if (!this.connection.valid(this.connecting, connector))
                     return;
                 this.addConnector(connector);
