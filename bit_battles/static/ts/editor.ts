@@ -74,15 +74,28 @@ class Connector {
     y: number;
     size: number;
     color: string | null;
+    temporary: boolean;
+    connections: Set<Connection> = new Set<Connection>();
 
-    constructor (x: number, y: number, radius: number, color: string | null) {
+    constructor (x: number, y: number, radius: number, color: string | null, temporary: boolean) {
         this.x = x;
         this.y = y;
         this.size = radius;
         this.color = color;
+        this.temporary = temporary;
     }
 
     getColor() { return this.color; }
+    setColor(color: string) { this.color = color; }
+    isTemporary() { return this.temporary; }
+    getConnections() { return this.connections; }
+
+    addConnection(connection: Connection) {
+        this.connections.add(connection);
+    }
+    removeConnection(connection: Connection) {
+        this.connections.delete(connection);
+    }
 
     draw(ctx: CanvasRenderingContext2D) {
         if (!this.color) return;
@@ -156,7 +169,8 @@ class Placed {
                 connectorX,
                 connectorY,
                 connector.radius * gridSize,
-                connector.color
+                connector.color,
+                false
             ));
         });
     }
@@ -196,44 +210,41 @@ abstract class PlaceableConnection {
 }
 
 class Connection {
-    startX: number;
-    startY: number
-    endX: number;
-    endY: number
+    startConnector!: Connector;
+    endConnector!: Connector;
     color: string;
-    horizontal: boolean;
+    horizontal: boolean = true;
 
-    constructor (startX: number, startY: number, endX: number, endY: number, color: string) {
-        this.horizontal = (startY === endY);
-
-        this.startX = (startX < endX)? startX: endX;
-        this.startY = (startY < endY)? startY: endY;
-        this.endX = (startX < endX)? endX: startX;
-        this.endY = (startY < endY)? endY: startY;
-        
+    constructor (startConnector: Connector, endConnector: Connector, color: string) {
         this.color = color;
+        this.updateConnectors(startConnector, endConnector);
     }
 
+    updateConnectors(startConnector: Connector, endConnector: Connector) {
+        if (startConnector === endConnector) { console.log("here"); return; }
+
+        if (this.startConnector && this.startConnector !== startConnector) this.startConnector.removeConnection(this);
+        if (this.endConnector && this.endConnector !== endConnector) this.endConnector.removeConnection(this);
+
+        this.horizontal = startConnector.y === endConnector.y;
+        if (this.horizontal) {
+            this.startConnector = (startConnector.x > endConnector.x)? endConnector: startConnector;
+            this.endConnector = (startConnector.x > endConnector.x)? startConnector: endConnector;
+        } else {
+            this.startConnector = (startConnector.y > endConnector.y)? endConnector: startConnector;
+            this.endConnector = (startConnector.y > endConnector.y)? startConnector: endConnector;
+        }
+
+        this.startConnector.addConnection(this);
+        this.endConnector.addConnection(this);
+    }
+
+    isHorizontal() { return this.horizontal }
+    getColor() { return this.color; }
     setColor(color: string) { this.color = color; }
 
     draw(ctx: CanvasRenderingContext2D, connector: PlaceableConnection) {
-        connector.draw(ctx, this.startX, this.startY, this.endX, this.endY, this.color);
-    }
-
-    overlaps(snappedX: number, snappedY: number, overlapSize: number) {
-        if (this.horizontal) return (
-            snappedX + overlapSize > this.startX &&
-            snappedX < this.endX &&
-            snappedY + overlapSize > this.startY - gridSize/2 &&
-            snappedY < this.startY + gridSize/2
-        );
-
-        return (
-            snappedX + overlapSize > this.startX - gridSize/2 &&
-            snappedX < this.endX + gridSize/2 &&
-            snappedY + overlapSize > this.startY &&
-            snappedY < this.startY
-        );
+        connector.draw(ctx, this.startConnector.x, this.startConnector.y, this.endConnector.x, this.endConnector.y, this.color);
     }
 
     drawOutline(ctx: CanvasRenderingContext2D, snappedX: number, snappedY: number) {
@@ -243,13 +254,37 @@ class Connection {
 
         if (this.horizontal) {
             // To make it match connector size; use radius gridSize/5 + gridSize/4
-            ctx.arc(snappedX + gridSize/2, this.startY, gridSize/4, 0, Math.PI * 2);
+            ctx.arc(snappedX + gridSize/2, this.startConnector.y, gridSize/4, 0, Math.PI * 2);
         } else {
-            ctx.arc(this.startX, snappedY + gridSize/2, gridSize/4, 0, Math.PI * 2);
+            ctx.arc(this.startConnector.x, snappedY + gridSize/2, gridSize/4, 0, Math.PI * 2);
         }
 
         ctx.stroke();
     }
+
+    overlaps(snappedX: number, snappedY: number, overlapSize: number) {
+        if (this.startConnector.isTemporary() && this.startConnector.x === snappedX + gridSize/2 && this.startConnector.y === snappedY + gridSize/2) return false;
+        if (this.endConnector.isTemporary() && this.endConnector.x === snappedX + gridSize/2 && this.endConnector.y === snappedY + gridSize/2) return false;
+
+        if (this.horizontal) return (
+            snappedX + overlapSize > this.startConnector.x &&
+            snappedX < this.endConnector.x &&
+            snappedY + overlapSize > this.startConnector.y - gridSize/2 &&
+            snappedY < this.endConnector.y + gridSize/2
+        );
+
+        return (
+            snappedX + overlapSize > this.startConnector.x - gridSize/2 &&
+            snappedX < this.endConnector.x + gridSize/2 &&
+            snappedY + overlapSize > this.startConnector.y &&
+            snappedY < this.endConnector.y
+        );
+    }
+}
+
+enum Mode {
+    DEBUG = "DEBUG",
+    EDIT = "EDIT"
 }
 
 class Editor {
@@ -258,6 +293,7 @@ class Editor {
 
     private placeables: Record<string, Placeable> = {};
     private toolbar: HTMLElement;
+    private mode: Mode = Mode.EDIT;
 
     private placing: Placeable | null = null;
     private hovering: Placed | Connector | Connection | undefined;
@@ -346,6 +382,7 @@ class Editor {
             const [snappedX, snappedY] = this.getWorldCoordinates()
             this.events["click"]?.(e);
 
+            if (this.mode === Mode.DEBUG) return;
             if (this.placing) {
                 const gate = this.findGate(snappedX, snappedY, this.placing.getShape().getSize());
 
@@ -370,7 +407,16 @@ class Editor {
                 this.togglePlaceable(null);
             }
 
-            if (!this.hovering) return;
+            if (!this.hovering) {
+                if (!this.connecting) return;
+                const connector = new Connector(snappedX + gridSize/2, snappedY + gridSize/2, gridSize/5, getColor(), true);
+                if (!this.connection.valid(this.connecting, connector)) return;
+
+                this.addConnector(connector);
+                this.connect(connector);
+
+                return;
+            };
             if (this.hovering instanceof Placed) {
                 this.placing = this.placeables[this.hovering.getCategory()];
                 this.rotation = this.hovering.getRotation();
@@ -384,7 +430,15 @@ class Editor {
         this.canvas.addEventListener("contextmenu", (e) => {
             e.preventDefault()
 
-            if (this.connecting) this.connecting = undefined;
+            if (this.mode === Mode.DEBUG) {
+                if (this.hovering) console.log(this.hovering);
+                return;
+            }
+
+            if (this.connecting) {
+                if (this.connecting.isTemporary()) this.deleteConnector(this.connecting);
+                this.connecting = undefined;
+            }
             if (this.hovering instanceof Placed) this.deletePlaced(this.hovering);
             if (this.hovering instanceof Connection) this.deleteConnection(this.hovering);
             this.draw();
@@ -441,15 +495,16 @@ class Editor {
         this.ctx.translate(this.panX, this.panY);
 
         const [snappedX, snappedY] = this.getWorldCoordinates();
-        if (this.connecting) {
-            this.connection.drawGhost(this.ctx, this.connecting.x, this.connecting.y, snappedX, snappedY, (this.hovering instanceof Connector)? this.hovering: undefined);
-
-        } else if (this.placing) this.drawPlacing(snappedX, snappedY);
-        if (this.hovering && !this.placing) this.hovering.drawOutline(this.ctx, snappedX, snappedY);
+        if (this.connecting) this.connection.drawGhost(this.ctx, this.connecting.x, this.connecting.y, snappedX, snappedY, (this.hovering instanceof Connector)? this.hovering: undefined);
+        else if (this.placing) this.drawPlacing(snappedX, snappedY);
 
         this.connections.forEach(elm => { elm.draw(this.ctx, this.connection )});
         this.placed.forEach(elm => { elm.draw(this.ctx); });
-        this.connectors.forEach(elm => { elm.draw(this.ctx); })
+        this.connectors.forEach(elm => { elm.draw(this.ctx); });
+
+        if (this.hovering && !this.placing) this.hovering.drawOutline(this.ctx, snappedX, snappedY);
+
+        this.canvas.title = `Gates: ${this.placed.length}, Connectors: ${this.connectors.length}, Connections: ${this.connections.length}`;
 
         this.ctx.restore();
     }
@@ -470,6 +525,16 @@ class Editor {
     getConnectors() { return this.connectors; }
     getConnections() { return this.connections; }
     getHovering() { return this.hovering; }
+    getConnecting() { return this.connecting; }
+    getMode() { return this.mode; }
+
+    setMode(mode: Mode) {
+        this.mode = mode;
+
+        if (this.mode === Mode.DEBUG) this.canvas.style.cursor = "pointer";
+        if (this.mode === Mode.EDIT) this.canvas.style.cursor = "default";
+        this.togglePlaceable(null);
+    }
 
     getWorldCoordinates() {
         const worldX = this.lastX - this.panX;
@@ -496,7 +561,13 @@ class Editor {
         this.connectors.push(connector);
     }
 
+    addConnection(connection: Connection) {
+        this.connections.push(connection);
+    }
+
     togglePlaceable(placeable: Placeable | null = null) {
+        if (this.mode === Mode.DEBUG) return;
+
         this.placing = (this.placing === placeable)? null: placeable;
         this.rotation = 0;
         this.connecting = undefined;
@@ -507,15 +578,14 @@ class Editor {
     connect(connector: Connector) {
         if (this.connecting) {
             if (!this.connection.valid(this.connecting, connector)) return;
-
-            this.connections.push(new Connection(
-                this.connecting.x,
-                this.connecting.y,
-                connector.x,
-                connector.y,
+            const connection = new Connection(
+                this.connecting,
+                connector,
                 this.connection.getColor()
-            ));
+            );
 
+            this.events["connect"]?.(this.connecting, connector);
+            this.connections.push(connection);
             this.connecting = undefined;
             return;
         }
@@ -541,10 +611,23 @@ class Editor {
         this.connectors.splice(this.connectors.indexOf(placed.getConnectors()[0]), placed.getConnectors().length)
         this.placed.splice(this.placed.indexOf(placed), 1);
     }
+
+    deleteConnector(connector: Connector) {
+        if (!connector.isTemporary()) return;
+        if (connector === this.hovering) this.hovering = undefined;
+        if (connector === this.connecting) this.connecting = undefined;
+
+        this.connectors.splice(this.connectors.indexOf(connector), 1);
+    }
     
-    deleteConnection(connection: Connection) {
+    deleteConnection(connection: Connection, silent: boolean = false) {
         if (connection === this.hovering) this.hovering = undefined;
 
+        connection.startConnector.removeConnection(connection);        
+        connection.endConnector.removeConnection(connection);
         this.connections.splice(this.connections.indexOf(connection), 1);
+
+        // if (silent) return;
+        this.events["deleteConnection"]?.(connection);
     }
 }
