@@ -41,10 +41,10 @@ def create_app() -> Flask:
     login_manager = LoginManager(app)
     migrate = Migrate()
 
-    socketio.init_app(app)
-    migrate.init_app(app, db)
-    cache.init_app(app)
     db.init_app(app)
+    cache.init_app(app)
+    migrate.init_app(app, db)
+    socketio.init_app(app)
 
     @login_manager.user_loader
     def load_user(user_id):
