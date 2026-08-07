@@ -11,8 +11,7 @@ from bit_battles.auth.views import auth_blueprint
 from bit_battles.app.views import app_blueprint
 
 from .extensions import db, socketio, cache
-from .secrets import SECRET_KEY
-from .config import DEBUG
+from .config import DEBUG, SECRET_KEY
 
 from flask_migrate import Migrate
 from flask_login import LoginManager, current_user, AnonymousUserMixin

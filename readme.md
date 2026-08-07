@@ -7,21 +7,6 @@ To run the app locally, just run the `app.py` file. Make sure you are in the par
 python app.py
 ```
 
-If you are running the project for the first time you are going to have to add 2 files to `bit_battles`.
-1. `bit_battles/config.py`
-```py
-import re
-
-
-DEBUG = True
-ALLOWED_CHARACTERS_REGEX = re.compile(r'^[a-zA-Z0-9_.-]+$')
-```
-2. `bit_battles/secrets.py`
-```py
-# This can be anything, only in production should you worry about this seriously.
-SECRET_KEY = "just_a_string"
-```
-
 You will also have to run initial migrations.
 ```bash
 flask db init

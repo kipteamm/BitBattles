@@ -16,13 +16,11 @@ __cache__/
 db.sqlite3
 db.sqlite3-journal
 
-# Ignore config files
-config.py
-secrets.py
-
 # Battle data
 battle_data/*
 
 # Circuits
 circuits.sqlite3
 circuits.sqlite3-journal
+
+.env
