@@ -3,10 +3,6 @@
 venv/
 .venv
 
-# Ignore migration files
-/migrations
-migrations/
-
 # Ignore any (py)caches
 /__pycache__
 __pycache__/
