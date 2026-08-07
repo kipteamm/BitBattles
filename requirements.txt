@@ -6,3 +6,4 @@ gunicorn==23.0.0
 eventlet==0.37.0
 orjson==3.10.12
 bleach==6.2.0
+python-dotenv==1.2.2
