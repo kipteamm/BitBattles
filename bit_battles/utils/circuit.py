@@ -12,7 +12,7 @@ import os
 
 
 @contextmanager
-def get_db_connection(db_path="circuits.sqlite3"):
+def get_db_connection(db_path="instance/circuits.sqlite3"):
     """Context manager for SQLite connection."""
     conn = sqlite3.connect(db_path)
     try:
@@ -108,7 +108,7 @@ class Circuit:
         return zlib.compress(orjson.dumps({"g": self._gates, "w": self._wires}))
     
     def save(self, table: str, table_id: str, user_id: str) -> tuple[bool, int]:
-        if not os.path.exists("circuits.sqlite3"):
+        if not os.path.exists("instance/circuits.sqlite3"):
             self._create_db()
 
         self._sanitize()
