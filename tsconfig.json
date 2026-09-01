@@ -2,6 +2,7 @@
     "compilerOptions": {
         "target": "es6",
         "module": "es6",
+        "lib": ["es2017", "dom"],
         "outDir": "./bit_battles/static/js", // compiled output
         "rootDir": "./bit_battles/static/ts", // only compile files from here
         "strict": true,

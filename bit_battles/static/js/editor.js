@@ -38,6 +38,36 @@ class Placeable {
     getConnectors() { return this.connectors; }
     draw(ctx, snappedX, snappedY, rotation) {
         this.shape.draw(ctx, snappedX, snappedY, rotation, this.label);
+        this.connectors.forEach(connector => {
+            if (!connector.color)
+                return;
+            let connectorX = snappedX;
+            let connectorY = snappedY;
+            // An offset (gridSize / 2) is applied because circles appear offsetted
+            switch (rotation) {
+                case 90:
+                    connectorX += connector.top * gridSize + (gridSize / 2);
+                    connectorY += connector.left * gridSize;
+                    break;
+                case 180:
+                    connectorX += (connector.left * gridSize + this.shape.getSize()) % (this.shape.getSize() * 2);
+                    connectorY += connector.top * gridSize + (gridSize / 2);
+                    break;
+                case 270:
+                    connectorX += (connector.top * gridSize) + (gridSize / 2);
+                    connectorY += (connector.left * gridSize + this.shape.getSize()) % (this.shape.getSize() * 2);
+                    break;
+                default:
+                case 0:
+                    connectorX += connector.left * gridSize;
+                    connectorY += connector.top * gridSize + (gridSize / 2);
+                    break;
+            }
+            ctx.fillStyle = connector.color;
+            ctx.beginPath();
+            ctx.arc(connectorX, connectorY, connector.radius * gridSize, 0, Math.PI * 2);
+            ctx.fill();
+        });
     }
 }
 class Connector {
