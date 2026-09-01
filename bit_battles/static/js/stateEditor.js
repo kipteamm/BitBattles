@@ -1,4 +1,5 @@
 "use strict";
+// @ts-expect-error Complains about the Circuit Circle (files cannot intermingle)
 class Circle extends Shape {
     constructor(color, radius) {
         super(color);

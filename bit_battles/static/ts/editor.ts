@@ -576,21 +576,24 @@ class Editor {
     }
 
     connect(connector: Connector) {
-        if (this.connecting) {
-            if (!this.connection.valid(this.connecting, connector)) return;
-            const connection = new Connection(
-                this.connecting,
-                connector,
-                this.connection.getColor()
-            );
-
-            this.events["connect"]?.(this.connecting, connector);
-            this.connections.push(connection);
-            this.connecting = undefined;
-            return;
+        if (!this.connecting) {
+            this.connecting = connector;
+            return
         }
 
-        this.connecting = connector;
+        if (!this.connection.valid(this.connecting, connector)) 
+            return;
+        
+        const connection = new Connection(
+            this.connecting,
+            connector,
+            this.connection.getColor()
+        );
+
+        this.connections.push(connection);
+        this.events["connect"]?.(this.connecting, connector);
+
+        this.connecting = undefined;
     }
 
     findConnector(snappedX: number, snappedY: number, overlapSize: number) {

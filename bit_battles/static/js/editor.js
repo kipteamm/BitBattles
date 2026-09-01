@@ -453,16 +453,16 @@ class Editor {
     }
     connect(connector) {
         var _a, _b;
-        if (this.connecting) {
-            if (!this.connection.valid(this.connecting, connector))
-                return;
-            const connection = new Connection(this.connecting, connector, this.connection.getColor());
-            (_b = (_a = this.events)["connect"]) === null || _b === void 0 ? void 0 : _b.call(_a, this.connecting, connector);
-            this.connections.push(connection);
-            this.connecting = undefined;
+        if (!this.connecting) {
+            this.connecting = connector;
             return;
         }
-        this.connecting = connector;
+        if (!this.connection.valid(this.connecting, connector))
+            return;
+        const connection = new Connection(this.connecting, connector, this.connection.getColor());
+        this.connections.push(connection);
+        (_b = (_a = this.events)["connect"]) === null || _b === void 0 ? void 0 : _b.call(_a, this.connecting, connector);
+        this.connecting = undefined;
     }
     findConnector(snappedX, snappedY, overlapSize) {
         return this.connectors.find(elm => elm.overlaps(snappedX, snappedY, overlapSize));

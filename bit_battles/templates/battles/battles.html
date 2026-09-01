@@ -8,35 +8,35 @@
             <div class="position second">
                 <div class="top"></div>
                 <div class="front"></div>
-                <img class="content" src="https://api.dicebear.com/9.x/shapes/svg?seed={{ winners.1.username }}&backgroundColor=b6e3f4&size=96" alt="{{ winners.1.username }}'s avatar">
-                <div class="content player">
-                    {% if winners.1 %}
+                {% if winners|length > 1 %}
+                    <img class="content" src="https://api.dicebear.com/9.x/shapes/svg?seed={{ winners.1.username }}&backgroundColor=b6e3f4&size=96" alt="{{ winners.1.username }}'s avatar">
+                    <div class="content player">
                         <h4><a href="/app/user/{{ winners.1.username }}">[{{ winners.1.score }}] {{ winners.1.username }}</a></h4>
                         <span>{{ winners.1.relative_timestamp }}<span>
-                    {% endif %}
-                </div>
+                    </div>
+                {% endif %}
             </div>
             <div class="position first">
                 <div class="top"></div>
                 <div class="front"></div>
-                <img class="content" src="https://api.dicebear.com/9.x/shapes/svg?seed={{ winners.0.username }}&backgroundColor=b6e3f4&size=96" alt="{{ winners.0.username }}'s avatar">
-                <div class="content player">
-                    {% if winners.0 %}
+                {% if winners|length > 0 %}
+                    <img class="content" src="https://api.dicebear.com/9.x/shapes/svg?seed={{ winners.0.username }}&backgroundColor=b6e3f4&size=96" alt="{{ winners.0.username }}'s avatar">
+                    <div class="content player">
                         <h4><a href="/app/user/{{ winners.0.username }}">[{{ winners.0.score }}] {{ winners.0.username }}</a></h4>
                         <span>{{ winners.0.relative_timestamp }}<span>
-                    {% endif %}
-                </div>
+                    </div>
+                {% endif %}
             </div>
             <div class="position third">
                 <div class="top"></div>
                 <div class="front"></div>
-                <img class="content" src="https://api.dicebear.com/9.x/shapes/svg?seed={{ winners.2.username }}&backgroundColor=b6e3f4&size=96" alt="{{ winners.2.username }}'s avatar">
-                <div class="content player">
-                    {% if winners.2 %}
+                {% if winners|length > 2 %}
+                    <img class="content" src="https://api.dicebear.com/9.x/shapes/svg?seed={{ winners.2.username }}&backgroundColor=b6e3f4&size=96" alt="{{ winners.2.username }}'s avatar">
+                    <div class="content player">
                         <h4><a href="/app/user/{{ winners.2.username }}">[{{ winners.2.score }}] {{ winners.2.username }}</a></h4>
                         <span>{{ winners.2.relative_timestamp }}<span>
-                    {% endif %}
-                </div>
+                    </div>
+                {% endif %}
             </div>
         </div>
         <div class="positions-background"></div>

@@ -25,6 +25,7 @@ class Square extends Shape {
     }
 }
 
+// @ts-expect-error Complains about the Circle in stateEditor (both have circles)
 class Circle extends Shape {
     constructor (color: string, radius: number) {
         super(color);
@@ -102,23 +103,17 @@ class Wire extends PlaceableConnection {
 }
 
 
-let editor: Editor;
-window.onload = () => {
-editor = new Editor("editor", new Wire());
-
 const INPUT = new Placeable(
     new Square("#1d5723", 1), 
     "IN",
     { top: 0, left: 1, radius: .20, align: false, color: "#000" },
 );
-editor.registerPlaceable(INPUT);
 
 const OUTPUT = new Placeable(
     new Circle("#1d5723", .5), 
     "OUT",
     { top: 0, left: 0, radius: .20, align: false, color: "#000" },
 );
-editor.registerPlaceable(OUTPUT);
 
 const AND = new Placeable(
     new Square("#ffcc00", 3), 
@@ -128,10 +123,9 @@ const AND = new Placeable(
     { top: 2, left: 0, radius: .20, align: false, color: "#000" },
     { top: 1, left: 3, radius: .20, align: false, color: "#000" },
 );
-editor.registerPlaceable(AND);
 
-editor.registerListener("click", click);
-function click(event: PointerEvent) {
+
+function click(_: PointerEvent) {
     const hovering = editor.getHovering();
 
     if (editor.getMode() === Mode.DEBUG) {
@@ -149,14 +143,12 @@ function click(event: PointerEvent) {
     editor.connect(connector);
 }
 
-editor.registerListener("connect", connect);
 function connect(startConnector: Connector, endConnector: Connector) {
     splitWire(startConnector, editor.findConnection(startConnector.x, startConnector.y, 1));
     splitWire(endConnector, editor.findConnection(endConnector.x, endConnector.y, 1));
 
-    // DOES NOT WORK AT ALL
-    // if (startConnector.getConnections().size === 2) mergeWire(startConnector);
-    // if (endConnector.getConnections().size === 2) mergeWire(endConnector);
+    if (startConnector.getConnections().size === 2) mergeWire(startConnector);
+    if (endConnector.getConnections().size === 2) mergeWire(endConnector);
 }
 
 function splitWire(connector: Connector, connection: Connection | undefined) {
@@ -174,7 +166,6 @@ function splitWire(connector: Connector, connection: Connection | undefined) {
     editor.addConnection(wire);
 }
 
-editor.registerListener("deleteConnection", deleteConnection);
 function deleteConnection(connection: Connection) {
     const startConnections = connection.startConnector.getConnections().size;
     const endConnections = connection.endConnector.getConnections().size;
@@ -198,5 +189,18 @@ function mergeWire(connector: Connector) {
     editor.deleteConnection(temp, true);
 }
 
-console.log(editor);
+
+let editor: Editor;
+window.onload = () => {
+    editor = new Editor("editor", new Wire());
+
+    editor.registerPlaceable(INPUT);
+    editor.registerPlaceable(OUTPUT);
+    editor.registerPlaceable(AND);
+
+    editor.registerListener("click", click);
+    editor.registerListener("connect", connect);
+    editor.registerListener("deleteConnection", deleteConnection);
+
+    console.log(editor);
 };
